@@ -1,0 +1,151 @@
+#include "test_helpers.h"
+#include "test_suites.h"
+#include "tbmp_reader.h"
+#include "tbmp_decode.h"
+#include "tbmp_write.h"
+
+#include <stdlib.h>
+
+void test_writer_roundtrip(void) {
+    SUITE("Writer/RoundTrip");
+
+    /* Encode a 2x2 RGBA8888 image, then decode it and verify. */
+    {
+        TBmpRGBA src_pixels[4] = {
+            {255, 0, 0, 255},
+            {0, 255, 0, 255},
+            {0, 0, 255, 255},
+            {255, 255, 255, 128},
+        };
+        TBmpFrame src = {2, 2, src_pixels};
+
+        TBmpWriteParams params;
+        tbmp_write_default_params(&params);
+        params.encoding = TBMP_ENC_RAW;
+        params.pixel_format = TBMP_FMT_RGBA_8888;
+        params.bit_depth = 32;
+
+        size_t buf_needed = tbmp_write_needed_size(&src, &params);
+        CHECK_GT(buf_needed, 0U);
+
+        uint8_t *enc_buf = malloc(buf_needed);
+        CHECK_NE(enc_buf, NULL);
+        if (!enc_buf)
+            return;
+
+        size_t written = 0;
+        CHECK_OK(tbmp_write(&src, &params, enc_buf, buf_needed, &written));
+        CHECK_GT(written, 0U);
+        CHECK_LE(written, buf_needed);
+
+        /* Decode the encoded buffer */
+        TBmpImage img;
+        CHECK_OK(tbmp_open(enc_buf, written, &img));
+        CHECK_EQ(img.head.width, 2);
+        CHECK_EQ(img.head.height, 2);
+
+        TBmpRGBA out_pixels[4];
+        TBmpFrame out_frame = {0, 0, out_pixels};
+        CHECK_OK(tbmp_decode(&img, &out_frame));
+
+        CHECK_EQ(out_pixels[0].r, 255);
+        CHECK_EQ(out_pixels[0].g, 0);
+        CHECK_EQ(out_pixels[1].g, 255);
+        CHECK_EQ(out_pixels[2].b, 255);
+        CHECK_EQ(out_pixels[3].a, 128);
+
+        free(enc_buf);
+    }
+
+    /* Encode with palette (INDEX_8 RAW) */
+    {
+        TBmpPalette pal;
+        pal.count = 4;
+        pal.entries[0] = (TBmpRGBA){0, 0, 0, 255};
+        pal.entries[1] = (TBmpRGBA){255, 0, 0, 255};
+        pal.entries[2] = (TBmpRGBA){0, 255, 0, 255};
+        pal.entries[3] = (TBmpRGBA){0, 0, 255, 255};
+
+        /* Source: 4x1 where pixels match palette indices exactly */
+        TBmpRGBA src_px[4] = {{0, 0, 0, 255},
+                              {255, 0, 0, 255},
+                              {0, 255, 0, 255},
+                              {0, 0, 255, 255}};
+        TBmpFrame src = {4, 1, src_px};
+
+        TBmpWriteParams params;
+        tbmp_write_default_params(&params);
+        params.encoding = TBMP_ENC_RAW;
+        params.pixel_format = TBMP_FMT_INDEX_8;
+        params.bit_depth = 8;
+        params.palette = &pal;
+
+        size_t cap = tbmp_write_needed_size(&src, &params);
+        uint8_t *enc_buf = malloc(cap);
+        CHECK_NE(enc_buf, NULL);
+        if (!enc_buf)
+            return;
+
+        size_t written = 0;
+        CHECK_OK(tbmp_write(&src, &params, enc_buf, cap, &written));
+
+        TBmpImage img;
+        CHECK_OK(tbmp_open(enc_buf, written, &img));
+        CHECK_EQ(img.has_palette, 1);
+        CHECK_EQ(img.palette.count, 4U);
+
+        TBmpRGBA out_px[4];
+        TBmpFrame out = {0, 0, out_px};
+        CHECK_OK(tbmp_decode(&img, &out));
+
+        /* Palette round-trip: should match original colours */
+        CHECK_EQ(out_px[0].r, 0);
+        CHECK_EQ(out_px[1].r, 255);
+        CHECK_EQ(out_px[2].g, 255);
+        CHECK_EQ(out_px[3].b, 255);
+
+        free(enc_buf);
+    }
+
+    /* RLE round-trip */
+    {
+        /* 4x1 of alternating red/green encoded as RLE */
+        TBmpRGBA src_px[4] = {{255, 0, 0, 255},
+                              {255, 0, 0, 255},
+                              {0, 255, 0, 255},
+                              {0, 255, 0, 255}};
+        TBmpFrame src = {4, 1, src_px};
+
+        TBmpWriteParams params;
+        tbmp_write_default_params(&params);
+        params.encoding = TBMP_ENC_RLE;
+        params.pixel_format = TBMP_FMT_RGB_332;
+        params.bit_depth = 8;
+
+        size_t cap = tbmp_write_needed_size(&src, &params);
+        uint8_t *enc_buf = malloc(cap);
+        CHECK_NE(enc_buf, NULL);
+        if (!enc_buf)
+            return;
+
+        size_t written = 0;
+        CHECK_OK(tbmp_write(&src, &params, enc_buf, cap, &written));
+
+        TBmpImage img;
+        CHECK_OK(tbmp_open(enc_buf, written, &img));
+        TBmpRGBA out_px[4];
+        TBmpFrame out = {0, 0, out_px};
+        CHECK_OK(tbmp_decode(&img, &out));
+
+        /* After quantization to RGB332 and back, red channel should still be
+     * non-zero for first two and zero for last two */
+        CHECK_GT((int)out_px[0].r, 0);
+        CHECK_GT((int)out_px[1].r, 0);
+        CHECK_EQ(out_px[2].r, 0);
+        CHECK_EQ(out_px[3].r, 0);
+        CHECK_GT((int)out_px[2].g, 0);
+        CHECK_GT((int)out_px[3].g, 0);
+
+        free(enc_buf);
+    }
+}

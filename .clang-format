@@ -1,0 +1,50 @@
+BasedOnStyle: LLVM
+
+Language: Cpp
+
+# Indentation
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ContinuationIndentWidth: 4
+IndentCaseLabels: false
+
+# Column limit
+ColumnLimit: 80
+
+# Braces
+BreakBeforeBraces: Attach
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+
+# Alignment
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignTrailingComments: true
+
+# Pointer style: int *p, not int* p
+PointerAlignment: Right
+
+# Includes
+SortIncludes: false
+IncludeBlocks: Preserve
+
+# Operators
+BreakBeforeBinaryOperators: None
+SpaceBeforeAssignmentOperators: true
+SpacesInCStyleCastParentheses: false
+SpaceAfterCStyleCast: false
+
+# Function calls
+SpacesInParentheses: false
+SpaceInEmptyParentheses: false
+SpaceBeforeParens: ControlStatements
+
+# Comments
+ReflowComments: false
+
+# Penalties (tune line-break decisions)
+PenaltyBreakBeforeFirstCallParameter: 19
+PenaltyExcessCharacter: 1000000
