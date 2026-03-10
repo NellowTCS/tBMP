@@ -43,3 +43,6 @@
 tbmp_test
 build/
 Testing/
+site/
+node_modules/
+dist/
