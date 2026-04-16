@@ -62,6 +62,7 @@
 #include "tbmp_meta.h"
 #include "tbmp_reader.h"
 #include "tbmp_types.h"
+#include "tbmp_ui.h"
 #include "tbmp_write.h"
 
 #include <stdio.h>
@@ -423,52 +424,50 @@ static const char *encoding_name(TBmpEncoding enc) {
     }
 }
 
-/* print_meta - display decoded META entries. */
-static void print_meta(const TBmpImage *img) {
+/* print_meta - display decoded META entries and return entry count. */
+static uint32_t print_meta(const TBmpImage *img) {
     if (img->meta_len == 0 || img->meta == NULL)
-        return;
+        return 0;
 
     TBmpMeta meta;
     if (tbmp_meta_parse(img->meta, img->meta_len, &meta) != TBMP_OK) {
-        fprintf(stderr,
-                "warning: META section present but could not be parsed\n");
-        return;
+        tbmp_ui_status_warn("META section present but could not be parsed");
+        return 0;
     }
     if (meta.count == 0)
-        return;
+        return 0;
 
-    printf("META (%u entr%s):\n", meta.count, meta.count == 1 ? "y" : "ies");
     for (uint32_t i = 0; i < meta.count; i++) {
         const TBmpMetaEntry *e = &meta.entries[i];
-        printf("  %-24s = ", e->key);
         switch (e->value.type) {
         case TBMP_META_NIL:
-            printf("nil");
+            tbmp_ui_box_kv(e->key, "%s", "nil");
             break;
         case TBMP_META_BOOL:
-            printf("%s", e->value.u ? "true" : "false");
+            tbmp_ui_box_kv(e->key, "%s", e->value.u ? "true" : "false");
             break;
         case TBMP_META_UINT:
-            printf("%llu", (unsigned long long)e->value.u);
+            tbmp_ui_box_kv(e->key, "%llu", (unsigned long long)e->value.u);
             break;
         case TBMP_META_INT:
-            printf("%lld", (long long)e->value.i);
+            tbmp_ui_box_kv(e->key, "%lld", (long long)e->value.i);
             break;
         case TBMP_META_FLOAT:
-            printf("%g", e->value.f);
+            tbmp_ui_box_kv(e->key, "%g", e->value.f);
             break;
         case TBMP_META_STR:
-            printf("\"%s\"", (const char *)e->value.s);
+            tbmp_ui_box_kv(e->key, "\"%s\"", (const char *)e->value.s);
             break;
         case TBMP_META_BIN:
-            printf("<binary %u bytes>", e->value.bin_len);
+            tbmp_ui_box_kv(e->key, "<binary %u bytes>", e->value.bin_len);
             break;
         default:
-            printf("?");
+            tbmp_ui_box_kv(e->key, "%s", "?");
             break;
         }
-        printf("\n");
     }
+
+    return meta.count;
 }
 
 /*
@@ -522,21 +521,59 @@ static int read_file_all(const char *path, uint8_t **out, size_t *out_len) {
     return 0;
 }
 
+/* write_file_all - write bytes to file with optional spinner progress. */
+static int write_file_all(const char *path, const uint8_t *buf, size_t len,
+                          const char *step_label) {
+    FILE *f = fopen(path, "wb");
+    if (!f) {
+        fprintf(stderr, "error: cannot open '%s' for writing\n", path);
+        return 1;
+    }
+
+    tbmp_ui_step_begin(step_label);
+
+    TBmpUISpinner spinner;
+    tbmp_ui_spinner_start(&spinner, "writing output");
+
+    size_t off = 0;
+    while (off < len) {
+        size_t chunk = len - off;
+        if (chunk > 65536U)
+            chunk = 65536U;
+
+        if (fwrite(buf + off, 1, chunk, f) != chunk) {
+            fprintf(stderr, "error: write failed for '%s'\n", path);
+            fclose(f);
+            tbmp_ui_spinner_stop_error(&spinner, "write failed");
+            tbmp_ui_step_end_fail();
+            return 1;
+        }
+
+        off += chunk;
+        tbmp_ui_spinner_tick(&spinner);
+    }
+
+    fclose(f);
+    tbmp_ui_spinner_stop_success(&spinner, "output written");
+    tbmp_ui_step_end_ok();
+    return 0;
+}
+
 /* print_extra - list EXTRA chunk tags and lengths; return unknown count. */
 static uint32_t print_extra(const TBmpImage *img) {
     if (img->extra == NULL || img->extra_len == 0) {
-        printf("EXTRA: none\n");
+        tbmp_ui_box_line("none");
         return 0;
     }
 
-    printf("EXTRA (%zu bytes):\n", img->extra_len);
+    tbmp_ui_box_linef("total bytes: %zu", img->extra_len);
     size_t pos = 0;
     uint32_t idx = 0;
     uint32_t unknown = 0;
     while (pos < img->extra_len) {
         if (img->extra_len - pos < 8U) {
-            printf("  warning: trailing %zu bytes in EXTRA\n",
-                   img->extra_len - pos);
+            tbmp_ui_box_linef("warning: trailing %zu bytes in EXTRA",
+                              img->extra_len - pos);
             break;
         }
 
@@ -547,18 +584,18 @@ static uint32_t print_extra(const TBmpImage *img) {
         pos += 8U;
 
         if ((size_t)len > img->extra_len - pos) {
-            printf("  warning: chunk %u (%s) length %u exceeds remaining data\n",
-                   idx, tag_text, len);
+            tbmp_ui_box_linef(
+                "warning: chunk %u (%s) length %u exceeds remaining data", idx,
+                tag_text, len);
             break;
         }
 
-        printf("  [%u] %s len=%u", idx, tag_text, len);
         if (memcmp(tag, "PALT", 4) == 0) {
-            printf(" (palette)\n");
+            tbmp_ui_box_linef("[%u] %s len=%u (palette)", idx, tag_text, len);
         } else if (memcmp(tag, "MASK", 4) == 0) {
-            printf(" (masks)\n");
+            tbmp_ui_box_linef("[%u] %s len=%u (masks)", idx, tag_text, len);
         } else {
-            printf(" (unknown)\n");
+            tbmp_ui_box_linef("[%u] %s len=%u (unknown)", idx, tag_text, len);
             unknown++;
         }
 
@@ -569,17 +606,75 @@ static uint32_t print_extra(const TBmpImage *img) {
     return unknown;
 }
 
+static void print_cmd_usage(const char *usage_line) {
+    tbmp_ui_status_error("missing arguments");
+    tbmp_ui_printlnf("usage: %s", usage_line);
+}
+
+static void print_general_usage(void) {
+    if (tbmp_ui_is_ci()) {
+        tbmp_ui_printlnf("tbmp - tBMP command-line toolkit");
+        tbmp_ui_printlnf("Global options:");
+        tbmp_ui_printlnf("  --ci  disable styled output (plain text mode)");
+        tbmp_ui_printlnf("  --help  show this help");
+        tbmp_ui_printlnf("");
+        tbmp_ui_printlnf("  tbmp --ci <command> [args...]");
+        tbmp_ui_printlnf("  tbmp encode <input> <output.tbmp> [--format NAME] [--encoding NAME]");
+        tbmp_ui_printlnf("  tbmp decode <input.tbmp> <output.ppm>");
+        tbmp_ui_printlnf("  tbmp inspect <input.tbmp>");
+        tbmp_ui_printlnf("  tbmp dump-rgba <input.tbmp> <output.rgba>");
+        tbmp_ui_printlnf("");
+        tbmp_ui_printlnf("Input formats (encode): PBM/PGM/PPM P1-P6, PNG, BMP, JPEG, ...");
+        tbmp_ui_printlnf("Pixel formats: rgba8888 (default), rgb888, rgb565, rgb555, rgb444, rgb332");
+        tbmp_ui_printlnf("  (grayscale/bilevel sources default to rgb332)");
+        tbmp_ui_printlnf("Encodings: raw (default), rle, zerorange, span");
+        tbmp_ui_printlnf("inspect: print header/sections/palette/masks/meta/chunks");
+        tbmp_ui_printlnf("dump-rgba: dump decoded raw RGBA bytes (R,G,B,A per pixel)");
+        return;
+    }
+
+    tbmp_ui_set_accent(TBMP_UI_ACCENT_CYAN);
+    tbmp_ui_banner("tbmp :: tBMP command-line toolkit");
+
+    tbmp_ui_section("Global Options");
+    tbmp_ui_table_begin("Options");
+    tbmp_ui_table_row("--ci", "disable styled output (plain text mode)");
+    tbmp_ui_table_row("--help", "show this help");
+    tbmp_ui_table_end();
+
+    tbmp_ui_section("Commands");
+    tbmp_ui_table_begin("Command Usage");
+    tbmp_ui_table_row("global", "tbmp --ci <command> [args...]");
+    tbmp_ui_table_row("encode", "tbmp encode <input> <output.tbmp> [--format NAME] [--encoding NAME]");
+    tbmp_ui_table_row("decode", "tbmp decode <input.tbmp> <output.ppm>");
+    tbmp_ui_table_row("inspect", "tbmp inspect <input.tbmp>");
+    tbmp_ui_table_row("dump-rgba", "tbmp dump-rgba <input.tbmp> <output.rgba>");
+    tbmp_ui_table_end();
+
+    tbmp_ui_section("Notes");
+    tbmp_ui_box_begin("Format Notes");
+    tbmp_ui_box_line("Input formats (encode): PBM/PGM/PPM P1-P6, PNG, BMP, JPEG, ...");
+    tbmp_ui_box_line("Pixel formats: rgba8888 (default), rgb888, rgb565, rgb555, rgb444, rgb332");
+    tbmp_ui_box_line("(grayscale/bilevel sources default to rgb332)");
+    tbmp_ui_box_line("Encodings: raw (default), rle, zerorange, span");
+    tbmp_ui_box_line("inspect: print header/sections/palette/masks/meta/chunks");
+    tbmp_ui_box_line("dump-rgba: dump decoded raw RGBA bytes (R,G,B,A per pixel)");
+    tbmp_ui_box_end();
+}
+
 /* Subcommand: encode. */
 static int cmd_encode(int argc, char **argv) {
     /* argv[0]="encode", argv[1]=input, argv[2]=output, argv[3..]=options */
     if (argc < 3) {
-        fprintf(stderr, "usage: tbmp encode <input> <output.tbmp>"
-                        " [--format NAME] [--encoding NAME]\n");
+        print_cmd_usage("tbmp encode <input> <output.tbmp> [--format NAME] [--encoding NAME]");
         return 1;
     }
 
     const char *in_path = argv[1];
     const char *out_path = argv[2];
+
+    tbmp_ui_set_accent(TBMP_UI_ACCENT_MAGENTA);
+    tbmp_ui_banner("tbmp :: ENCODE");
 
     const char *fmt_name = arg_get(argc, argv, "--format", "rgba8888");
     const char *enc_name = arg_get(argc, argv, "--encoding", "raw");
@@ -597,9 +692,13 @@ static int cmd_encode(int argc, char **argv) {
      * else (P5, P6, PNG, BMP, JPEG, ...).
      * Always returns 4-channel RGBA matching TBmpRGBA layout. */
     int w = 0, h = 0, src_channels = 0, free_with_stb = 0;
+    tbmp_ui_step_begin("load input image");
     TBmpRGBA *pixels = img_load(in_path, &w, &h, &src_channels, &free_with_stb);
-    if (!pixels)
+    if (!pixels) {
+        tbmp_ui_step_end_fail();
         return 1;
+    }
+    tbmp_ui_step_end_ok();
 
     /* For bilevel (P1/P4) and grayscale (P2/P5) sources, default to rgb332
      * unless the user explicitly chose a format. */
@@ -643,33 +742,38 @@ static int cmd_encode(int argc, char **argv) {
     }
 
     size_t written = 0;
+    tbmp_ui_step_begin("encode tBMP payload");
+
+    TBmpUISpinner spinner;
+    tbmp_ui_spinner_start(&spinner, "encoding image");
     TBmpError err = tbmp_write(&frame, &params, out_buf, cap, &written);
+    tbmp_ui_spinner_tick(&spinner);
     if (err != TBMP_OK) {
+        tbmp_ui_spinner_stop_error(&spinner, "encode failed");
+        tbmp_ui_step_end_fail();
         fprintf(stderr, "error: encode failed: %s\n", tbmp_error_str(err));
         free(out_buf);
         img_free(pixels);
         return 1;
     }
+    tbmp_ui_spinner_stop_success(&spinner, "encode complete");
+    tbmp_ui_step_end_ok();
 
-    /* Write output file. */
-    FILE *f = fopen(out_path, "wb");
-    if (!f) {
-        fprintf(stderr, "error: cannot open '%s' for writing\n", out_path);
+    if (write_file_all(out_path, out_buf, written, "write output file") != 0) {
         free(out_buf);
         img_free(pixels);
         return 1;
     }
-    if (fwrite(out_buf, 1, written, f) != written) {
-        fprintf(stderr, "error: write failed for '%s'\n", out_path);
-        fclose(f);
-        free(out_buf);
-        img_free(pixels);
-        return 1;
-    }
-    fclose(f);
 
-    printf("encoded: %dx%d (src channels: %d) %s/%s -> %s (%zu bytes)\n", w, h,
-           src_channels, fmt_name, enc_name, out_path, written);
+    tbmp_ui_status_ok("encoded successfully");
+    tbmp_ui_box_begin("Encode Result");
+    tbmp_ui_box_kv("input", "%s", in_path);
+    tbmp_ui_box_kv("output", "%s", out_path);
+    tbmp_ui_box_kv("size", "%dx%d", w, h);
+    tbmp_ui_box_kv("source", "%d channels", src_channels);
+    tbmp_ui_box_kv("mode", "%s / %s", fmt_name, enc_name);
+    tbmp_ui_box_kv("bytes", "%zu", written);
+    tbmp_ui_box_end();
 
     free(out_buf);
     img_free(pixels);
@@ -680,30 +784,45 @@ static int cmd_encode(int argc, char **argv) {
 /* Subcommand: decode. */
 static int cmd_decode(int argc, char **argv) {
     if (argc < 3) {
-        fprintf(stderr, "usage: tbmp decode <input.tbmp> <output.ppm>\n");
+        print_cmd_usage("tbmp decode <input.tbmp> <output.ppm>");
         return 1;
     }
 
     const char *in_path = argv[1];
     const char *out_path = argv[2];
 
+    tbmp_ui_set_accent(TBMP_UI_ACCENT_GREEN);
+    tbmp_ui_banner("tbmp :: DECODE");
+
     uint8_t *raw = NULL;
     size_t raw_len = 0;
+    tbmp_ui_step_begin("read input file");
     if (read_file_all(in_path, &raw, &raw_len) != 0)
+    {
+        tbmp_ui_step_end_fail();
         return 1;
+    }
+    tbmp_ui_step_end_ok();
 
     /* Parse the tBMP header. */
     TBmpImage img;
+    tbmp_ui_step_begin("parse tBMP header");
     TBmpError err = tbmp_open(raw, raw_len, &img);
     if (err != TBMP_OK) {
+        tbmp_ui_step_end_fail();
         fprintf(stderr, "error: cannot parse '%s': %s\n", in_path,
                 tbmp_error_str(err));
         free(raw);
         return 1;
     }
+    tbmp_ui_step_end_ok();
 
     /* Print META if present. */
-    print_meta(&img);
+    if (img.meta_len > 0 && img.meta != NULL) {
+        tbmp_ui_box_begin("Metadata");
+        (void)print_meta(&img);
+        tbmp_ui_box_end();
+    }
 
     /* Allocate RGBA pixel output buffer. */
     size_t npix = (size_t)img.head.width * (size_t)img.head.height;
@@ -719,20 +838,32 @@ static int cmd_decode(int argc, char **argv) {
     frame.height = img.head.height;
     frame.pixels = pixels;
 
+    tbmp_ui_step_begin("decode pixel data");
+    TBmpUISpinner spinner;
+    tbmp_ui_spinner_start(&spinner, "decoding image");
     err = tbmp_decode(&img, &frame);
+    tbmp_ui_spinner_tick(&spinner);
     if (err != TBMP_OK) {
+        tbmp_ui_spinner_stop_error(&spinner, "decode failed");
+        tbmp_ui_step_end_fail();
         fprintf(stderr, "error: decode failed: %s\n", tbmp_error_str(err));
         free(pixels);
         free(raw);
         return 1;
     }
+    tbmp_ui_spinner_stop_success(&spinner, "decode complete");
+    tbmp_ui_step_end_ok();
 
     int rc = 0;
+
+    tbmp_ui_step_begin("write output image");
+    tbmp_ui_spinner_start(&spinner, "writing decoded image");
 
     if (is_grayscale_format(img.head.pixel_format)) {
         /* Write PGM P5: use R channel as luminance. */
         FILE *pg = fopen(out_path, "wb");
         if (!pg) {
+            tbmp_ui_step_end_fail();
             fprintf(stderr, "error: cannot open '%s' for writing\n", out_path);
             free(pixels);
             free(raw);
@@ -745,12 +876,16 @@ static int cmd_decode(int argc, char **argv) {
                 fprintf(stderr, "error: write failed for '%s'\n", out_path);
                 rc = 1;
             }
+            if ((i & 4095U) == 0U) {
+                tbmp_ui_spinner_tick(&spinner);
+            }
         }
         fclose(pg);
     } else {
         /* Write PPM P6. */
         FILE *pp = fopen(out_path, "wb");
         if (!pp) {
+            tbmp_ui_step_end_fail();
             fprintf(stderr, "error: cannot open '%s' for writing\n", out_path);
             free(pixels);
             free(raw);
@@ -763,13 +898,31 @@ static int cmd_decode(int argc, char **argv) {
                 fprintf(stderr, "error: write failed for '%s'\n", out_path);
                 rc = 1;
             }
+            if ((i & 4095U) == 0U) {
+                tbmp_ui_spinner_tick(&spinner);
+            }
         }
         fclose(pp);
     }
 
     if (rc == 0)
-        printf("decoded: %ux%u -> %s\n", img.head.width, img.head.height,
-               out_path);
+        tbmp_ui_spinner_stop_success(&spinner, "write complete");
+    else
+        tbmp_ui_spinner_stop_error(&spinner, "write failed");
+
+    if (rc == 0)
+        tbmp_ui_step_end_ok();
+    else
+        tbmp_ui_step_end_fail();
+
+    if (rc == 0) {
+        tbmp_ui_status_ok("decoded successfully");
+        tbmp_ui_box_begin("Decode Result");
+        tbmp_ui_box_kv("input", "%s", in_path);
+        tbmp_ui_box_kv("output", "%s", out_path);
+        tbmp_ui_box_kv("size", "%ux%u", img.head.width, img.head.height);
+        tbmp_ui_box_end();
+    }
 
     free(pixels);
     free(raw);
@@ -779,27 +932,37 @@ static int cmd_decode(int argc, char **argv) {
 /* Subcommand: dump-rgba. */
 static int cmd_dump_rgba(int argc, char **argv) {
     if (argc < 3) {
-        fprintf(stderr,
-                "usage: tbmp dump-rgba <input.tbmp> <output.rgba>\n");
+        print_cmd_usage("tbmp dump-rgba <input.tbmp> <output.rgba>");
         return 1;
     }
 
     const char *in_path = argv[1];
     const char *out_path = argv[2];
 
+    tbmp_ui_set_accent(TBMP_UI_ACCENT_YELLOW);
+    tbmp_ui_banner("tbmp :: DUMP RGBA");
+
     uint8_t *raw = NULL;
     size_t raw_len = 0;
+    tbmp_ui_step_begin("read input file");
     if (read_file_all(in_path, &raw, &raw_len) != 0)
+    {
+        tbmp_ui_step_end_fail();
         return 1;
+    }
+    tbmp_ui_step_end_ok();
 
     TBmpImage img;
+    tbmp_ui_step_begin("parse tBMP header");
     TBmpError err = tbmp_open(raw, raw_len, &img);
     if (err != TBMP_OK) {
+        tbmp_ui_step_end_fail();
         fprintf(stderr, "error: cannot parse '%s': %s\n", in_path,
                 tbmp_error_str(err));
         free(raw);
         return 1;
     }
+    tbmp_ui_step_end_ok();
 
     size_t npix = (size_t)img.head.width * (size_t)img.head.height;
     TBmpRGBA *pixels = (TBmpRGBA *)malloc(npix * sizeof(TBmpRGBA));
@@ -814,34 +977,37 @@ static int cmd_dump_rgba(int argc, char **argv) {
     frame.height = img.head.height;
     frame.pixels = pixels;
 
+    tbmp_ui_step_begin("decode pixel data");
+    TBmpUISpinner spinner;
+    tbmp_ui_spinner_start(&spinner, "decoding image");
     err = tbmp_decode(&img, &frame);
+    tbmp_ui_spinner_tick(&spinner);
     if (err != TBMP_OK) {
+        tbmp_ui_spinner_stop_error(&spinner, "decode failed");
+        tbmp_ui_step_end_fail();
         fprintf(stderr, "error: decode failed: %s\n", tbmp_error_str(err));
         free(pixels);
         free(raw);
         return 1;
     }
-
-    FILE *f = fopen(out_path, "wb");
-    if (!f) {
-        fprintf(stderr, "error: cannot open '%s' for writing\n", out_path);
-        free(pixels);
-        free(raw);
-        return 1;
-    }
+    tbmp_ui_spinner_stop_success(&spinner, "decode complete");
+    tbmp_ui_step_end_ok();
 
     size_t out_size = npix * 4U;
-    if (fwrite((const uint8_t *)pixels, 1, out_size, f) != out_size) {
-        fprintf(stderr, "error: write failed for '%s'\n", out_path);
-        fclose(f);
+    if (write_file_all(out_path, (const uint8_t *)pixels, out_size,
+                       "write RGBA dump") != 0) {
         free(pixels);
         free(raw);
         return 1;
     }
-    fclose(f);
 
-    printf("dumped RGBA: %ux%u -> %s (%zu bytes)\n", img.head.width,
-           img.head.height, out_path, out_size);
+    tbmp_ui_status_ok("raw RGBA dumped");
+    tbmp_ui_box_begin("RGBA Dump");
+    tbmp_ui_box_kv("input", "%s", in_path);
+    tbmp_ui_box_kv("output", "%s", out_path);
+    tbmp_ui_box_kv("size", "%ux%u", img.head.width, img.head.height);
+    tbmp_ui_box_kv("bytes", "%zu", out_size);
+    tbmp_ui_box_end();
 
     free(pixels);
     free(raw);
@@ -851,11 +1017,14 @@ static int cmd_dump_rgba(int argc, char **argv) {
 /* Subcommand: inspect. */
 static int cmd_inspect(int argc, char **argv) {
     if (argc < 2) {
-        fprintf(stderr, "usage: tbmp inspect <input.tbmp>\n");
+        print_cmd_usage("tbmp inspect <input.tbmp>");
         return 1;
     }
 
     const char *in_path = argv[1];
+
+    tbmp_ui_set_accent(TBMP_UI_ACCENT_CYAN);
+    tbmp_ui_banner("tbmp :: INSPECT");
 
     uint8_t *raw = NULL;
     size_t raw_len = 0;
@@ -871,91 +1040,113 @@ static int cmd_inspect(int argc, char **argv) {
         return 1;
     }
 
-    printf("file: %s\n", in_path);
-    printf("header:\n");
-    printf("  version      : 0x%04X\n", img.head.version);
-    printf("  width        : %u\n", img.head.width);
-    printf("  height       : %u\n", img.head.height);
-    printf("  bit_depth    : %u\n", img.head.bit_depth);
-    printf("  encoding     : %u (%s)\n", img.head.encoding,
-           encoding_name((TBmpEncoding)img.head.encoding));
-    printf("  pixel_format : %u (%s)\n", img.head.pixel_format,
-           format_name((TBmpPixelFormat)img.head.pixel_format));
-    printf("  flags        : 0x%02X\n", img.head.flags);
-    printf("  data_size    : %u\n", img.head.data_size);
-    printf("  extra_size   : %u\n", img.head.extra_size);
-    printf("  meta_size    : %u\n", img.head.meta_size);
+    tbmp_ui_box_begin("File");
+    tbmp_ui_box_kv("path", "%s", in_path);
+    tbmp_ui_box_end();
 
-    printf("sections:\n");
-    printf("  DATA present : %s\n", img.data_len > 0 ? "yes" : "no");
-    printf("  EXTRA present: %s\n", img.extra_len > 0 ? "yes" : "no");
-    printf("  META present : %s\n", img.meta_len > 0 ? "yes" : "no");
+    tbmp_ui_box_begin("Header");
+    tbmp_ui_box_kv("version", "0x%04X", img.head.version);
+    tbmp_ui_box_kv("width", "%u", img.head.width);
+    tbmp_ui_box_kv("height", "%u", img.head.height);
+    tbmp_ui_box_kv("bit_depth", "%u", img.head.bit_depth);
+    tbmp_ui_box_kv("encoding", "%u (%s)", img.head.encoding,
+                   encoding_name((TBmpEncoding)img.head.encoding));
+    tbmp_ui_box_kv("pixel_format", "%u (%s)", img.head.pixel_format,
+                   format_name((TBmpPixelFormat)img.head.pixel_format));
+    tbmp_ui_box_kv("flags", "0x%02X", img.head.flags);
+    tbmp_ui_box_kv("data_size", "%u", img.head.data_size);
+    tbmp_ui_box_kv("extra_size", "%u", img.head.extra_size);
+    tbmp_ui_box_kv("meta_size", "%u", img.head.meta_size);
+    tbmp_ui_box_end();
 
+    tbmp_ui_box_begin("Sections");
+    tbmp_ui_box_kv("DATA", "%s", img.data_len > 0 ? "yes" : "no");
+    tbmp_ui_box_kv("EXTRA", "%s", img.extra_len > 0 ? "yes" : "no");
+    tbmp_ui_box_kv("META", "%s", img.meta_len > 0 ? "yes" : "no");
+    tbmp_ui_box_end();
+
+    tbmp_ui_box_begin("Palette");
     if (img.has_palette) {
-        printf("palette:\n");
-        printf("  entries      : %u\n", img.palette.count);
+        tbmp_ui_box_kv("entries", "%u", img.palette.count);
     } else {
-        printf("palette: none\n");
+        tbmp_ui_box_line("none");
     }
+    tbmp_ui_box_end();
 
+    tbmp_ui_box_begin("Masks");
     if (img.has_masks) {
-        printf("masks:\n");
-        printf("  r=0x%08X g=0x%08X b=0x%08X a=0x%08X\n", img.masks.r,
-               img.masks.g, img.masks.b, img.masks.a);
+        tbmp_ui_box_kv("rgba", "r=0x%08X g=0x%08X b=0x%08X a=0x%08X",
+                       img.masks.r, img.masks.g, img.masks.b, img.masks.a);
     } else {
-        printf("masks: none\n");
+        tbmp_ui_box_line("none");
     }
+    tbmp_ui_box_end();
 
+    tbmp_ui_box_begin("EXTRA Chunks");
     uint32_t unknown_chunks = print_extra(&img);
-    print_meta(&img);
+    tbmp_ui_box_end();
 
-    printf("warnings:\n");
-    if (unknown_chunks > 0) {
-        printf("  unknown EXTRA chunks: %u\n", unknown_chunks);
-    } else {
-        printf("  none\n");
+    if (img.meta_len > 0 && img.meta != NULL) {
+        tbmp_ui_box_begin("Metadata");
+        (void)print_meta(&img);
+        tbmp_ui_box_end();
     }
+
+    tbmp_ui_box_begin("Warnings");
+    if (unknown_chunks > 0) {
+        tbmp_ui_status_warn("unknown EXTRA chunks: %u", unknown_chunks);
+    } else {
+        tbmp_ui_status_ok("no warnings");
+    }
+    tbmp_ui_box_end();
 
     free(raw);
     return 0;
 }
 
-/* main. */
-static void usage(void) {
-    fprintf(stderr,
-            "tbmp - tBMP command-line toolkit\n"
-            "\n"
-            "  tbmp encode <input>      <output.tbmp>"
-            " [--format NAME] [--encoding NAME]\n"
-            "  tbmp decode <input.tbmp> <output.ppm>\n"
-            "  tbmp inspect <input.tbmp>\n"
-            "  tbmp dump-rgba <input.tbmp> <output.rgba>\n"
-            "\n"
-            "Input formats (encode): PBM/PGM/PPM P1-P6, PNG, BMP, JPEG, ...\n"
-            "Pixel formats: rgba8888 (default), rgb888, rgb565, rgb555,"
-            " rgb444, rgb332\n"
-            "  (grayscale/bilevel sources default to rgb332)\n"
-            "Encodings:     raw (default), rle, zerorange, span\n"
-            "inspect:       print header/sections/palette/masks/meta/chunks\n"
-            "dump-rgba:     dump decoded raw RGBA bytes (R,G,B,A per pixel)\n");
-}
-
 int main(int argc, char **argv) {
-    if (argc < 2) {
-        usage();
+    int argi = 1;
+    int ci_mode = 0;
+    int show_help = 0;
+    while (argi < argc && strncmp(argv[argi], "--", 2) == 0) {
+        if (strcmp(argv[argi], "--ci") == 0) {
+            ci_mode = 1;
+            argi++;
+            continue;
+        }
+        if (strcmp(argv[argi], "--help") == 0) {
+            show_help = 1;
+            argi++;
+            continue;
+        }
+        fprintf(stderr, "error: unknown global option '%s'\n", argv[argi]);
+        tbmp_ui_init(ci_mode);
+        print_general_usage();
         return 1;
     }
 
-    if (strcmp(argv[1], "encode") == 0)
-        return cmd_encode(argc - 1, argv + 1);
-    if (strcmp(argv[1], "decode") == 0)
-        return cmd_decode(argc - 1, argv + 1);
-    if (strcmp(argv[1], "inspect") == 0)
-        return cmd_inspect(argc - 1, argv + 1);
-    if (strcmp(argv[1], "dump-rgba") == 0)
-        return cmd_dump_rgba(argc - 1, argv + 1);
+    tbmp_ui_init(ci_mode);
 
-    fprintf(stderr, "error: unknown command '%s'\n", argv[1]);
-    usage();
+    if (show_help) {
+        print_general_usage();
+        return 0;
+    }
+
+    if (argi >= argc) {
+        print_general_usage();
+        return 1;
+    }
+
+    if (strcmp(argv[argi], "encode") == 0)
+        return cmd_encode(argc - argi, argv + argi);
+    if (strcmp(argv[argi], "decode") == 0)
+        return cmd_decode(argc - argi, argv + argi);
+    if (strcmp(argv[argi], "inspect") == 0)
+        return cmd_inspect(argc - argi, argv + argi);
+    if (strcmp(argv[argi], "dump-rgba") == 0)
+        return cmd_dump_rgba(argc - argi, argv + argi);
+
+    fprintf(stderr, "error: unknown command '%s'\n", argv[argi]);
+    print_general_usage();
     return 1;
 }

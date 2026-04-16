@@ -67,7 +67,10 @@ endif()
 
 # CLI tool
 if(TBMP_BUILD_TOOLS)
-    add_executable(tbmp_cli tools/tbmp.c)
+    add_executable(tbmp_cli
+        tools/tbmp.c
+        tools/tbmp_ui.c
+    )
     set_target_properties(tbmp_cli PROPERTIES OUTPUT_NAME tbmp)
     target_include_directories(tbmp_cli PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/tools

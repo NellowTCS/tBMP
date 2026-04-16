@@ -7,6 +7,20 @@ description: "Using the tbmp command-line toolkit"
 
 The project ships with a general CLI named `tbmp` when built with tools enabled.
 
+By default, `tbmp` uses a styled interactive output (section headers, status
+lines, and terminal colors). For CI pipelines or scripts, use `--ci` to force
+plain text output.
+
+## Global options
+
+```bash
+tbmp --help
+tbmp --ci <command> ...
+```
+
+- `--help` prints usage and command overview.
+- `--ci` disables styled output for deterministic logs.
+
 ## Build
 
 From the repository root:
@@ -78,6 +92,7 @@ Print structural details for a `.tbmp` file.
 
 ```bash
 tbmp inspect <input.tbmp>
+tbmp --ci inspect <input.tbmp>
 ```
 
 Reports:
@@ -100,6 +115,7 @@ Decode and dump raw RGBA bytes (`R,G,B,A` per pixel).
 
 ```bash
 tbmp dump-rgba <input.tbmp> <output.rgba>
+tbmp --ci dump-rgba <input.tbmp> <output.rgba>
 ```
 
 Output size is:

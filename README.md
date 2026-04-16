@@ -146,12 +146,18 @@ tbmp encode <input> <output.tbmp> [--format NAME] [--encoding NAME]
 tbmp decode <input.tbmp> <output.ppm>
 tbmp inspect <input.tbmp>
 tbmp dump-rgba <input.tbmp> <output.rgba>
+
+# global options
+tbmp --help
+tbmp --ci <command> ...
 ```
 
 - `inspect` prints header fields, section presence/sizes, EXTRA chunk summary,
   palette/masks info, metadata entries, and warnings.
 - `dump-rgba` decodes to raw RGBA bytes (`R,G,B,A` per pixel) for debugging
   or external processing.
+- Default output is styled for interactive terminals.
+- `--ci` disables styling and forces plain, script-friendly text.
 
 ---
 
