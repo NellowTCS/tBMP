@@ -21,7 +21,22 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://NellowTCS.github.io/tBMP/docs/guide/design-philosophy/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://NellowTCS.github.io/tBMP/docs/guide/embedded-systems/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://NellowTCS.github.io/tBMP/docs/guide/encoding/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://NellowTCS.github.io/tBMP/docs/guide/games/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -32,6 +47,11 @@
   </url>
   <url>
     <loc>https://NellowTCS.github.io/tBMP/docs/guide/pixel-formats/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://NellowTCS.github.io/tBMP/docs/guide/versioning/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

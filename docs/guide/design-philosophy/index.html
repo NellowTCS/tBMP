@@ -5,19 +5,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta name="description" content="How tBMP structures its data and why it works the way it does.">
-<link rel="canonical" href="https://NellowTCS.github.io/tBMP/docs/getting-started/concepts/">
-<meta property="og:title" content="Core Concepts : tBMP">
-<meta property="og:description" content="How tBMP structures its data and why it works the way it does.">
-<meta property="og:url" content="https://NellowTCS.github.io/tBMP/docs/getting-started/concepts/">
+    <meta name="description" content="Why tBMP exists and the principles that guide its evolution.">
+<link rel="canonical" href="https://NellowTCS.github.io/tBMP/docs/guide/design-philosophy/">
+<meta property="og:title" content="Design Philosophy : tBMP">
+<meta property="og:description" content="Why tBMP exists and the principles that guide its evolution.">
+<meta property="og:url" content="https://NellowTCS.github.io/tBMP/docs/guide/design-philosophy/">
 <meta property="og:site_name" content="tBMP">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Core Concepts : tBMP">
-<meta name="twitter:description" content="How tBMP structures its data and why it works the way it does.">
+<meta name="twitter:title" content="Design Philosophy : tBMP">
+<meta name="twitter:description" content="Why tBMP exists and the principles that guide its evolution.">
 
 
-    <title>Core Concepts : tBMP</title>
+    <title>Design Philosophy : tBMP</title>
     
 
     
@@ -115,7 +115,7 @@
       
     </li>
     
-    <li class="active-parent">
+    <li class="">
       <a href="#" class="" >
          <svg class="lucide-icon icon-rocket" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
@@ -142,8 +142,8 @@
       
     </li>
     
-    <li class="active">
-      <a href="../../getting-started/concepts" class="active" >
+    <li class="">
+      <a href="../../getting-started/concepts" class="" >
          <svg class="lucide-icon icon-book" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" />
 </svg> 
@@ -158,7 +158,7 @@
       
     </li>
     
-    <li class="">
+    <li class="active-parent">
       <a href="#" class="" >
          <svg class="lucide-icon icon-book-open" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M12 7v14" />
@@ -241,8 +241,8 @@
       
     </li>
     
-    <li class="">
-      <a href="../../guide/design-philosophy" class="" >
+    <li class="active">
+      <a href="../../guide/design-philosophy" class="active" >
          <svg class="lucide-icon icon-compass" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z" />
   <circle cx="12" cy="12" r="10" />
@@ -359,7 +359,7 @@
         <div class="page-header">
             <div class="header-left">
                 
-                <h1>Core Concepts</h1>
+                <h1>Design Philosophy</h1>
             </div>
             
             <div class="header-right">
@@ -392,250 +392,76 @@
         <main class="content-area">
             <div class="content-layout">
                 <div class="main-content">
-                    <h2 id="file-structure">File Structure</h2>
-<p>A tBMP file looks like this on the wire:</p>
-<pre class="hljs"><code>[magic: &quot;tBMP&quot;][header][data][extra][meta]
-</code></pre>
-<p>Every file starts with the 4-byte magic <code>&quot;tBMP&quot;</code> to identify the format. After that comes the header, then your encoded pixel data, then optional extra chunks (palette, masks), and finally an optional metadata section.</p>
-<h3 id="header-layout">Header Layout</h3>
-<p>The header is exactly 26 bytes:</p>
-<div class="table-wrapper"><table>
-<thead>
-<tr>
-<th>Offset</th>
-<th>Size</th>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>0</td>
-<td>2</td>
-<td>version</td>
-<td>File format version (0x0100 for 1.0)</td>
-</tr>
-<tr>
-<td>2</td>
-<td>2</td>
-<td>width</td>
-<td>Image width in pixels (1-65535)</td>
-</tr>
-<tr>
-<td>4</td>
-<td>2</td>
-<td>height</td>
-<td>Image height in pixels (1-65535)</td>
-</tr>
-<tr>
-<td>6</td>
-<td>1</td>
-<td>bit_depth</td>
-<td>Bits per pixel: 1, 2, 4, 8, 16, 24, or 32</td>
-</tr>
-<tr>
-<td>7</td>
-<td>1</td>
-<td>encoding</td>
-<td>Encoding mode (0-5)</td>
-</tr>
-<tr>
-<td>8</td>
-<td>1</td>
-<td>pixel_format</td>
-<td>Pixel format enum</td>
-</tr>
-<tr>
-<td>9</td>
-<td>1</td>
-<td>flags</td>
-<td>Bitfield: bit0=has_palette, bit1=has_masks</td>
-</tr>
-<tr>
-<td>10</td>
-<td>4</td>
-<td>data_size</td>
-<td>Byte length of DATA section</td>
-</tr>
-<tr>
-<td>14</td>
-<td>4</td>
-<td>extra_size</td>
-<td>Byte length of EXTRA section (0 if absent)</td>
-</tr>
-<tr>
-<td>18</td>
-<td>4</td>
-<td>meta_size</td>
-<td>Byte length of META section (0 if absent)</td>
-</tr>
-<tr>
-<td>22</td>
-<td>4</td>
-<td>reserved</td>
-<td>Must be zero</td>
-</tr>
-</tbody>
-</table>
-</div><p>The wire format is strictly little-endian. The library handles byte-ordering for you on read/write.</p>
-<h2 id="encodings">Encodings</h2>
-<p>tBMP supports six encoding modes. Pick the one that matches your data:</p>
-<div class="table-wrapper"><table>
-<thead>
-<tr>
-<th>ID</th>
-<th>Name</th>
-<th>Best For</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>0</td>
-<td>RAW</td>
-<td>Uncompressed pixel data: simplest, no decode cost</td>
-</tr>
-<tr>
-<td>1</td>
-<td>Zero-Range</td>
-<td>Images with large empty (zero) regions</td>
-</tr>
-<tr>
-<td>2</td>
-<td>RLE</td>
-<td>Simple repeated patterns: (count, value) pairs</td>
-</tr>
-<tr>
-<td>3</td>
-<td>Span</td>
-<td>Sparse non-repeating data: (index, length, value)</td>
-</tr>
-<tr>
-<td>4</td>
-<td>Sparse Pixel</td>
-<td>Images with few non-zero pixels: explicit (x, y, value)</td>
-</tr>
-<tr>
-<td>5</td>
-<td>Block-Sparse</td>
-<td>Tiled images with populated regions: block-indexed</td>
-</tr>
-</tbody>
-</table>
-</div><p>The library picks automatically if you don’t specify, or you can force a specific encoding when writing.</p>
-<h2 id="pixel-formats">Pixel Formats</h2>
-<p>From 1-bit indexed to 32-bit RGBA:</p>
-<div class="table-wrapper"><table>
-<thead>
-<tr>
-<th>ID</th>
-<th>Name</th>
-<th>Bits</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>0</td>
-<td>INDEX_1</td>
-<td>1</td>
-<td>1-bit palette index</td>
-</tr>
-<tr>
-<td>1</td>
-<td>INDEX_2</td>
-<td>2</td>
-<td>2-bit palette index</td>
-</tr>
-<tr>
-<td>2</td>
-<td>INDEX_4</td>
-<td>4</td>
-<td>4-bit palette index</td>
-</tr>
-<tr>
-<td>3</td>
-<td>INDEX_8</td>
-<td>8</td>
-<td>8-bit palette index</td>
-</tr>
-<tr>
-<td>4</td>
-<td>RGB_565</td>
-<td>16</td>
-<td>5-6-5 bit RGB</td>
-</tr>
-<tr>
-<td>5</td>
-<td>RGB_555</td>
-<td>16</td>
-<td>5-5-5 bit RGB (1 bit padding)</td>
-</tr>
-<tr>
-<td>6</td>
-<td>RGB_444</td>
-<td>16</td>
-<td>4-4-4 bit RGB (4 bits padding)</td>
-</tr>
-<tr>
-<td>7</td>
-<td>RGB_332</td>
-<td>8</td>
-<td>3-3-2 bit RGB</td>
-</tr>
-<tr>
-<td>8</td>
-<td>RGB_888</td>
-<td>24</td>
-<td>8-8-8 bit RGB (big-endian in stream)</td>
-</tr>
-<tr>
-<td>9</td>
-<td>RGBA_8888</td>
-<td>32</td>
-<td>8-8-8-8 bit RGBA</td>
-</tr>
-<tr>
-<td>10</td>
-<td>CUSTOM</td>
-<td>var</td>
-<td>Mask-defined format (requires MASK chunk)</td>
-</tr>
-</tbody>
-</table>
-</div><p>Indexed formats (INDEX_*) require a palette in the EXTRA section. The CUSTOM format requires explicit channel masks.</p>
-<h2 id="extra-chunks">Extra Chunks</h2>
-<p>The EXTRA section holds optional data identified by 4-byte tags:</p>
+                    <h2 id="why-tbmp-exists">Why tBMP Exists</h2>
+<p>tBMP is for cases where common image formats are heavier than the job:</p>
 <ul>
-<li><strong>PALT</strong> (Palette): Up to 256 RGBA entries. Used with INDEX_* formats.</li>
-<li><strong>MASK</strong> (Masks): Four 32-bit channel masks for CUSTOM pixel format.</li>
+<li>Embedded assets where every kilobyte matters.</li>
+<li>Small game sprites and UI textures.</li>
+<li>Data pipelines that need predictable decode behavior.</li>
 </ul>
-<p>Each chunk is: <code>[tag: 4 bytes][length: 4 bytes][body: length bytes]</code></p>
-<h2 id="metadata-section">Metadata Section</h2>
-<p>The META section is a raw MessagePack map. Store whatever key-value pairs you need, creation time, author, tool info, custom tags. The library doesn’t interpret this section; it’s purely for your application data.</p>
-<h2 id="zero-allocation-design">Zero-Allocation Design</h2>
-<p>The library is designed for embedded and memory-constrained environments:</p>
+<p>The goal is not “best compression at any cost”. The goal is small, explicit, and easy to integrate.</p>
+<h2 id="principles">Principles</h2>
+<h3 id="predictable-over-clever">Predictable Over Clever</h3>
+<p>tBMP favors straightforward structures over clever tricks.</p>
 <ul>
-<li>All parsing is zero-allocation. You provide the buffer, the library points into it.</li>
-<li>Decoded frames use a caller-supplied pixel buffer.</li>
-<li>No heap allocations in the hot path.</li>
+<li>Fixed header.</li>
+<li>Explicit section sizes.</li>
+<li>Known decode paths.</li>
 </ul>
-<p>This makes tBMP suitable for bare-metal systems, game consoles, and firmware.</p>
+<p>This makes debugging, profiling, and long-term maintenance much easier.</p>
+<h3 id="zero-dependency-core">Zero-Dependency Core</h3>
+<p>The core library should be easy to drop into constrained builds.</p>
+<ul>
+<li>Plain C.</li>
+<li>No runtime dependency chain.</li>
+<li>Caller-owned buffers and clear memory ownership.</li>
+</ul>
+<h3 id="practical-compression-choices">Practical Compression Choices</h3>
+<p>Not every image needs the same strategy.</p>
+<p>tBMP gives multiple encodings so you can pick based on data shape and performance goals.</p>
+<h3 id="extensible-without-fragility">Extensible Without Fragility</h3>
+<p>Evolution should not constantly break tooling.</p>
+<ul>
+<li>EXTRA chunks carry optional feature payloads.</li>
+<li>META carries structured metadata.</li>
+<li>Unknown additions should be skippable where possible.</li>
+</ul>
+<h3 id="fast-failure-beats-silent-corruption">Fast Failure Beats Silent Corruption</h3>
+<p>Validation is explicit and strict mode is available.</p>
+<p>If something is malformed, fail loudly instead of guessing.</p>
+<h2 id="non-goals">Non-Goals</h2>
+<p>tBMP is not trying to replace PNG or JPEG for web photos or archival interchange.</p>
+<p>It is intentionally focused on tiny bitmap workflows where deterministic behavior matters.</p>
+<h2 id="trade-offs">Trade-Offs</h2>
+<ul>
+<li>File size may be larger than heavyweight codecs on some images.</li>
+<li>Some features are explicit instead of automatic.</li>
+<li>Clarity and control are prioritized over absolute compression ratio.</li>
+</ul>
+<h2 id="a-simple-decision-test">A Simple Decision Test</h2>
+<p>When evaluating a new feature, ask:</p>
+<ol><li>Does this keep decode behavior predictable?</li>
+<li>Can constrained targets still implement it cleanly?</li>
+<li>Does it preserve backward compatibility where possible?</li>
+<li>Is complexity justified by concrete user value?</li>
+</ol>
+<p>If the answer is mostly yes, it probably belongs in tBMP.</p>
 
 
                     
                     <div class="page-navigation">
                         
-                        <a href="../../getting-started/quickstart" class="prev-page">
+                        <a href="../../guide/versioning" class="prev-page">
                             <svg class="lucide-icon icon-arrow-left page-nav-icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="m12 19-7-7 7-7" />
   <path d="M19 12H5" />
 </svg>
-                            <span><small>Previous</small><strong>Quick Start</strong></span>
+                            <span><small>Previous</small><strong>Versioning</strong></span>
                         </a>
                         
                         
-                        <a href="../../guide/encoding" class="next-page">
-                            <span><small>Next</small><strong>Encoding</strong></span>
+                        <a href="../../guide/embedded-systems" class="next-page">
+                            <span><small>Next</small><strong>Embedded Systems</strong></span>
                             <svg class="lucide-icon icon-arrow-right page-nav-icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M5 12h14" />
   <path d="m12 5 7 7-7 7" />
@@ -658,31 +484,43 @@
     <ul class="toc-list">
       
         <li class="toc-item toc-level-2">
-          <a href="#file-structure" class="toc-link">File Structure</a>
+          <a href="#why-tbmp-exists" class="toc-link">Why tBMP Exists</a>
+        </li>
+      
+        <li class="toc-item toc-level-2">
+          <a href="#principles" class="toc-link">Principles</a>
         </li>
       
         <li class="toc-item toc-level-3">
-          <a href="#header-layout" class="toc-link">Header Layout</a>
+          <a href="#predictable-over-clever" class="toc-link">Predictable Over Clever</a>
+        </li>
+      
+        <li class="toc-item toc-level-3">
+          <a href="#zero-dependency-core" class="toc-link">Zero-Dependency Core</a>
+        </li>
+      
+        <li class="toc-item toc-level-3">
+          <a href="#practical-compression-choices" class="toc-link">Practical Compression Choices</a>
+        </li>
+      
+        <li class="toc-item toc-level-3">
+          <a href="#extensible-without-fragility" class="toc-link">Extensible Without Fragility</a>
+        </li>
+      
+        <li class="toc-item toc-level-3">
+          <a href="#fast-failure-beats-silent-corruption" class="toc-link">Fast Failure Beats Silent Corruption</a>
         </li>
       
         <li class="toc-item toc-level-2">
-          <a href="#encodings" class="toc-link">Encodings</a>
+          <a href="#non-goals" class="toc-link">Non-Goals</a>
         </li>
       
         <li class="toc-item toc-level-2">
-          <a href="#pixel-formats" class="toc-link">Pixel Formats</a>
+          <a href="#trade-offs" class="toc-link">Trade-Offs</a>
         </li>
       
         <li class="toc-item toc-level-2">
-          <a href="#extra-chunks" class="toc-link">Extra Chunks</a>
-        </li>
-      
-        <li class="toc-item toc-level-2">
-          <a href="#metadata-section" class="toc-link">Metadata Section</a>
-        </li>
-      
-        <li class="toc-item toc-level-2">
-          <a href="#zero-allocation-design" class="toc-link">Zero-Allocation Design</a>
+          <a href="#a-simple-decision-test" class="toc-link">A Simple Decision Test</a>
         </li>
       
     </ul>
@@ -693,7 +531,7 @@
 
             <div class="page-footer-actions">
                 
-                <a href="https://github.com/NellowTCS/tBMP/edit/main/Docs/docs/getting-started/concepts/index.md" target="_blank" rel="noopener noreferrer" class="edit-link">
+                <a href="https://github.com/NellowTCS/tBMP/edit/main/Docs/docs/guide/design-philosophy/index.md" target="_blank" rel="noopener noreferrer" class="edit-link">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg> Edit this page
                 </a>
                 
