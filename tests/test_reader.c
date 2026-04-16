@@ -158,4 +158,77 @@ void test_reader(void) {
         CHECK_EQ(img.masks.g, 0x07E0U);
         CHECK_EQ(img.masks.b, 0x001FU);
     }
+
+    /* Malformed EXTRA: incomplete entry header (needs 8 bytes) */
+    {
+        TBmpImage img;
+        uint8_t data[4] = {0};
+        uint8_t extra[4] = {'P', 'A', 'L', 'T'};
+        size_t n = build_tbmp(buf, sizeof(buf), TBMP_VERSION_1_0, 1, 1, 32, 0,
+                              9 /*RGBA8888*/, 0, data, 4, extra, 4, NULL, 0);
+        CHECK_GT(n, 0U);
+        CHECK_ERR(tbmp_open(buf, n, &img), TBMP_ERR_TRUNCATED);
+    }
+
+    /* Malformed EXTRA: entry length exceeds remaining bytes */
+    {
+        TBmpImage img;
+        uint8_t data[4] = {0};
+        uint8_t extra[16] = {0};
+        memcpy(extra, "PALT", 4);
+        /* Declared body length 16, but only 4 bytes present. */
+        extra[4] = 16;
+        extra[5] = 0;
+        extra[6] = 0;
+        extra[7] = 0;
+        extra[8] = 1;
+        extra[9] = extra[10] = extra[11] = 0;
+
+        size_t n = build_tbmp(buf, sizeof(buf), TBMP_VERSION_1_0, 1, 1, 8, 0,
+                              3 /*INDEX_8*/, TBMP_FLAG_HAS_PALETTE, data, 4,
+                              extra, 12, NULL, 0);
+        CHECK_GT(n, 0U);
+        CHECK_ERR(tbmp_open(buf, n, &img), TBMP_ERR_TRUNCATED);
+    }
+
+    /* Malformed PALT: body too short for palette_count field */
+    {
+        TBmpImage img;
+        uint8_t data[4] = {0};
+        uint8_t extra[16] = {0};
+        memcpy(extra, "PALT", 4);
+        /* body length = 3 (< 4 required for palette_count) */
+        extra[4] = 3;
+        extra[5] = 0;
+        extra[6] = 0;
+        extra[7] = 0;
+        extra[8] = 0x11;
+        extra[9] = 0x22;
+        extra[10] = 0x33;
+
+        size_t n = build_tbmp(buf, sizeof(buf), TBMP_VERSION_1_0, 1, 1, 8, 0,
+                              3 /*INDEX_8*/, TBMP_FLAG_HAS_PALETTE, data, 4,
+                              extra, 11, NULL, 0);
+        CHECK_GT(n, 0U);
+        CHECK_ERR(tbmp_open(buf, n, &img), TBMP_ERR_TRUNCATED);
+    }
+
+    /* Malformed MASK: body too short for 4 u32 masks */
+    {
+        TBmpImage img;
+        uint8_t data[2] = {0};
+        uint8_t extra[24] = {0};
+        memcpy(extra, "MASK", 4);
+        /* body length = 12 (< 16 required) */
+        extra[4] = 12;
+        extra[5] = 0;
+        extra[6] = 0;
+        extra[7] = 0;
+
+        size_t n = build_tbmp(buf, sizeof(buf), TBMP_VERSION_1_0, 1, 1, 16, 0,
+                              10 /*CUSTOM*/, TBMP_FLAG_HAS_MASKS, data, 2,
+                              extra, 20, NULL, 0);
+        CHECK_GT(n, 0U);
+        CHECK_ERR(tbmp_open(buf, n, &img), TBMP_ERR_TRUNCATED);
+    }
 }

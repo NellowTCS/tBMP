@@ -380,6 +380,73 @@ void test_decode_sparse_pixel(void) {
         CHECK_OK(tbmp_open(buf, n, &img));
         CHECK_ERR(tbmp_decode(&img, &frame), TBMP_ERR_BAD_PIXEL_COORD);
     }
+
+    /* Truncated sparse payload -> error */
+    {
+        uint8_t data[16];
+        uint8_t *p = data;
+        p[0] = 2;
+        p[1] = p[2] = p[3] = 0;
+        p += 4; /* num_pixels=2 */
+        /* Only one sparse pixel entry present. */
+        p[0] = 1;
+        p[1] = 0;
+        p += 2;
+        p[0] = 1;
+        p[1] = 0;
+        p += 2;
+        p[0] = 1;
+        p += 1;
+
+        size_t n = build_tbmp(buf, sizeof(buf), TBMP_VERSION_1_0, 4, 4, 8, 4,
+                              7 /*RGB332*/, 0, data, (uint32_t)(p - data), NULL,
+                              0, NULL, 0);
+        CHECK_OK(tbmp_open(buf, n, &img));
+        CHECK_ERR(tbmp_decode(&img, &frame), TBMP_ERR_TRUNCATED);
+    }
+
+    /* Duplicate sparse coordinate: last write wins */
+    {
+        TBmpRGBA pal_e[3] = {
+            {0, 0, 0, 255}, {255, 0, 0, 255}, {0, 255, 0, 255}};
+        uint8_t extra_buf[64];
+        size_t extra_len =
+            build_palt_extra(extra_buf, sizeof(extra_buf), pal_e, 3);
+
+        uint8_t data[32];
+        uint8_t *p = data;
+        p[0] = 2;
+        p[1] = p[2] = p[3] = 0;
+        p += 4; /* num_pixels=2 */
+        /* (1,1)=1 then overwrite with (1,1)=2 */
+        p[0] = 1;
+        p[1] = 0;
+        p += 2;
+        p[0] = 1;
+        p[1] = 0;
+        p += 2;
+        p[0] = 1;
+        p += 1;
+
+        p[0] = 1;
+        p[1] = 0;
+        p += 2;
+        p[0] = 1;
+        p[1] = 0;
+        p += 2;
+        p[0] = 2;
+        p += 1;
+
+        size_t n = build_tbmp(buf, sizeof(buf), TBMP_VERSION_1_0, 3, 3, 8, 4,
+                              3 /*INDEX_8*/, TBMP_FLAG_HAS_PALETTE, data,
+                              (uint32_t)(p - data), extra_buf,
+                              (uint32_t)extra_len, NULL, 0);
+        CHECK_OK(tbmp_open(buf, n, &img));
+        CHECK_OK(tbmp_decode(&img, &frame));
+        /* (1,1) index = 4, should be palette[2] (green). */
+        CHECK_EQ(pixels[4].g, 255);
+        CHECK_EQ(pixels[4].r, 0);
+    }
 }
 
 /* Suite: Encoding Mode 5 - Block-Sparse */
@@ -459,5 +526,115 @@ void test_decode_block_sparse(void) {
         CHECK_EQ(pixels[11].b, 255); /* (3,2) */
         CHECK_EQ(pixels[14].b, 255); /* (2,3) */
         CHECK_EQ(pixels[15].b, 255); /* (3,3) */
+    }
+
+    /* Invalid block dimensions (bw=0) -> error */
+    {
+        uint8_t data[8] = {0, 0, 2, 0, 0, 0, 0, 0}; /* bw=0,bh=2,num_blocks=0 */
+        size_t n = build_tbmp(buf, sizeof(buf), TBMP_VERSION_1_0, 4, 4, 8, 5,
+                              7 /*RGB332*/, 0, data, sizeof(data), NULL, 0,
+                              NULL, 0);
+        CHECK_OK(tbmp_open(buf, n, &img));
+        CHECK_ERR(tbmp_decode(&img, &frame), TBMP_ERR_BAD_BLOCK);
+    }
+
+    /* block_index out of range -> error */
+    {
+        uint8_t data[32];
+        uint8_t *p = data;
+        p[0] = 2;
+        p[1] = 0;
+        p += 2; /* bw */
+        p[0] = 2;
+        p[1] = 0;
+        p += 2; /* bh */
+        p[0] = 1;
+        p[1] = p[2] = p[3] = 0;
+        p += 4; /* num_blocks=1 */
+        p[0] = 4;
+        p[1] = p[2] = p[3] = 0;
+        p += 4; /* block_index=4 (invalid for 3x3 -> 4 tiles total, max idx 3) */
+        p[0] = 4;
+        p[1] = p[2] = p[3] = 0;
+        p += 4; /* block_data_size=4 */
+        p[0] = p[1] = p[2] = p[3] = 0xFF;
+        p += 4;
+
+        size_t n = build_tbmp(buf, sizeof(buf), TBMP_VERSION_1_0, 3, 3, 8, 5,
+                              7 /*RGB332*/, 0, data, (uint32_t)(p - data),
+                              NULL, 0, NULL, 0);
+        CHECK_OK(tbmp_open(buf, n, &img));
+        CHECK_ERR(tbmp_decode(&img, &frame), TBMP_ERR_BAD_BLOCK);
+    }
+
+    /* Truncated block payload -> error */
+    {
+        uint8_t data[24];
+        uint8_t *p = data;
+        p[0] = 2;
+        p[1] = 0;
+        p += 2; /* bw */
+        p[0] = 2;
+        p[1] = 0;
+        p += 2; /* bh */
+        p[0] = 1;
+        p[1] = p[2] = p[3] = 0;
+        p += 4; /* num_blocks=1 */
+        p[0] = 0;
+        p[1] = p[2] = p[3] = 0;
+        p += 4; /* block_index=0 */
+        p[0] = 4;
+        p[1] = p[2] = p[3] = 0;
+        p += 4; /* block_data_size=4 */
+        p[0] = 0xFF;
+        p[1] = 0xFF;
+        p += 2; /* only 2 bytes provided */
+
+        size_t n = build_tbmp(buf, sizeof(buf), TBMP_VERSION_1_0, 4, 4, 8, 5,
+                              7 /*RGB332*/, 0, data, (uint32_t)(p - data),
+                              NULL, 0, NULL, 0);
+        CHECK_OK(tbmp_open(buf, n, &img));
+        CHECK_ERR(tbmp_decode(&img, &frame), TBMP_ERR_TRUNCATED);
+    }
+
+    /* Partial edge tile in non-divisible image should only touch in-bounds pixels */
+    {
+        TBmpRGBA pal_e[3] = {
+            {0, 0, 0, 255}, {255, 0, 0, 255}, {0, 0, 255, 255}};
+        uint8_t extra_buf[64];
+        size_t extra_len =
+            build_palt_extra(extra_buf, sizeof(extra_buf), pal_e, 3);
+
+        uint8_t data[64];
+        uint8_t *p = data;
+        p[0] = 2;
+        p[1] = 0;
+        p += 2; /* bw */
+        p[0] = 2;
+        p[1] = 0;
+        p += 2; /* bh */
+        p[0] = 1;
+        p[1] = p[2] = p[3] = 0;
+        p += 4; /* num_blocks=1 */
+        p[0] = 3;
+        p[1] = p[2] = p[3] = 0;
+        p += 4; /* bottom-right tile */
+        p[0] = 4;
+        p[1] = p[2] = p[3] = 0;
+        p += 4;
+        p[0] = p[1] = p[2] = p[3] = 2; /* blue values */
+        p += 4;
+
+        size_t n = build_tbmp(buf, sizeof(buf), TBMP_VERSION_1_0, 3, 3, 8, 5,
+                              3 /*INDEX_8*/, TBMP_FLAG_HAS_PALETTE, data,
+                              (uint32_t)(p - data), extra_buf,
+                              (uint32_t)extra_len, NULL, 0);
+        CHECK_OK(tbmp_open(buf, n, &img));
+        CHECK_OK(tbmp_decode(&img, &frame));
+
+        /* Only pixel (2,2) should be blue. */
+        CHECK_EQ(pixels[8].b, 255);
+        CHECK_EQ(pixels[7].b, 0);
+        CHECK_EQ(pixels[5].b, 0);
     }
 }

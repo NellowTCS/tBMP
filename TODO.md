@@ -11,9 +11,9 @@
 - [ ] Add “auto‑palette” generator for INDEX_1–8 encodings
 - [ ] Add encoding heuristics helper (`tbmp_pick_best_encoding()`)
 - [ ] Add fuzz tester (random images -> encode -> decode -> verify)
-- [ ] Add tests for malformed EXTRA chunks
+- [x] Add tests for malformed EXTRA chunks
 - [x] Add tests for malformed MsgPack metadata
-- [ ] Add tests for sparse/block‑sparse edge cases
+- [x] Add tests for sparse/block‑sparse edge cases
 
 ## Tools
 - [ ] unify all CLI things into one
