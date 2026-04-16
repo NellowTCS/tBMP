@@ -392,7 +392,7 @@
         <main class="content-area">
             <div class="content-layout">
                 <div class="main-content">
-                    <h1 id="tbmp-cli">tBMP CLI</h1>
+                    <h2 id="tbmp-cli">tBMP CLI</h2>
 <p>The project ships with a general CLI named <code>tbmp</code> when built with tools enabled.</p>
 <p>By default, <code>tbmp</code> uses a styled interactive output (section headers, status<br>
 lines, and terminal colors). For CI pipelines or scripts, use <code>--ci</code> to force<br>
@@ -418,6 +418,15 @@ cmake --build build
 <p>Convert an input image to <code>.tbmp</code>.</p>
 <pre class="hljs"><code>tbmp encode &lt;input&gt; &lt;output.tbmp&gt; [--format NAME] [--encoding NAME]
 </code></pre>
+<p>Optional helper flags:</p>
+<ul>
+<li><code>--pick-encoding</code>: choose between raw and rle using a quick size heuristic.</li>
+<li><code>--auto-palette</code>: generate a palette automatically for indexed formats.</li>
+<li><code>--dither</code>: apply Floyd-Steinberg dithering to the selected palette.</li>
+</ul>
+<p><code>--auto-palette</code> currently requires indexed formats (<code>index1</code>, <code>index2</code>,<br>
+<code>index4</code>, <code>index8</code>). <code>--dither</code> requires a palette (for CLI usage this is<br>
+typically combined with <code>--auto-palette</code>).</p>
 <p>Structured metadata options (all optional, but if any are provided the<br>
 required schema fields must be complete):</p>
 <ul>
@@ -449,6 +458,10 @@ override fields loaded from the file.</p>
 <li><code>rgb555</code></li>
 <li><code>rgb444</code></li>
 <li><code>rgb332</code></li>
+<li><code>index1</code></li>
+<li><code>index2</code></li>
+<li><code>index4</code></li>
+<li><code>index8</code></li>
 </ul>
 <p>Encoding options:</p>
 <ul>
@@ -459,15 +472,17 @@ override fields loaded from the file.</p>
 </ul>
 <p>Example:</p>
 <pre class="hljs"><code>tbmp encode sprite.png sprite.tbmp --format rgb565 --encoding rle \
-	--title <span class="hljs-string">&quot;Forest Tiles&quot;</span> \
-	--author <span class="hljs-string">&quot;Nellow&quot;</span> \
-	--description <span class="hljs-string">&quot;Top-down biome tiles&quot;</span> \
-	--created <span class="hljs-string">&quot;2026-04-16T19:30:00Z&quot;</span> \
-	--software <span class="hljs-string">&quot;tbmp-cli 0.1&quot;</span> \
-	--license <span class="hljs-string">&quot;CC-BY-4.0&quot;</span> \
-	--tags <span class="hljs-string">&quot;tileset,rpg,forest&quot;</span> \
-	--dpi 144 \
-	--colorspace sRGB
+    --title <span class="hljs-string">&quot;Forest Tiles&quot;</span> \
+    --author <span class="hljs-string">&quot;Nellow&quot;</span> \
+    --description <span class="hljs-string">&quot;Top-down biome tiles&quot;</span> \
+    --created <span class="hljs-string">&quot;2026-04-16T19:30:00Z&quot;</span> \
+    --software <span class="hljs-string">&quot;tbmp-cli 0.1&quot;</span> \
+    --license <span class="hljs-string">&quot;CC-BY-4.0&quot;</span> \
+    --tags <span class="hljs-string">&quot;tileset,rpg,forest&quot;</span> \
+    --dpi 144 \
+    --colorspace sRGB
+
+tbmp encode sprite.png sprite_index4.tbmp --format index4 --auto-palette --dither --pick-encoding
 </code></pre>
 <h2 id="decode"><code>decode</code></h2>
 <p>Decode <code>.tbmp</code> to an image file (PPM/PGM output).</p>
@@ -571,6 +586,10 @@ $$</p>
   <path d="m7 4 5 5 5-5" />
 </svg></span></h2>
     <ul class="toc-list">
+      
+        <li class="toc-item toc-level-2">
+          <a href="#tbmp-cli" class="toc-link">tBMP CLI</a>
+        </li>
       
         <li class="toc-item toc-level-2">
           <a href="#global-options" class="toc-link">Global options</a>
