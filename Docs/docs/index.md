@@ -89,4 +89,5 @@ The static library is at `build/libtbmp.a`. Include `include/` in your header se
 - [Core Concepts](./getting-started/concepts): How the format is structured
 - [Quick Start](./getting-started/quickstart): Get up and running in 5 minutes
 - [Encoding Guide](./guide/encoding): Pick the right encoding for your data
+- [CLI Guide](./guide/cli): Use the `tbmp` command-line toolkit
 - [API Reference](./api/): Full function docs

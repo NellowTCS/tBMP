@@ -72,6 +72,11 @@ module.exports = {
           path: "/guide/metadata",
           icon: "file-text",
         },
+        {
+          title: "CLI",
+          path: "/guide/cli",
+          icon: "terminal",
+        },
       ],
     },
     {

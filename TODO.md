@@ -6,7 +6,7 @@
 - [ ] Add more sample files demonstrating structured metadata, palettes, masks, and EXTRA chunks
 - [ ] Add tBMP versioning clarifications and rules for format evolution
 - [ ] Add tBMP -> PNG exporter (for debugging + web demo)
-- [ ] Add tBMP -> raw RGBA dump tool
+- [x] Add tBMP -> raw RGBA dump tool
 - [ ] Add optional dithering helpers for indexed formats
 - [ ] Add “auto‑palette” generator for INDEX_1–8 encodings
 - [ ] Add encoding heuristics helper (`tbmp_pick_best_encoding()`)
@@ -16,11 +16,11 @@
 - [x] Add tests for sparse/block‑sparse edge cases
 
 ## Tools
-- [ ] unify all CLI things into one
+- [x] unify all CLI things into one
 - [ ] Add validator CLI (with optional strict mode) (`validate --strict`)
 - [ ] Expand `conv` with metadata flags (`--title`, `--author`, `--tags`, etc.)
 - [ ] Add `--meta-json` or `--meta-file` for bulk metadata injection
-- [ ] Add `inspect` CLI (header, metadata, EXTRA, warnings)
+- [x] Add `inspect` CLI (header, metadata, EXTRA, warnings)
 - [ ] Add `extract_sprites` (grid or metadata‑based sprite extraction)
 - [ ] buildscripts and dev conveniences
 

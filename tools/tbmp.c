@@ -1,4 +1,4 @@
-/* tBMP command-line converter.
+/* tBMP general command-line tool.
  *
  * Converts between PNM image files (P1-P6) and the tBMP embedded graphics
  * format.  All six PNM variants are supported:
@@ -19,8 +19,8 @@
  * (grayscale) depending on the tBMP pixel format.
  *
  * Usage:
- *   tbmp_conv encode <input> <output.tbmp> [OPTIONS]
- *   tbmp_conv decode <input.tbmp> <output.ppm>
+ *   tbmp encode <input> <output.tbmp> [OPTIONS]
+ *   tbmp decode <input.tbmp> <output.ppm>
  *
  * Encode options:
  *   --format   <name>  Pixel format. Choices:
@@ -375,6 +375,54 @@ static TBmpEncoding parse_encoding(const char *name) {
     return TBMP_ENC_MAX_;
 }
 
+static const char *format_name(TBmpPixelFormat fmt) {
+    switch (fmt) {
+    case TBMP_FMT_INDEX_1:
+        return "index1";
+    case TBMP_FMT_INDEX_2:
+        return "index2";
+    case TBMP_FMT_INDEX_4:
+        return "index4";
+    case TBMP_FMT_INDEX_8:
+        return "index8";
+    case TBMP_FMT_RGB_565:
+        return "rgb565";
+    case TBMP_FMT_RGB_555:
+        return "rgb555";
+    case TBMP_FMT_RGB_444:
+        return "rgb444";
+    case TBMP_FMT_RGB_332:
+        return "rgb332";
+    case TBMP_FMT_RGB_888:
+        return "rgb888";
+    case TBMP_FMT_RGBA_8888:
+        return "rgba8888";
+    case TBMP_FMT_CUSTOM:
+        return "custom";
+    default:
+        return "unknown";
+    }
+}
+
+static const char *encoding_name(TBmpEncoding enc) {
+    switch (enc) {
+    case TBMP_ENC_RAW:
+        return "raw";
+    case TBMP_ENC_ZERO_RANGE:
+        return "zerorange";
+    case TBMP_ENC_RLE:
+        return "rle";
+    case TBMP_ENC_SPAN:
+        return "span";
+    case TBMP_ENC_SPARSE_PIXEL:
+        return "sparse";
+    case TBMP_ENC_BLOCK_SPARSE:
+        return "block-sparse";
+    default:
+        return "unknown";
+    }
+}
+
 /* print_meta - display decoded META entries. */
 static void print_meta(const TBmpImage *img) {
     if (img->meta_len == 0 || img->meta == NULL)
@@ -432,11 +480,100 @@ static int is_grayscale_format(TBmpPixelFormat fmt) {
     return 0;
 }
 
+/* read_file_all - load entire file into heap buffer; caller frees *out. */
+static int read_file_all(const char *path, uint8_t **out, size_t *out_len) {
+    FILE *f = fopen(path, "rb");
+    if (!f) {
+        fprintf(stderr, "error: cannot open '%s'\n", path);
+        return 1;
+    }
+
+    if (fseek(f, 0, SEEK_END) != 0) {
+        fprintf(stderr, "error: seek failed for '%s'\n", path);
+        fclose(f);
+        return 1;
+    }
+
+    long fsz = ftell(f);
+    if (fsz <= 0) {
+        fprintf(stderr, "error: empty file '%s'\n", path);
+        fclose(f);
+        return 1;
+    }
+    rewind(f);
+
+    uint8_t *buf = (uint8_t *)malloc((size_t)fsz);
+    if (!buf) {
+        fprintf(stderr, "error: out of memory\n");
+        fclose(f);
+        return 1;
+    }
+
+    if (fread(buf, 1, (size_t)fsz, f) != (size_t)fsz) {
+        fprintf(stderr, "error: read failed for '%s'\n", path);
+        free(buf);
+        fclose(f);
+        return 1;
+    }
+    fclose(f);
+
+    *out = buf;
+    *out_len = (size_t)fsz;
+    return 0;
+}
+
+/* print_extra - list EXTRA chunk tags and lengths; return unknown count. */
+static uint32_t print_extra(const TBmpImage *img) {
+    if (img->extra == NULL || img->extra_len == 0) {
+        printf("EXTRA: none\n");
+        return 0;
+    }
+
+    printf("EXTRA (%zu bytes):\n", img->extra_len);
+    size_t pos = 0;
+    uint32_t idx = 0;
+    uint32_t unknown = 0;
+    while (pos < img->extra_len) {
+        if (img->extra_len - pos < 8U) {
+            printf("  warning: trailing %zu bytes in EXTRA\n",
+                   img->extra_len - pos);
+            break;
+        }
+
+        const uint8_t *tag = img->extra + pos;
+        uint32_t len = tbmp_read_u32le(img->extra + pos + 4U);
+        char tag_text[5] = {(char)tag[0], (char)tag[1], (char)tag[2],
+                            (char)tag[3], '\0'};
+        pos += 8U;
+
+        if ((size_t)len > img->extra_len - pos) {
+            printf("  warning: chunk %u (%s) length %u exceeds remaining data\n",
+                   idx, tag_text, len);
+            break;
+        }
+
+        printf("  [%u] %s len=%u", idx, tag_text, len);
+        if (memcmp(tag, "PALT", 4) == 0) {
+            printf(" (palette)\n");
+        } else if (memcmp(tag, "MASK", 4) == 0) {
+            printf(" (masks)\n");
+        } else {
+            printf(" (unknown)\n");
+            unknown++;
+        }
+
+        pos += (size_t)len;
+        idx++;
+    }
+
+    return unknown;
+}
+
 /* Subcommand: encode. */
 static int cmd_encode(int argc, char **argv) {
     /* argv[0]="encode", argv[1]=input, argv[2]=output, argv[3..]=options */
     if (argc < 3) {
-        fprintf(stderr, "usage: tbmp_conv encode <input> <output.tbmp>"
+        fprintf(stderr, "usage: tbmp encode <input> <output.tbmp>"
                         " [--format NAME] [--encoding NAME]\n");
         return 1;
     }
@@ -543,44 +680,21 @@ static int cmd_encode(int argc, char **argv) {
 /* Subcommand: decode. */
 static int cmd_decode(int argc, char **argv) {
     if (argc < 3) {
-        fprintf(stderr, "usage: tbmp_conv decode <input.tbmp> <output.ppm>\n");
+        fprintf(stderr, "usage: tbmp decode <input.tbmp> <output.ppm>\n");
         return 1;
     }
 
     const char *in_path = argv[1];
     const char *out_path = argv[2];
 
-    /* Read the .tbmp file into memory. */
-    FILE *f = fopen(in_path, "rb");
-    if (!f) {
-        fprintf(stderr, "error: cannot open '%s'\n", in_path);
+    uint8_t *raw = NULL;
+    size_t raw_len = 0;
+    if (read_file_all(in_path, &raw, &raw_len) != 0)
         return 1;
-    }
-    fseek(f, 0, SEEK_END);
-    long fsz = ftell(f);
-    rewind(f);
-    if (fsz <= 0) {
-        fprintf(stderr, "error: empty file '%s'\n", in_path);
-        fclose(f);
-        return 1;
-    }
-    uint8_t *raw = (uint8_t *)malloc((size_t)fsz);
-    if (!raw) {
-        fprintf(stderr, "error: out of memory\n");
-        fclose(f);
-        return 1;
-    }
-    if (fread(raw, 1, (size_t)fsz, f) != (size_t)fsz) {
-        fprintf(stderr, "error: read failed for '%s'\n", in_path);
-        free(raw);
-        fclose(f);
-        return 1;
-    }
-    fclose(f);
 
     /* Parse the tBMP header. */
     TBmpImage img;
-    TBmpError err = tbmp_open(raw, (size_t)fsz, &img);
+    TBmpError err = tbmp_open(raw, raw_len, &img);
     if (err != TBMP_OK) {
         fprintf(stderr, "error: cannot parse '%s': %s\n", in_path,
                 tbmp_error_str(err));
@@ -662,20 +776,168 @@ static int cmd_decode(int argc, char **argv) {
     return rc;
 }
 
+/* Subcommand: dump-rgba. */
+static int cmd_dump_rgba(int argc, char **argv) {
+    if (argc < 3) {
+        fprintf(stderr,
+                "usage: tbmp dump-rgba <input.tbmp> <output.rgba>\n");
+        return 1;
+    }
+
+    const char *in_path = argv[1];
+    const char *out_path = argv[2];
+
+    uint8_t *raw = NULL;
+    size_t raw_len = 0;
+    if (read_file_all(in_path, &raw, &raw_len) != 0)
+        return 1;
+
+    TBmpImage img;
+    TBmpError err = tbmp_open(raw, raw_len, &img);
+    if (err != TBMP_OK) {
+        fprintf(stderr, "error: cannot parse '%s': %s\n", in_path,
+                tbmp_error_str(err));
+        free(raw);
+        return 1;
+    }
+
+    size_t npix = (size_t)img.head.width * (size_t)img.head.height;
+    TBmpRGBA *pixels = (TBmpRGBA *)malloc(npix * sizeof(TBmpRGBA));
+    if (!pixels) {
+        fprintf(stderr, "error: out of memory\n");
+        free(raw);
+        return 1;
+    }
+
+    TBmpFrame frame;
+    frame.width = img.head.width;
+    frame.height = img.head.height;
+    frame.pixels = pixels;
+
+    err = tbmp_decode(&img, &frame);
+    if (err != TBMP_OK) {
+        fprintf(stderr, "error: decode failed: %s\n", tbmp_error_str(err));
+        free(pixels);
+        free(raw);
+        return 1;
+    }
+
+    FILE *f = fopen(out_path, "wb");
+    if (!f) {
+        fprintf(stderr, "error: cannot open '%s' for writing\n", out_path);
+        free(pixels);
+        free(raw);
+        return 1;
+    }
+
+    size_t out_size = npix * 4U;
+    if (fwrite((const uint8_t *)pixels, 1, out_size, f) != out_size) {
+        fprintf(stderr, "error: write failed for '%s'\n", out_path);
+        fclose(f);
+        free(pixels);
+        free(raw);
+        return 1;
+    }
+    fclose(f);
+
+    printf("dumped RGBA: %ux%u -> %s (%zu bytes)\n", img.head.width,
+           img.head.height, out_path, out_size);
+
+    free(pixels);
+    free(raw);
+    return 0;
+}
+
+/* Subcommand: inspect. */
+static int cmd_inspect(int argc, char **argv) {
+    if (argc < 2) {
+        fprintf(stderr, "usage: tbmp inspect <input.tbmp>\n");
+        return 1;
+    }
+
+    const char *in_path = argv[1];
+
+    uint8_t *raw = NULL;
+    size_t raw_len = 0;
+    if (read_file_all(in_path, &raw, &raw_len) != 0)
+        return 1;
+
+    TBmpImage img;
+    TBmpError err = tbmp_open(raw, raw_len, &img);
+    if (err != TBMP_OK) {
+        fprintf(stderr, "error: cannot parse '%s': %s\n", in_path,
+                tbmp_error_str(err));
+        free(raw);
+        return 1;
+    }
+
+    printf("file: %s\n", in_path);
+    printf("header:\n");
+    printf("  version      : 0x%04X\n", img.head.version);
+    printf("  width        : %u\n", img.head.width);
+    printf("  height       : %u\n", img.head.height);
+    printf("  bit_depth    : %u\n", img.head.bit_depth);
+    printf("  encoding     : %u (%s)\n", img.head.encoding,
+           encoding_name((TBmpEncoding)img.head.encoding));
+    printf("  pixel_format : %u (%s)\n", img.head.pixel_format,
+           format_name((TBmpPixelFormat)img.head.pixel_format));
+    printf("  flags        : 0x%02X\n", img.head.flags);
+    printf("  data_size    : %u\n", img.head.data_size);
+    printf("  extra_size   : %u\n", img.head.extra_size);
+    printf("  meta_size    : %u\n", img.head.meta_size);
+
+    printf("sections:\n");
+    printf("  DATA present : %s\n", img.data_len > 0 ? "yes" : "no");
+    printf("  EXTRA present: %s\n", img.extra_len > 0 ? "yes" : "no");
+    printf("  META present : %s\n", img.meta_len > 0 ? "yes" : "no");
+
+    if (img.has_palette) {
+        printf("palette:\n");
+        printf("  entries      : %u\n", img.palette.count);
+    } else {
+        printf("palette: none\n");
+    }
+
+    if (img.has_masks) {
+        printf("masks:\n");
+        printf("  r=0x%08X g=0x%08X b=0x%08X a=0x%08X\n", img.masks.r,
+               img.masks.g, img.masks.b, img.masks.a);
+    } else {
+        printf("masks: none\n");
+    }
+
+    uint32_t unknown_chunks = print_extra(&img);
+    print_meta(&img);
+
+    printf("warnings:\n");
+    if (unknown_chunks > 0) {
+        printf("  unknown EXTRA chunks: %u\n", unknown_chunks);
+    } else {
+        printf("  none\n");
+    }
+
+    free(raw);
+    return 0;
+}
+
 /* main. */
 static void usage(void) {
     fprintf(stderr,
-            "tbmp_conv - tBMP converter\n"
+            "tbmp - tBMP command-line toolkit\n"
             "\n"
-            "  tbmp_conv encode <input>      <output.tbmp>"
+            "  tbmp encode <input>      <output.tbmp>"
             " [--format NAME] [--encoding NAME]\n"
-            "  tbmp_conv decode <input.tbmp> <output.ppm>\n"
+            "  tbmp decode <input.tbmp> <output.ppm>\n"
+            "  tbmp inspect <input.tbmp>\n"
+            "  tbmp dump-rgba <input.tbmp> <output.rgba>\n"
             "\n"
             "Input formats (encode): PBM/PGM/PPM P1-P6, PNG, BMP, JPEG, ...\n"
             "Pixel formats: rgba8888 (default), rgb888, rgb565, rgb555,"
             " rgb444, rgb332\n"
             "  (grayscale/bilevel sources default to rgb332)\n"
-            "Encodings:     raw (default), rle, zerorange, span\n");
+            "Encodings:     raw (default), rle, zerorange, span\n"
+            "inspect:       print header/sections/palette/masks/meta/chunks\n"
+            "dump-rgba:     dump decoded raw RGBA bytes (R,G,B,A per pixel)\n");
 }
 
 int main(int argc, char **argv) {
@@ -688,6 +950,10 @@ int main(int argc, char **argv) {
         return cmd_encode(argc - 1, argv + 1);
     if (strcmp(argv[1], "decode") == 0)
         return cmd_decode(argc - 1, argv + 1);
+    if (strcmp(argv[1], "inspect") == 0)
+        return cmd_inspect(argc - 1, argv + 1);
+    if (strcmp(argv[1], "dump-rgba") == 0)
+        return cmd_dump_rgba(argc - 1, argv + 1);
 
     fprintf(stderr, "error: unknown command '%s'\n", argv[1]);
     usage();

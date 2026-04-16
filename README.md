@@ -137,6 +137,24 @@ Full documentation is available in the Docs/ folder.
 
 ---
 
+## CLI Tools
+
+When built with `-DTBMP_BUILD_TOOLS=ON`, the `tbmp` executable supports:
+
+```bash
+tbmp encode <input> <output.tbmp> [--format NAME] [--encoding NAME]
+tbmp decode <input.tbmp> <output.ppm>
+tbmp inspect <input.tbmp>
+tbmp dump-rgba <input.tbmp> <output.rgba>
+```
+
+- `inspect` prints header fields, section presence/sizes, EXTRA chunk summary,
+  palette/masks info, metadata entries, and warnings.
+- `dump-rgba` decodes to raw RGBA bytes (`R,G,B,A` per pixel) for debugging
+  or external processing.
+
+---
+
 ## Contributing
 
 Contributions are welcome. Here is how to get started:
