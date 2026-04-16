@@ -362,7 +362,11 @@ required schema fields must be complete):</p>
 <li><code>--dpi N</code></li>
 <li><code>--colorspace NAME</code></li>
 <li><code>--custom-map FILE</code> (repeatable; each file must be a MessagePack map blob)</li>
+<li><code>--meta-file FILE</code> (bulk structured metadata MessagePack blob)</li>
 </ul>
+<p><code>--meta-file</code> loads a full structured metadata object from disk. You can still<br>
+pass individual metadata flags in the same command; flags that appear later<br>
+override fields loaded from the file.</p>
 <p>Supported input formats:</p>
 <ul>
 <li>PBM/PGM/PPM (<code>P1</code> through <code>P6</code>)</li>
@@ -420,6 +424,20 @@ tbmp --ci inspect &lt;input.tbmp&gt;
 </ul>
 <p>Example:</p>
 <pre class="hljs"><code>tbmp inspect sprite.tbmp
+</code></pre>
+<h2 id="validate"><code>validate</code></h2>
+<p>Validate a <code>.tbmp</code> file structure and optionally enforce strict checks.</p>
+<pre class="hljs"><code>tbmp validate &lt;input.tbmp&gt;
+tbmp validate &lt;input.tbmp&gt; --strict
+</code></pre>
+<p>Validation modes:</p>
+<ul>
+<li>Basic (default): verifies the file parses successfully.</li>
+<li>Strict (<code>--strict</code>): also fails on unknown or malformed <code>EXTRA</code> chunks,<br>
+and fails if present <code>META</code> does not match the structured schema.</li>
+</ul>
+<p>Example:</p>
+<pre class="hljs"><code>tbmp validate sprite.tbmp --strict
 </code></pre>
 <h2 id="dump-rgba"><code>dump-rgba</code></h2>
 <p>Decode and dump raw RGBA bytes (<code>R,G,B,A</code> per pixel).</p>
@@ -498,6 +516,10 @@ $$</p>
       
         <li class="toc-item toc-level-2">
           <a href="#inspect" class="toc-link">inspect</a>
+        </li>
+      
+        <li class="toc-item toc-level-2">
+          <a href="#validate" class="toc-link">validate</a>
         </li>
       
         <li class="toc-item toc-level-2">

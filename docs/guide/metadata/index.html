@@ -396,6 +396,21 @@ params.meta = &amp;meta;
 }
 </code></pre>
 <p><code>custom</code> remains the extensibility path: it stores <code>array&lt;map&lt;string, any&gt;&gt;</code> where each item is preserved as raw MessagePack map bytes.</p>
+<h3 id="custom-fields-and-namespacing">Custom Fields and Namespacing</h3>
+<p>For application-specific metadata, place fields in <code>custom</code> maps and namespace<br>
+keys so multiple tools can coexist safely.</p>
+<p>Recommended key style:</p>
+<ul>
+<li>reverse-DNS style: <code>com.example.tool.build</code></li>
+<li>project-prefixed style: <code>mygame.level_id</code></li>
+</ul>
+<p>Example custom map item:</p>
+<pre class="hljs"><code><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;com.example.pipeline.asset_id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;tileset-forest-01&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;com.example.pipeline.revision&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">7</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;mygame.spawn_table&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;forest_a&quot;</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
 <h2 id="metadata-schema">Metadata Schema</h2>
 <p>tBMP supports a strict structured metadata schema validator for MessagePack META blobs.</p>
 <p>Required fields:</p>
@@ -520,6 +535,10 @@ params.meta = &amp;meta;
       
         <li class="toc-item toc-level-3">
           <a href="#reading-metadata" class="toc-link">Reading Metadata</a>
+        </li>
+      
+        <li class="toc-item toc-level-3">
+          <a href="#custom-fields-and-namespacing" class="toc-link">Custom Fields and Namespacing</a>
         </li>
       
         <li class="toc-item toc-level-2">
