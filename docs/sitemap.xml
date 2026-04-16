@@ -16,6 +16,11 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://NellowTCS.github.io/tBMP/docs/guide/cli/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://NellowTCS.github.io/tBMP/docs/guide/encoding/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
