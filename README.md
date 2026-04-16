@@ -189,6 +189,8 @@ Contributions are welcome. Here is how to get started:
 
 Please make sure all tests pass before submitting.
 
+For review standards and the design-principle checklist, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ---
 
 ## Star History

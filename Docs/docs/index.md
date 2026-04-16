@@ -89,5 +89,9 @@ The static library is at `build/libtbmp.a`. Include `include/` in your header se
 - [Core Concepts](./getting-started/concepts): How the format is structured
 - [Quick Start](./getting-started/quickstart): Get up and running in 5 minutes
 - [Encoding Guide](./guide/encoding): Pick the right encoding for your data
+- [Versioning and Evolution](./guide/versioning): Compatibility rules for future format growth
+- [Design Philosophy](./guide/design-philosophy): Why tBMP is intentionally small and explicit
+- [tBMP for Embedded Systems](./guide/embedded-systems): Practical guidance for constrained targets
+- [tBMP for Games](./guide/games): Asset pipeline and runtime patterns for game projects
 - [CLI Guide](./guide/cli): Use the `tbmp` command-line toolkit
 - [API Reference](./api/): Full function docs

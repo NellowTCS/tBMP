@@ -1,8 +1,7 @@
 # TODO
 
-- [x] Structured metadata with real schema (title, author, description, created, tags, etc.)
 - [ ] Add more sample files demonstrating structured metadata, palettes, masks, and EXTRA chunks
-- [ ] Add tBMP versioning clarifications and rules for format evolution
+- [x] Add tBMP versioning clarifications and rules for format evolution
 - [ ] Add tBMP -> PNG exporter (for debugging + web demo)
 - [ ] Add optional dithering helpers for indexed formats
 - [ ] Add “auto‑palette” generator for INDEX_1–8 encodings
@@ -10,14 +9,12 @@
 - [ ] Add fuzz tester (random images -> encode -> decode -> verify)
 
 ## Tools
-- [x] Add validator CLI (with optional strict mode) (`validate --strict`)
-- [x] Add `--meta-json` or `--meta-file` for bulk metadata injection
 - [ ] Add `extract_sprites` (grid or metadata‑based sprite extraction)
 - [ ] buildscripts and dev conveniences
 
-## Web Demo (WASM, NOT Emscripten)
+## Web Demo (WASM, NOT Emscripten, maybe)
 - [ ] Build minimal WASM decoder + metadata parser (Cheerp? WaJIC? idk)
-- [ ] Write custom JS glue (no Emscripten runtime)
+- [ ] Write custom JS glue (no Emscripten runtime?)
 - [ ] Add drag‑and‑drop file loader
 - [ ] Add pixel viewer (canvas)
 - [ ] Add zoom + pan + pixel grid
@@ -37,12 +34,9 @@
 - [ ] Show masks bit layout
 
 ## Documentation
-- [x] Add examples for writing/reading structured metadata
-- [x] Add section on custom fields + namespacing
-- [x] Add section on EXTRA chunks (PALT, MASK, etc.)
-- [ ] Add “Design Philosophy” page (why tBMP exists)
-- [ ] Add “tBMP for Embedded Systems” guide (very important heheh)
-- [ ] Add “tBMP for Games” guide (very important heheh)
+- [x] Add “Design Philosophy” page (why tBMP exists)
+- [x] Add “tBMP for Embedded Systems” guide (very important heheh)
+- [x] Add “tBMP for Games” guide (very important heheh)
 - [ ] Add screenshots/gifs of the web demo?
 
 ## Polish and stuff

@@ -77,6 +77,26 @@ module.exports = {
           path: "/guide/cli",
           icon: "terminal",
         },
+        {
+          title: "Versioning",
+          path: "/guide/versioning",
+          icon: "git-branch",
+        },
+        {
+          title: "Design Philosophy",
+          path: "/guide/design-philosophy",
+          icon: "compass",
+        },
+        {
+          title: "Embedded Systems",
+          path: "/guide/embedded-systems",
+          icon: "cpu",
+        },
+        {
+          title: "Games",
+          path: "/guide/games",
+          icon: "gamepad-2",
+        },
       ],
     },
     {
