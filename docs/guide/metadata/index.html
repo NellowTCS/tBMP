@@ -365,47 +365,79 @@ masks.a = <span class="hljs-number">0xFF000000</span>;  <span class="hljs-commen
 params.masks = &amp;masks;
 </code></pre>
 <h2 id="metadata-section-meta">Metadata Section (META)</h2>
-<p>The META section is a raw MessagePack map. Store arbitrary key-value data here - creation time, author, tool info, application-specific tags.</p>
+<p>The META section is a strict structured MessagePack map.</p>
 <p><strong>Structure:</strong> Single MessagePack map at the end of the file (after EXTRA, if present).</p>
 <h3 id="writing-metadata">Writing Metadata</h3>
 <pre class="hljs"><code>TBmpMeta meta;
-meta.count = <span class="hljs-number">3</span>;
+<span class="hljs-built_in">memset</span>(&amp;meta, <span class="hljs-number">0</span>, <span class="hljs-keyword">sizeof</span>(meta));
 
-<span class="hljs-built_in">strcpy</span>(meta.entries[<span class="hljs-number">0</span>].key, <span class="hljs-string">&quot;author&quot;</span>);
-meta.entries[<span class="hljs-number">0</span>].value.type = TBMP_META_STR;
-<span class="hljs-built_in">strcpy</span>((<span class="hljs-type">char</span> *)meta.entries[<span class="hljs-number">0</span>].value.s, <span class="hljs-string">&quot;Game Studio&quot;</span>);
-meta.entries[<span class="hljs-number">0</span>].value.bin_len = <span class="hljs-built_in">strlen</span>(<span class="hljs-string">&quot;Game Studio&quot;</span>);
+<span class="hljs-built_in">strcpy</span>(meta.title, <span class="hljs-string">&quot;Forest Tiles&quot;</span>);
+<span class="hljs-built_in">strcpy</span>(meta.author, <span class="hljs-string">&quot;Nellow&quot;</span>);
+<span class="hljs-built_in">strcpy</span>(meta.description, <span class="hljs-string">&quot;Top-down biome tiles&quot;</span>);
+<span class="hljs-built_in">strcpy</span>(meta.created, <span class="hljs-string">&quot;2026-04-16T19:30:00Z&quot;</span>);
+<span class="hljs-built_in">strcpy</span>(meta.software, <span class="hljs-string">&quot;tbmp-cli 0.1&quot;</span>);
+<span class="hljs-built_in">strcpy</span>(meta.license, <span class="hljs-string">&quot;CC-BY-4.0&quot;</span>);
 
-<span class="hljs-built_in">strcpy</span>(meta.entries[<span class="hljs-number">1</span>].key, <span class="hljs-string">&quot;created&quot;</span>);
-meta.entries[<span class="hljs-number">1</span>].value.type = TBMP_META_UINT;
-meta.entries[<span class="hljs-number">1</span>].value.u = <span class="hljs-number">1699999999</span>;
+meta.tag_count = <span class="hljs-number">2</span>;
+<span class="hljs-built_in">strcpy</span>(meta.tags[<span class="hljs-number">0</span>], <span class="hljs-string">&quot;tileset&quot;</span>);
+<span class="hljs-built_in">strcpy</span>(meta.tags[<span class="hljs-number">1</span>], <span class="hljs-string">&quot;forest&quot;</span>);
 
-<span class="hljs-built_in">strcpy</span>(meta.entries[<span class="hljs-number">2</span>].key, <span class="hljs-string">&quot;layer&quot;</span>);
-meta.entries[<span class="hljs-number">2</span>].value.type = TBMP_META_NIL;
+meta.has_dpi = <span class="hljs-number">1</span>;
+meta.dpi = <span class="hljs-number">144</span>;
+<span class="hljs-built_in">strcpy</span>(meta.colorspace, <span class="hljs-string">&quot;sRGB&quot;</span>);
 
 params.meta = &amp;meta;
 </code></pre>
 <h3 id="reading-metadata">Reading Metadata</h3>
 <pre class="hljs"><code>TBmpMeta meta;
-<span class="hljs-type">int</span> ret = tbmp_meta_parse(img.meta, img.meta_len, &amp;meta);
-<span class="hljs-keyword">if</span> (ret &gt;= <span class="hljs-number">0</span>) {
-    <span class="hljs-type">const</span> TBmpMetaEntry *e = tbmp_meta_find(&amp;meta, <span class="hljs-string">&quot;author&quot;</span>);
-    <span class="hljs-keyword">if</span> (e &amp;&amp; e-&gt;value.type == TBMP_META_STR) {
-        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Author: %s\n&quot;</span>, e-&gt;value.s);
-    }
+<span class="hljs-keyword">if</span> (tbmp_meta_parse(img.meta, img.meta_len, &amp;meta) == TBMP_OK) {
+  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Title: %s\n&quot;</span>, meta.title);
+  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Author: %s\n&quot;</span>, meta.author);
 }
 </code></pre>
-<h3 id="supported-value-types">Supported Value Types</h3>
+<p><code>custom</code> remains the extensibility path: it stores <code>array&lt;map&lt;string, any&gt;&gt;</code> where each item is preserved as raw MessagePack map bytes.</p>
+<h2 id="metadata-schema">Metadata Schema</h2>
+<p>tBMP supports a strict structured metadata schema validator for MessagePack META blobs.</p>
+<p>Required fields:</p>
 <ul>
-<li><code>TBMP_META_NIL</code> - null</li>
-<li><code>TBMP_META_BOOL</code> - true/false</li>
-<li><code>TBMP_META_UINT</code> - unsigned integer</li>
-<li><code>TBMP_META_INT</code> - signed integer</li>
-<li><code>TBMP_META_FLOAT</code> - floating point</li>
-<li><code>TBMP_META_STR</code> - UTF-8 string</li>
-<li><code>TBMP_META_BIN</code> - binary data</li>
+<li><code>title</code>: string</li>
+<li><code>author</code>: string</li>
+<li><code>description</code>: string</li>
+<li><code>created</code>: string</li>
+<li><code>software</code>: string</li>
+<li><code>license</code>: string</li>
+<li><code>tags</code>: array<string></li>
 </ul>
-<p>Limits: 32 entries max, 63-byte keys, 127-byte strings.</p>
+<p>Optional fields:</p>
+<ul>
+<li><code>dpi</code>: non-negative int/uint</li>
+<li><code>colorspace</code>: string</li>
+<li><code>custom</code>: array&lt;map&lt;string, any&gt;&gt;</li>
+</ul>
+<p>Unknown top-level keys are rejected by schema validation.</p>
+<h3 id="validate-metadata">Validate Metadata</h3>
+<pre class="hljs"><code><span class="hljs-type">int</span> rc = tbmp_meta_validate_structured_blob(img.meta, img.meta_len);
+<span class="hljs-keyword">if</span> (rc != TBMP_OK) {
+    <span class="hljs-comment">/* metadata does not match the strict schema */</span>
+}
+</code></pre>
+<h3 id="example-structured-meta">Example Structured META</h3>
+<pre class="hljs"><code><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;title&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Forest Tiles&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;author&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Nellow&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;description&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Top-down biome tiles&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;created&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;2026-04-16T19:30:00Z&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;software&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;tbmp-cli 0.1&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;license&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;CC-BY-4.0&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;tags&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">&quot;tileset&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-string">&quot;rpg&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-string">&quot;forest&quot;</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;dpi&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">144</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;colorspace&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;sRGB&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;custom&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+    <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;team&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;gfx&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;build&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">7</span> <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-punctuation">{</span> <span class="hljs-attr">&quot;experimental&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span> <span class="hljs-punctuation">}</span>
+  <span class="hljs-punctuation">]</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
 <h2 id="when-to-use-each">When to Use Each</h2>
 <div class="table-wrapper"><table>
 <thead>
@@ -490,8 +522,16 @@ params.meta = &amp;meta;
           <a href="#reading-metadata" class="toc-link">Reading Metadata</a>
         </li>
       
+        <li class="toc-item toc-level-2">
+          <a href="#metadata-schema" class="toc-link">Metadata Schema</a>
+        </li>
+      
         <li class="toc-item toc-level-3">
-          <a href="#supported-value-types" class="toc-link">Supported Value Types</a>
+          <a href="#validate-metadata" class="toc-link">Validate Metadata</a>
+        </li>
+      
+        <li class="toc-item toc-level-3">
+          <a href="#example-structured-meta" class="toc-link">Example Structured META</a>
         </li>
       
         <li class="toc-item toc-level-2">

@@ -539,17 +539,16 @@
 <p><strong>Returns:</strong></p>
 <ul>
 <li>TBMP_OK (0) - success</li>
-<li>TBMP_META_WARN_STR_TRUNC (1) - success, string truncated</li>
 <li>Negative - error</li>
 </ul>
-<h3 id="tbmp_meta_find">tbmp_meta_find</h3>
-<pre class="hljs"><code><span class="hljs-type">const</span> TBmpMetaEntry *<span class="hljs-title function_">tbmp_meta_find</span><span class="hljs-params">(<span class="hljs-type">const</span> TBmpMeta *meta, <span class="hljs-type">const</span> <span class="hljs-type">char</span> *key)</span>;
-</code></pre>
-<p>Look up an entry by key. Returns NULL if not found.</p>
 <h3 id="tbmp_meta_encode">tbmp_meta_encode</h3>
 <pre class="hljs"><code><span class="hljs-type">int</span> <span class="hljs-title function_">tbmp_meta_encode</span><span class="hljs-params">(<span class="hljs-type">const</span> TBmpMeta *meta, <span class="hljs-type">uint8_t</span> *out, <span class="hljs-type">size_t</span> out_cap, <span class="hljs-type">size_t</span> *out_len)</span>;
 </code></pre>
 <p>Serialize TBmpMeta to MessagePack.</p>
+<h3 id="tbmp_meta_validate_structured_blob">tbmp_meta_validate_structured_blob</h3>
+<pre class="hljs"><code><span class="hljs-type">int</span> <span class="hljs-title function_">tbmp_meta_validate_structured_blob</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">uint8_t</span> *blob, <span class="hljs-type">size_t</span> len)</span>;
+</code></pre>
+<p>Validate that a META blob matches the strict schema.</p>
 <h2 id="rotation-api-tbmp_rotateh">Rotation API (tbmp_rotate.h)</h2>
 <h3 id="tbmp_rotate">tbmp_rotate</h3>
 <pre class="hljs"><code>TBmpError <span class="hljs-title function_">tbmp_rotate</span><span class="hljs-params">(<span class="hljs-type">const</span> TBmpFrame *src, TBmpFrame *dst, <span class="hljs-type">double</span> angle_rad,
@@ -702,11 +701,11 @@ TBmpError <span class="hljs-title function_">tbmp_rotate270</span><span class="h
         </li>
       
         <li class="toc-item toc-level-3">
-          <a href="#tbmp_meta_find" class="toc-link">tbmp_meta_find</a>
+          <a href="#tbmp_meta_encode" class="toc-link">tbmp_meta_encode</a>
         </li>
       
         <li class="toc-item toc-level-3">
-          <a href="#tbmp_meta_encode" class="toc-link">tbmp_meta_encode</a>
+          <a href="#tbmp_meta_validate_structured_blob" class="toc-link">tbmp_meta_validate_structured_blob</a>
         </li>
       
         <li class="toc-item toc-level-2">

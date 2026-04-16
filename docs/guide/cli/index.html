@@ -349,6 +349,20 @@ cmake --build build
 <p>Convert an input image to <code>.tbmp</code>.</p>
 <pre class="hljs"><code>tbmp encode &lt;input&gt; &lt;output.tbmp&gt; [--format NAME] [--encoding NAME]
 </code></pre>
+<p>Structured metadata options (all optional, but if any are provided the<br>
+required schema fields must be complete):</p>
+<ul>
+<li><code>--title TEXT</code></li>
+<li><code>--author TEXT</code></li>
+<li><code>--description TEXT</code></li>
+<li><code>--created TEXT</code></li>
+<li><code>--software TEXT</code></li>
+<li><code>--license TEXT</code></li>
+<li><code>--tags tag1,tag2,...</code></li>
+<li><code>--dpi N</code></li>
+<li><code>--colorspace NAME</code></li>
+<li><code>--custom-map FILE</code> (repeatable; each file must be a MessagePack map blob)</li>
+</ul>
 <p>Supported input formats:</p>
 <ul>
 <li>PBM/PGM/PPM (<code>P1</code> through <code>P6</code>)</li>
@@ -371,7 +385,16 @@ cmake --build build
 <li><code>span</code></li>
 </ul>
 <p>Example:</p>
-<pre class="hljs"><code>tbmp encode sprite.png sprite.tbmp --format rgb565 --encoding rle
+<pre class="hljs"><code>tbmp encode sprite.png sprite.tbmp --format rgb565 --encoding rle \
+	--title <span class="hljs-string">&quot;Forest Tiles&quot;</span> \
+	--author <span class="hljs-string">&quot;Nellow&quot;</span> \
+	--description <span class="hljs-string">&quot;Top-down biome tiles&quot;</span> \
+	--created <span class="hljs-string">&quot;2026-04-16T19:30:00Z&quot;</span> \
+	--software <span class="hljs-string">&quot;tbmp-cli 0.1&quot;</span> \
+	--license <span class="hljs-string">&quot;CC-BY-4.0&quot;</span> \
+	--tags <span class="hljs-string">&quot;tileset,rpg,forest&quot;</span> \
+	--dpi 144 \
+	--colorspace sRGB
 </code></pre>
 <h2 id="decode"><code>decode</code></h2>
 <p>Decode <code>.tbmp</code> to an image file (PPM/PGM output).</p>
