@@ -144,6 +144,7 @@ When built with `-DTBMP_BUILD_TOOLS=ON`, the `tbmp` executable supports:
 ```bash
 tbmp encode <input> <output.tbmp> [--format NAME] [--encoding NAME] [META_OPTS]
 tbmp decode <input.tbmp> <output.ppm>
+tbmp validate <input.tbmp> [--strict]
 tbmp inspect <input.tbmp>
 tbmp dump-rgba <input.tbmp> <output.rgba>
 
@@ -163,9 +164,12 @@ tbmp --ci <command> ...
 - `--dpi`
 - `--colorspace`
 - `--custom-map` (repeatable MessagePack map blob file)
+- `--meta-file` (structured MessagePack metadata blob)
 
 - `inspect` prints header fields, section presence/sizes, EXTRA chunk summary,
   palette/masks info, metadata entries, and warnings.
+- `validate` checks parse integrity; `--strict` also rejects unknown/malformed
+  EXTRA chunks and invalid structured metadata.
 - `dump-rgba` decodes to raw RGBA bytes (`R,G,B,A` per pixel) for debugging
   or external processing.
 - Default output is styled for interactive terminals.

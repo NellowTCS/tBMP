@@ -69,11 +69,15 @@ endif()
 if(TBMP_BUILD_TOOLS)
     add_executable(tbmp_cli
         tools/tbmp.c
-        tools/tbmp_ui.c
+        tools/src/tbmp_imgio.c
+        tools/src/tbmp_meta_cli.c
+        tools/src/tbmp_ui.c
     )
     set_target_properties(tbmp_cli PROPERTIES OUTPUT_NAME tbmp)
     target_include_directories(tbmp_cli PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/tools
+        ${CMAKE_CURRENT_SOURCE_DIR}/tools/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/tools/vendor
     )
     target_link_libraries(tbmp_cli PRIVATE tbmp)
 endif()

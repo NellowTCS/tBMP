@@ -10,9 +10,8 @@
 - [ ] Add fuzz tester (random images -> encode -> decode -> verify)
 
 ## Tools
-- [ ] Add validator CLI (with optional strict mode) (`validate --strict`)
-- [ ] Expand `conv` with metadata flags (`--title`, `--author`, `--tags`, etc.)
-- [ ] Add `--meta-json` or `--meta-file` for bulk metadata injection
+- [x] Add validator CLI (with optional strict mode) (`validate --strict`)
+- [x] Add `--meta-json` or `--meta-file` for bulk metadata injection
 - [ ] Add `extract_sprites` (grid or metadata‑based sprite extraction)
 - [ ] buildscripts and dev conveniences
 
@@ -38,10 +37,9 @@
 - [ ] Show masks bit layout
 
 ## Documentation
-- [x] Update `/Docs/docs/guide/metadata.md` with structured metadata schema
-- [ ] Add examples for writing/reading structured metadata
-- [ ] Add section on custom fields + namespacing
-- [ ] Add section on EXTRA chunks (PALT, MASK, etc.)
+- [x] Add examples for writing/reading structured metadata
+- [x] Add section on custom fields + namespacing
+- [x] Add section on EXTRA chunks (PALT, MASK, etc.)
 - [ ] Add “Design Philosophy” page (why tBMP exists)
 - [ ] Add “tBMP for Embedded Systems” guide (very important heheh)
 - [ ] Add “tBMP for Games” guide (very important heheh)

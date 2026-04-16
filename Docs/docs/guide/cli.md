@@ -59,6 +59,11 @@ required schema fields must be complete):
 - `--dpi N`
 - `--colorspace NAME`
 - `--custom-map FILE` (repeatable; each file must be a MessagePack map blob)
+- `--meta-file FILE` (bulk structured metadata MessagePack blob)
+
+`--meta-file` loads a full structured metadata object from disk. You can still
+pass individual metadata flags in the same command; flags that appear later
+override fields loaded from the file.
 
 Supported input formats:
 - PBM/PGM/PPM (`P1` through `P6`)
@@ -130,6 +135,26 @@ Example:
 
 ```bash
 tbmp inspect sprite.tbmp
+```
+
+## `validate`
+
+Validate a `.tbmp` file structure and optionally enforce strict checks.
+
+```bash
+tbmp validate <input.tbmp>
+tbmp validate <input.tbmp> --strict
+```
+
+Validation modes:
+- Basic (default): verifies the file parses successfully.
+- Strict (`--strict`): also fails on unknown or malformed `EXTRA` chunks,
+  and fails if present `META` does not match the structured schema.
+
+Example:
+
+```bash
+tbmp validate sprite.tbmp --strict
 ```
 
 ## `dump-rgba`

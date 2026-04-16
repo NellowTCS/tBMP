@@ -101,6 +101,26 @@ if (tbmp_meta_parse(img.meta, img.meta_len, &meta) == TBMP_OK) {
 
 `custom` remains the extensibility path: it stores `array<map<string, any>>` where each item is preserved as raw MessagePack map bytes.
 
+### Custom Fields and Namespacing
+
+For application-specific metadata, place fields in `custom` maps and namespace
+keys so multiple tools can coexist safely.
+
+Recommended key style:
+
+- reverse-DNS style: `com.example.tool.build`
+- project-prefixed style: `mygame.level_id`
+
+Example custom map item:
+
+```json
+{
+  "com.example.pipeline.asset_id": "tileset-forest-01",
+  "com.example.pipeline.revision": 7,
+  "mygame.spawn_table": "forest_a"
+}
+```
+
 ## Metadata Schema
 
 tBMP supports a strict structured metadata schema validator for MessagePack META blobs.
