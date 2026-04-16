@@ -343,3 +343,55 @@ int tbmp_meta_encode(const TBmpMeta *meta, uint8_t *out, size_t out_cap,
     *out_len = tbmp_mp_writer_used(&w);
     return TBMP_OK;
 }
+
+int tbmp_meta_validate_required_key(const TBmpMeta *meta, const char *key) {
+    if (meta == NULL || key == NULL)
+        return TBMP_ERR_NULL_PTR;
+
+    if (tbmp_meta_find(meta, key) == NULL)
+        return TBMP_META_ERR_REQUIRED_MISSING;
+
+    return TBMP_OK;
+}
+
+int tbmp_meta_validate_type(const TBmpMeta *meta, const char *key,
+                            TBmpMetaValueType expected_type) {
+    if (meta == NULL || key == NULL)
+        return TBMP_ERR_NULL_PTR;
+
+    const TBmpMetaEntry *e = tbmp_meta_find(meta, key);
+    if (e == NULL)
+        return TBMP_META_ERR_REQUIRED_MISSING;
+
+    if (e->value.type != expected_type)
+        return TBMP_META_ERR_TYPE_MISMATCH;
+
+    return TBMP_OK;
+}
+
+int tbmp_meta_validate_length(const TBmpMeta *meta, const char *key,
+                              uint32_t min_len, uint32_t max_len) {
+    if (meta == NULL || key == NULL)
+        return TBMP_ERR_NULL_PTR;
+    if (min_len > max_len)
+        return TBMP_META_ERR_LENGTH_OUT_OF_RANGE;
+
+    const TBmpMetaEntry *e = tbmp_meta_find(meta, key);
+    if (e == NULL)
+        return TBMP_META_ERR_REQUIRED_MISSING;
+
+    uint32_t actual_len = 0;
+    if (e->value.type == TBMP_META_STR) {
+        actual_len = (uint32_t)tbmp_strnlen((const char *)e->value.s,
+                                            TBMP_META_STR_MAX);
+    } else if (e->value.type == TBMP_META_BIN) {
+        actual_len = e->value.bin_len;
+    } else {
+        return TBMP_META_ERR_TYPE_MISMATCH;
+    }
+
+    if (actual_len < min_len || actual_len > max_len)
+        return TBMP_META_ERR_LENGTH_OUT_OF_RANGE;
+
+    return TBMP_OK;
+}

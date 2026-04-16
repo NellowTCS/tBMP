@@ -113,8 +113,8 @@ Limits: 32 entries max, 63-byte keys, 127-byte strings.
 
 ## When to Use Each
 
-| Feature | Use Case |
-|---------|----------|
-| Palette | 256 colors or fewer, indexed access |
-| Masks | Custom bit layouts, hardware formats |
+| Feature  | Use Case                             |
+|----------|--------------------------------------|
+| Palette  | 256 colors or fewer, indexed access  |
+| Masks    | Custom bit layouts, hardware formats |
 | Metadata | Application info, not for pixel data |

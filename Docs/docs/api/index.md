@@ -9,27 +9,27 @@ description: "Complete function reference for the tBMP library."
 
 Return codes used throughout the library:
 
-| Code | Name | Description |
-|------|------|-------------|
-| 0 | TBMP_OK | Success |
-| -1 | TBMP_ERR_NULL_PTR | NULL pointer passed |
-| -2 | TBMP_ERR_BAD_MAGIC | Not a tBMP file |
-| -3 | TBMP_ERR_BAD_VERSION | Unsupported version |
-| -4 | TBMP_ERR_BAD_BIT_DEPTH | Invalid bit depth |
-| -5 | TBMP_ERR_BAD_ENCODING | Invalid encoding ID |
-| -6 | TBMP_ERR_BAD_PIXEL_FORMAT | Invalid pixel format |
-| -7 | TBMP_ERR_BAD_DIMENSIONS | Invalid width/height |
-| -8 | TBMP_ERR_TRUNCATED | Buffer too small |
-| -9 | TBMP_ERR_OVERFLOW | Arithmetic overflow |
-| -10 | TBMP_ERR_NO_PALETTE | Indexed without palette |
-| -11 | TBMP_ERR_NO_MASKS | CUSTOM without masks |
-| -12 | TBMP_ERR_BAD_PALETTE | Palette too large |
-| -13 | TBMP_ERR_BAD_SPAN | Span overflows canvas |
-| -14 | TBMP_ERR_BAD_BLOCK | Block index out of range |
-| -15 | TBMP_ERR_BAD_PIXEL_COORD | Sparse pixel out of range |
-| -16 | TBMP_ERR_OUT_OF_MEMORY | Buffer too small |
-| -17 | TBMP_ERR_ZERO_DIMENSIONS | Width or height is zero |
-| -18 | TBMP_ERR_INCONSISTENT | Data size mismatch |
+| Code | Name                      | Description               |
+|------|---------------------------|---------------------------|
+| 0    | TBMP_OK                   | Success                   |
+| -1   | TBMP_ERR_NULL_PTR         | NULL pointer passed       |
+| -2   | TBMP_ERR_BAD_MAGIC        | Not a tBMP file           |
+| -3   | TBMP_ERR_BAD_VERSION      | Unsupported version       |
+| -4   | TBMP_ERR_BAD_BIT_DEPTH    | Invalid bit depth         |
+| -5   | TBMP_ERR_BAD_ENCODING     | Invalid encoding ID       |
+| -6   | TBMP_ERR_BAD_PIXEL_FORMAT | Invalid pixel format      |
+| -7   | TBMP_ERR_BAD_DIMENSIONS   | Invalid width/height      |
+| -8   | TBMP_ERR_TRUNCATED        | Buffer too small          |
+| -9   | TBMP_ERR_OVERFLOW         | Arithmetic overflow       |
+| -10  | TBMP_ERR_NO_PALETTE       | Indexed without palette   |
+| -11  | TBMP_ERR_NO_MASKS         | CUSTOM without masks      |
+| -12  | TBMP_ERR_BAD_PALETTE      | Palette too large         |
+| -13  | TBMP_ERR_BAD_SPAN         | Span overflows canvas     |
+| -14  | TBMP_ERR_BAD_BLOCK        | Block index out of range  |
+| -15  | TBMP_ERR_BAD_PIXEL_COORD  | Sparse pixel out of range |
+| -16  | TBMP_ERR_OUT_OF_MEMORY    | Buffer too small          |
+| -17  | TBMP_ERR_ZERO_DIMENSIONS  | Width or height is zero   |
+| -18  | TBMP_ERR_INCONSISTENT     | Data size mismatch        |
 
 ### TBmpEncoding
 
@@ -237,12 +237,12 @@ Lossless 90-degree rotations. No floating-point required.
 
 ### Platform Macros
 
-| Macro | Description |
-|-------|-------------|
-| TBMP_NO_FLOAT | Compile out floating-point code |
-| TBMP_ASSERT(expr) | Override assertion (default no-op) |
-| TBMP_STATIC_ASSERT(expr, msg) | Compile-time assertion |
-| TBMP_INLINE | Inline hint |
+| Macro                         | Description                        |
+|-------------------------------|------------------------------------|
+| TBMP_NO_FLOAT                 | Compile out floating-point code    |
+| TBMP_ASSERT(expr)             | Override assertion (default no-op) |
+| TBMP_STATIC_ASSERT(expr, msg) | Compile-time assertion             |
+| TBMP_INLINE                   | Inline hint                        |
 
 ### tbmp_rotate_output_dims
 

@@ -18,7 +18,7 @@ Every file starts with the 4-byte magic `"tBMP"` to identify the format. After t
 The header is exactly 26 bytes:
 
 | Offset | Size | Field        | Description                                |
-| ------ | ---- | ------------ | ------------------------------------------ |
+|--------|------|--------------|--------------------------------------------|
 | 0      | 2    | version      | File format version (0x0100 for 1.0)       |
 | 2      | 2    | width        | Image width in pixels (1-65535)            |
 | 4      | 2    | height       | Image height in pixels (1-65535)           |
@@ -37,14 +37,14 @@ The wire format is strictly little-endian. The library handles byte-ordering for
 
 tBMP supports six encoding modes. Pick the one that matches your data:
 
-| ID  | Name         | Best For                                                |
-| --- | ------------ | ------------------------------------------------------- |
-| 0   | RAW          | Uncompressed pixel data: simplest, no decode cost       |
-| 1   | Zero-Range   | Images with large empty (zero) regions                  |
-| 2   | RLE          | Simple repeated patterns: (count, value) pairs          |
-| 3   | Span         | Sparse non-repeating data: (index, length, value)       |
-| 4   | Sparse Pixel | Images with few non-zero pixels: explicit (x, y, value) |
-| 5   | Block-Sparse | Tiled images with populated regions: block-indexed      |
+| ID | Name         | Best For                                                |
+|----|--------------|---------------------------------------------------------|
+| 0  | RAW          | Uncompressed pixel data: simplest, no decode cost       |
+| 1  | Zero-Range   | Images with large empty (zero) regions                  |
+| 2  | RLE          | Simple repeated patterns: (count, value) pairs          |
+| 3  | Span         | Sparse non-repeating data: (index, length, value)       |
+| 4  | Sparse Pixel | Images with few non-zero pixels: explicit (x, y, value) |
+| 5  | Block-Sparse | Tiled images with populated regions: block-indexed      |
 
 The library picks automatically if you don't specify, or you can force a specific encoding when writing.
 
@@ -52,19 +52,19 @@ The library picks automatically if you don't specify, or you can force a specifi
 
 From 1-bit indexed to 32-bit RGBA:
 
-| ID  | Name      | Bits | Description                               |
-| --- | --------- | ---- | ----------------------------------------- |
-| 0   | INDEX_1   | 1    | 1-bit palette index                       |
-| 1   | INDEX_2   | 2    | 2-bit palette index                       |
-| 2   | INDEX_4   | 4    | 4-bit palette index                       |
-| 3   | INDEX_8   | 8    | 8-bit palette index                       |
-| 4   | RGB_565   | 16   | 5-6-5 bit RGB                             |
-| 5   | RGB_555   | 16   | 5-5-5 bit RGB (1 bit padding)             |
-| 6   | RGB_444   | 16   | 4-4-4 bit RGB (4 bits padding)            |
-| 7   | RGB_332   | 8    | 3-3-2 bit RGB                             |
-| 8   | RGB_888   | 24   | 8-8-8 bit RGB (big-endian in stream)      |
-| 9   | RGBA_8888 | 32   | 8-8-8-8 bit RGBA                          |
-| 10  | CUSTOM    | var  | Mask-defined format (requires MASK chunk) |
+| ID | Name      | Bits | Description                               |
+|----|-----------|------|-------------------------------------------|
+| 0  | INDEX_1   | 1    | 1-bit palette index                       |
+| 1  | INDEX_2   | 2    | 2-bit palette index                       |
+| 2  | INDEX_4   | 4    | 4-bit palette index                       |
+| 3  | INDEX_8   | 8    | 8-bit palette index                       |
+| 4  | RGB_565   | 16   | 5-6-5 bit RGB                             |
+| 5  | RGB_555   | 16   | 5-5-5 bit RGB (1 bit padding)             |
+| 6  | RGB_444   | 16   | 4-4-4 bit RGB (4 bits padding)            |
+| 7  | RGB_332   | 8    | 3-3-2 bit RGB                             |
+| 8  | RGB_888   | 24   | 8-8-8 bit RGB (big-endian in stream)      |
+| 9  | RGBA_8888 | 32   | 8-8-8-8 bit RGBA                          |
+| 10 | CUSTOM    | var  | Mask-defined format (requires MASK chunk) |
 
 Indexed formats (INDEX\_\*) require a palette in the EXTRA section. The CUSTOM format requires explicit channel masks.
 

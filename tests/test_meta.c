@@ -6,6 +6,56 @@
 
 #include <string.h>
 
+static int meta_equal(const TBmpMeta *a, const TBmpMeta *b) {
+    if (a == NULL || b == NULL)
+        return 0;
+    if (a->count != b->count)
+        return 0;
+
+    for (uint32_t i = 0; i < a->count; i++) {
+        const TBmpMetaEntry *ea = &a->entries[i];
+        const TBmpMetaEntry *eb = &b->entries[i];
+
+        if (strncmp(ea->key, eb->key, TBMP_META_KEY_MAX + 1U) != 0)
+            return 0;
+        if (ea->value.type != eb->value.type)
+            return 0;
+
+        switch (ea->value.type) {
+        case TBMP_META_NIL:
+            break;
+        case TBMP_META_BOOL:
+        case TBMP_META_UINT:
+            if (ea->value.u != eb->value.u)
+                return 0;
+            break;
+        case TBMP_META_INT:
+            if (ea->value.i != eb->value.i)
+                return 0;
+            break;
+        case TBMP_META_FLOAT:
+            if (ea->value.f != eb->value.f)
+                return 0;
+            break;
+        case TBMP_META_STR:
+            if (strncmp((const char *)ea->value.s, (const char *)eb->value.s,
+                        TBMP_META_STR_MAX + 1U) != 0)
+                return 0;
+            break;
+        case TBMP_META_BIN:
+            if (ea->value.bin_len != eb->value.bin_len)
+                return 0;
+            if (memcmp(ea->value.s, eb->value.s, ea->value.bin_len) != 0)
+                return 0;
+            break;
+        default:
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
 void test_meta(void) {
     SUITE("META");
 
@@ -58,6 +108,25 @@ void test_meta(void) {
         uint8_t blob[1] = {0x81};
         TBmpMeta m;
         CHECK_ERR(tbmp_meta_parse(blob, 1, &m), TBMP_META_ERR_TRUNCATED);
+    }
+
+    /* tbmp_meta_parse: malformed MessagePack payloads -> TRUNCATED */
+    {
+        /* map with key but missing value bytes */
+        uint8_t missing_value[] = {0x81, 0xa1, 'k'};
+        TBmpMeta m;
+        CHECK_ERR(tbmp_meta_parse(missing_value, sizeof(missing_value), &m),
+                  TBMP_META_ERR_TRUNCATED);
+
+        /* map with str header declaring 3 bytes but only 2 provided */
+        uint8_t short_str[] = {0x81, 0xa1, 'k', 0xa3, 'a', 'b'};
+        CHECK_ERR(tbmp_meta_parse(short_str, sizeof(short_str), &m),
+                  TBMP_META_ERR_TRUNCATED);
+
+        /* map with bin8 length 4 but only 2 bytes provided */
+        uint8_t short_bin[] = {0x81, 0xa1, 'b', 0xc4, 0x04, 0xde, 0xad};
+        CHECK_ERR(tbmp_meta_parse(short_bin, sizeof(short_bin), &m),
+                  TBMP_META_ERR_TRUNCATED);
     }
 
     /* tbmp_meta_encode + tbmp_meta_parse round-trip: all value types */
@@ -170,6 +239,63 @@ void test_meta(void) {
             CHECK_EQ(e->value.s[0], 0xDE);
             CHECK_EQ(e->value.s[1], 0xAD);
         }
+
+        /* Full struct round-trip compare (encode -> decode -> compare). */
+        CHECK(meta_equal(&src, &dst));
+    }
+
+    /* tbmp_meta_validate_*: required keys, types, and length bounds */
+    {
+        TBmpMeta m;
+        memset(&m, 0, sizeof(m));
+
+        strncpy(m.entries[0].key, "title", TBMP_META_KEY_MAX);
+        m.entries[0].value.type = TBMP_META_STR;
+        strncpy((char *)m.entries[0].value.s, "Sprite Sheet",
+                TBMP_META_STR_MAX);
+
+        strncpy(m.entries[1].key, "author", TBMP_META_KEY_MAX);
+        m.entries[1].value.type = TBMP_META_STR;
+        strncpy((char *)m.entries[1].value.s, "Nellow", TBMP_META_STR_MAX);
+
+        strncpy(m.entries[2].key, "build", TBMP_META_KEY_MAX);
+        m.entries[2].value.type = TBMP_META_UINT;
+        m.entries[2].value.u = 7U;
+
+        strncpy(m.entries[3].key, "blob", TBMP_META_KEY_MAX);
+        m.entries[3].value.type = TBMP_META_BIN;
+        m.entries[3].value.s[0] = 0xAA;
+        m.entries[3].value.s[1] = 0xBB;
+        m.entries[3].value.s[2] = 0xCC;
+        m.entries[3].value.bin_len = 3U;
+
+        m.count = 4U;
+
+        CHECK_OK(tbmp_meta_validate_required_key(&m, "title"));
+        CHECK_ERR(tbmp_meta_validate_required_key(&m, "description"),
+                  TBMP_META_ERR_REQUIRED_MISSING);
+
+        CHECK_OK(tbmp_meta_validate_type(&m, "build", TBMP_META_UINT));
+        CHECK_ERR(tbmp_meta_validate_type(&m, "build", TBMP_META_STR),
+                  TBMP_META_ERR_TYPE_MISMATCH);
+        CHECK_ERR(tbmp_meta_validate_type(&m, "missing", TBMP_META_STR),
+                  TBMP_META_ERR_REQUIRED_MISSING);
+
+        CHECK_OK(tbmp_meta_validate_length(&m, "title", 3U, 20U));
+        CHECK_ERR(tbmp_meta_validate_length(&m, "title", 20U, 40U),
+                  TBMP_META_ERR_LENGTH_OUT_OF_RANGE);
+        CHECK_OK(tbmp_meta_validate_length(&m, "blob", 3U, 3U));
+        CHECK_ERR(tbmp_meta_validate_length(&m, "build", 1U, 4U),
+                  TBMP_META_ERR_TYPE_MISMATCH);
+        CHECK_ERR(tbmp_meta_validate_length(&m, "author", 10U, 5U),
+                  TBMP_META_ERR_LENGTH_OUT_OF_RANGE);
+
+        CHECK_ERR(tbmp_meta_validate_required_key(NULL, "x"),
+                  TBMP_ERR_NULL_PTR);
+        CHECK_ERR(tbmp_meta_validate_type(&m, NULL, TBMP_META_STR),
+                  TBMP_ERR_NULL_PTR);
+        CHECK_ERR(tbmp_meta_validate_length(NULL, "title", 1U, 2U),
+                  TBMP_ERR_NULL_PTR);
     }
 
     /* tbmp_meta_find: not found returns NULL */

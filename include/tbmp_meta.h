@@ -21,6 +21,18 @@ extern "C" {
  * Returned as a negative int (compatible with TBmpError). */
 #define TBMP_META_ERR_TRUNCATED (-22)
 
+/* A required metadata key is missing.
+ * Returned as a negative int (compatible with TBmpError). */
+#define TBMP_META_ERR_REQUIRED_MISSING (-23)
+
+/* A metadata value has an unexpected type.
+ * Returned as a negative int (compatible with TBmpError). */
+#define TBMP_META_ERR_TYPE_MISMATCH (-24)
+
+/* A string/bin metadata value length is outside allowed bounds.
+ * Returned as a negative int (compatible with TBmpError). */
+#define TBMP_META_ERR_LENGTH_OUT_OF_RANGE (-25)
+
 /* Non-fatal: at least one string/bin value was silently truncated to
  * TBMP_META_STR_MAX bytes.  Parse continues; partial results are valid.
  * Returned as a positive int (not an error). */
@@ -72,6 +84,44 @@ const TBmpMetaEntry *tbmp_meta_find(const TBmpMeta *meta, const char *key);
  */
 int tbmp_meta_encode(const TBmpMeta *meta, uint8_t *out, size_t out_cap,
                      size_t *out_len);
+
+/*
+ * tbmp_meta_validate_required_key - ensure a required key exists.
+ *
+ * Returns:
+ *   TBMP_OK on success
+ *   TBMP_ERR_NULL_PTR if meta/key are NULL
+ *   TBMP_META_ERR_REQUIRED_MISSING if key does not exist
+ */
+int tbmp_meta_validate_required_key(const TBmpMeta *meta, const char *key);
+
+/*
+ * tbmp_meta_validate_type - ensure a key exists and has expected type.
+ *
+ * Returns:
+ *   TBMP_OK on success
+ *   TBMP_ERR_NULL_PTR if meta/key are NULL
+ *   TBMP_META_ERR_REQUIRED_MISSING if key does not exist
+ *   TBMP_META_ERR_TYPE_MISMATCH if type differs
+ */
+int tbmp_meta_validate_type(const TBmpMeta *meta, const char *key,
+                            TBmpMetaValueType expected_type);
+
+/*
+ * tbmp_meta_validate_length - validate string/bin payload length bounds.
+ *
+ * The key must exist and be of type TBMP_META_STR or TBMP_META_BIN.
+ * For STR values, the embedded NUL terminator is excluded from length.
+ *
+ * Returns:
+ *   TBMP_OK on success
+ *   TBMP_ERR_NULL_PTR if meta/key are NULL
+ *   TBMP_META_ERR_REQUIRED_MISSING if key does not exist
+ *   TBMP_META_ERR_TYPE_MISMATCH if key is not STR/BIN
+ *   TBMP_META_ERR_LENGTH_OUT_OF_RANGE if length not in [min_len, max_len]
+ */
+int tbmp_meta_validate_length(const TBmpMeta *meta, const char *key,
+                              uint32_t min_len, uint32_t max_len);
 
 #ifdef __cplusplus
 }

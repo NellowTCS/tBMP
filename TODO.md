@@ -1,8 +1,8 @@
 # TODO
 
 - [ ] Structured metadata with real schema (title, author, description, created, tags, etc.)
-- [ ] Add metadata validation helpers (type checking, length checking, required fields)
-- [ ] Add metadata round‑trip tests (encode -> decode -> compare)
+- [x] Add metadata validation helpers (type checking, length checking, required fields)
+- [x] Add metadata round‑trip tests (encode -> decode -> compare)
 - [ ] Add more sample files demonstrating structured metadata, palettes, masks, and EXTRA chunks
 - [ ] Add tBMP versioning clarifications and rules for format evolution
 - [ ] Add tBMP -> PNG exporter (for debugging + web demo)
@@ -12,7 +12,7 @@
 - [ ] Add encoding heuristics helper (`tbmp_pick_best_encoding()`)
 - [ ] Add fuzz tester (random images -> encode -> decode -> verify)
 - [ ] Add tests for malformed EXTRA chunks
-- [ ] Add tests for malformed MsgPack metadata
+- [x] Add tests for malformed MsgPack metadata
 - [ ] Add tests for sparse/block‑sparse edge cases
 
 ## Tools
@@ -22,6 +22,7 @@
 - [ ] Add `--meta-json` or `--meta-file` for bulk metadata injection
 - [ ] Add `inspect` CLI (header, metadata, EXTRA, warnings)
 - [ ] Add `extract_sprites` (grid or metadata‑based sprite extraction)
+- [ ] buildscripts and dev conveniences
 
 ## Web Demo (WASM, NOT Emscripten)
 - [ ] Build minimal WASM decoder + metadata parser (Cheerp? WaJIC? idk)
