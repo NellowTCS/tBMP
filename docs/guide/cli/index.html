@@ -477,6 +477,15 @@ override fields loaded from the file.</p>
 <p>Example:</p>
 <pre class="hljs"><code>tbmp decode sprite.tbmp sprite.ppm
 </code></pre>
+<h2 id="export-png"><code>export-png</code></h2>
+<p>Decode <code>.tbmp</code> and write a <code>.png</code> output file.</p>
+<pre class="hljs"><code>tbmp export-png &lt;input.tbmp&gt; &lt;output.png&gt;
+</code></pre>
+<p>This is useful for debugging and quick previews in tools that do not read<br>
+<code>.tbmp</code> directly.</p>
+<p>Example:</p>
+<pre class="hljs"><code>tbmp export-png sprite.tbmp sprite.png
+</code></pre>
 <h2 id="inspect"><code>inspect</code></h2>
 <p>Print structural details for a <code>.tbmp</code> file.</p>
 <pre class="hljs"><code>tbmp inspect &lt;input.tbmp&gt;
@@ -581,6 +590,10 @@ $$</p>
       
         <li class="toc-item toc-level-2">
           <a href="#decode" class="toc-link">decode</a>
+        </li>
+      
+        <li class="toc-item toc-level-2">
+          <a href="#export-png" class="toc-link">export-png</a>
         </li>
       
         <li class="toc-item toc-level-2">
