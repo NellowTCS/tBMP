@@ -71,6 +71,7 @@ if(TBMP_BUILD_TOOLS)
         tools/tbmp.c
         tools/src/tbmp_imgio.c
         tools/src/tbmp_meta_cli.c
+        tools/src/tbmp_pngio.c
         tools/src/tbmp_ui.c
     )
     set_target_properties(tbmp_cli PROPERTIES OUTPUT_NAME tbmp)

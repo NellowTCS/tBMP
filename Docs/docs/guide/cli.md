@@ -114,6 +114,23 @@ Example:
 tbmp decode sprite.tbmp sprite.ppm
 ```
 
+## `export-png`
+
+Decode `.tbmp` and write a `.png` output file.
+
+```bash
+tbmp export-png <input.tbmp> <output.png>
+```
+
+This is useful for debugging and quick previews in tools that do not read
+`.tbmp` directly.
+
+Example:
+
+```bash
+tbmp export-png sprite.tbmp sprite.png
+```
+
 ## `inspect`
 
 Print structural details for a `.tbmp` file.

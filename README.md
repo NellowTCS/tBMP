@@ -1,5 +1,10 @@
 # tBMP
 
+[![Build](https://github.com/NellowTCS/tBMP/actions/workflows/ci.yml/badge.svg)](https://github.com/NellowTCS/tBMP/actions/workflows/ci.yml)
+[![Tests](https://github.com/NellowTCS/tBMP/actions/workflows/ci.yml/badge.svg?label=tests)](https://github.com/NellowTCS/tBMP/actions/workflows/ci.yml)
+[![Docs](https://github.com/NellowTCS/tBMP/actions/workflows/static.yml/badge.svg)](https://github.com/NellowTCS/tBMP/actions/workflows/static.yml)
+[![Version](https://img.shields.io/github/v/release/NellowTCS/tBMP?display_name=tag)](https://github.com/NellowTCS/tBMP/releases)
+
 A tiny bitmap format library for compact, efficient image storage and decoding.
 
 tBMP gives you a binary image format with multiple encoding options, schema-driven structure, and a clean C library for reading, writing, and manipulating tiny bitmaps.
@@ -144,6 +149,7 @@ When built with `-DTBMP_BUILD_TOOLS=ON`, the `tbmp` executable supports:
 ```bash
 tbmp encode <input> <output.tbmp> [--format NAME] [--encoding NAME] [META_OPTS]
 tbmp decode <input.tbmp> <output.ppm>
+tbmp export-png <input.tbmp> <output.png>
 tbmp validate <input.tbmp> [--strict]
 tbmp inspect <input.tbmp>
 tbmp dump-rgba <input.tbmp> <output.rgba>
@@ -168,6 +174,7 @@ tbmp --ci <command> ...
 
 - `inspect` prints header fields, section presence/sizes, EXTRA chunk summary,
   palette/masks info, metadata entries, and warnings.
+- `export-png` decodes a `.tbmp` and writes PNG output for debugging/preview.
 - `validate` checks parse integrity; `--strict` also rejects unknown/malformed
   EXTRA chunks and invalid structured metadata.
 - `dump-rgba` decodes to raw RGBA bytes (`R,G,B,A` per pixel) for debugging
@@ -190,6 +197,14 @@ Contributions are welcome. Here is how to get started:
 Please make sure all tests pass before submitting.
 
 For review standards and the design-principle checklist, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+Developer convenience script:
+
+```bash
+./scripts/dev.sh
+```
+
+This configures with tools/tests enabled, builds, and runs tests.
 
 ---
 

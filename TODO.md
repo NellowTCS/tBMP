@@ -1,8 +1,7 @@
 # TODO
 
 - [ ] Add more sample files demonstrating structured metadata, palettes, masks, and EXTRA chunks
-- [x] Add tBMP versioning clarifications and rules for format evolution
-- [ ] Add tBMP -> PNG exporter (for debugging + web demo)
+- [x] Add tBMP -> PNG exporter (for debugging + web demo)
 - [ ] Add optional dithering helpers for indexed formats
 - [ ] Add “auto‑palette” generator for INDEX_1–8 encodings
 - [ ] Add encoding heuristics helper (`tbmp_pick_best_encoding()`)
@@ -10,7 +9,7 @@
 
 ## Tools
 - [ ] Add `extract_sprites` (grid or metadata‑based sprite extraction)
-- [ ] buildscripts and dev conveniences
+- [x] buildscripts and dev conveniences
 
 ## Web Demo (WASM, NOT Emscripten, maybe)
 - [ ] Build minimal WASM decoder + metadata parser (Cheerp? WaJIC? idk)
@@ -34,14 +33,11 @@
 - [ ] Show masks bit layout
 
 ## Documentation
-- [x] Add “Design Philosophy” page (why tBMP exists)
-- [x] Add “tBMP for Embedded Systems” guide (very important heheh)
-- [x] Add “tBMP for Games” guide (very important heheh)
 - [ ] Add screenshots/gifs of the web demo?
 
 ## Polish and stuff
 - [ ] Add a tiny pixel‑art tBMP logo (as a tBMP -> PNG, duh)
-- [ ] Add badges to README (build, tests, docs, version)
+- [x] Add badges to README (build, tests, docs, version)
 
 --- 
 

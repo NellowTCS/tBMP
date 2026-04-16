@@ -39,6 +39,7 @@
 #include "tbmp_imgio.h"
 #include "tbmp_meta.h"
 #include "tbmp_meta_cli.h"
+#include "tbmp_pngio.h"
 #include "tbmp_reader.h"
 #include "tbmp_types.h"
 #include "tbmp_ui.h"
@@ -330,6 +331,7 @@ static void print_general_usage(void) {
         tbmp_ui_printlnf("  tbmp encode <input> <output.tbmp> [--format NAME] "
                          "[--encoding NAME] [META_OPTS]");
         tbmp_ui_printlnf("  tbmp decode <input.tbmp> <output.ppm>");
+        tbmp_ui_printlnf("  tbmp export-png <input.tbmp> <output.png>");
         tbmp_ui_printlnf("  tbmp validate <input.tbmp> [--strict]");
         tbmp_ui_printlnf("  tbmp inspect <input.tbmp>");
         tbmp_ui_printlnf("  tbmp dump-rgba <input.tbmp> <output.rgba>");
@@ -347,6 +349,8 @@ static void print_general_usage(void) {
             "inspect: print header/sections/palette/masks/meta/chunks");
         tbmp_ui_printlnf(
             "dump-rgba: dump decoded raw RGBA bytes (R,G,B,A per pixel)");
+        tbmp_ui_printlnf(
+            "export-png: decode and write PNG (debugging / preview)");
         return;
     }
 
@@ -365,6 +369,8 @@ static void print_general_usage(void) {
     tbmp_ui_table_row("encode", "tbmp encode <input> <output.tbmp> [--format "
                                 "NAME] [--encoding NAME] [META_OPTS]");
     tbmp_ui_table_row("decode", "tbmp decode <input.tbmp> <output.ppm>");
+    tbmp_ui_table_row("export-png",
+                      "tbmp export-png <input.tbmp> <output.png>");
     tbmp_ui_table_row("validate", "tbmp validate <input.tbmp> [--strict]");
     tbmp_ui_table_row("inspect", "tbmp inspect <input.tbmp>");
     tbmp_ui_table_row("dump-rgba", "tbmp dump-rgba <input.tbmp> <output.rgba>");
@@ -385,6 +391,7 @@ static void print_general_usage(void) {
         "inspect: print header/sections/palette/masks/meta/chunks");
     tbmp_ui_box_line(
         "dump-rgba: dump decoded raw RGBA bytes (R,G,B,A per pixel)");
+    tbmp_ui_box_line("export-png: decode and write PNG (debugging / preview)");
     tbmp_ui_box_end();
 }
 
@@ -744,6 +751,93 @@ static int cmd_dump_rgba(int argc, char **argv) {
     return 0;
 }
 
+/* Subcommand: export-png. */
+static int cmd_export_png(int argc, char **argv) {
+    if (argc < 3) {
+        print_cmd_usage("tbmp export-png <input.tbmp> <output.png>");
+        return 1;
+    }
+
+    const char *in_path = argv[1];
+    const char *out_path = argv[2];
+
+    tbmp_ui_set_accent(TBMP_UI_ACCENT_GREEN);
+    tbmp_ui_banner("tbmp :: EXPORT PNG");
+
+    uint8_t *raw = NULL;
+    size_t raw_len = 0;
+    tbmp_ui_step_begin("read input file");
+    if (read_file_all(in_path, &raw, &raw_len) != 0) {
+        tbmp_ui_step_end_fail();
+        return 1;
+    }
+    tbmp_ui_step_end_ok();
+
+    TBmpImage img;
+    tbmp_ui_step_begin("parse tBMP header");
+    TBmpError err = tbmp_open(raw, raw_len, &img);
+    if (err != TBMP_OK) {
+        tbmp_ui_step_end_fail();
+        fprintf(stderr, "error: cannot parse '%s': %s\n", in_path,
+                tbmp_error_str(err));
+        free(raw);
+        return 1;
+    }
+    tbmp_ui_step_end_ok();
+
+    size_t npix = (size_t)img.head.width * (size_t)img.head.height;
+    TBmpRGBA *pixels = (TBmpRGBA *)malloc(npix * sizeof(TBmpRGBA));
+    if (!pixels) {
+        fprintf(stderr, "error: out of memory\n");
+        free(raw);
+        return 1;
+    }
+
+    TBmpFrame frame;
+    frame.width = img.head.width;
+    frame.height = img.head.height;
+    frame.pixels = pixels;
+
+    tbmp_ui_step_begin("decode pixel data");
+    TBmpUISpinner spinner;
+    tbmp_ui_spinner_start(&spinner, "decoding image");
+    err = tbmp_decode(&img, &frame);
+    tbmp_ui_spinner_tick(&spinner);
+    if (err != TBMP_OK) {
+        tbmp_ui_spinner_stop_error(&spinner, "decode failed");
+        tbmp_ui_step_end_fail();
+        fprintf(stderr, "error: decode failed: %s\n", tbmp_error_str(err));
+        free(pixels);
+        free(raw);
+        return 1;
+    }
+    tbmp_ui_spinner_stop_success(&spinner, "decode complete");
+    tbmp_ui_step_end_ok();
+
+    tbmp_ui_step_begin("write PNG file");
+    int rc =
+        tbmp_cli_write_png_rgba(out_path, frame.width, frame.height,
+                                (const uint8_t *)frame.pixels);
+    if (rc != 0) {
+        tbmp_ui_step_end_fail();
+        free(pixels);
+        free(raw);
+        return 1;
+    }
+    tbmp_ui_step_end_ok();
+
+    tbmp_ui_status_ok("png export complete");
+    tbmp_ui_box_begin("PNG Export Result");
+    tbmp_ui_box_kv("input", "%s", in_path);
+    tbmp_ui_box_kv("output", "%s", out_path);
+    tbmp_ui_box_kv("size", "%ux%u", img.head.width, img.head.height);
+    tbmp_ui_box_end();
+
+    free(pixels);
+    free(raw);
+    return 0;
+}
+
 /* Subcommand: validate. */
 static int cmd_validate(int argc, char **argv) {
     if (argc < 2) {
@@ -963,6 +1057,8 @@ int main(int argc, char **argv) {
         return cmd_encode(argc - argi, argv + argi);
     if (strcmp(argv[argi], "decode") == 0)
         return cmd_decode(argc - argi, argv + argi);
+    if (strcmp(argv[argi], "export-png") == 0)
+        return cmd_export_png(argc - argi, argv + argi);
     if (strcmp(argv[argi], "validate") == 0)
         return cmd_validate(argc - argi, argv + argi);
     if (strcmp(argv[argi], "inspect") == 0)
