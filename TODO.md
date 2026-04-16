@@ -1,6 +1,6 @@
 # TODO
 
-- [x] Structured metadata with real schema (title, author, description, created, tags, etc.)
+- [ ] Structured metadata with real schema (title, author, description, created, tags, etc.)
 - [ ] Add metadata validation helpers (type checking, length checking, required fields)
 - [ ] Add metadata round‑trip tests (encode -> decode -> compare)
 - [ ] Add more sample files demonstrating structured metadata, palettes, masks, and EXTRA chunks
