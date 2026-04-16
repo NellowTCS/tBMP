@@ -99,7 +99,7 @@ int main(void) {
 
 ## Repository layout
 
-```
+```txt
 include/                 # Public headers
   tbmp_types.h           # Core types and enums
   tbmp_reader.h          # File parsing
@@ -160,6 +160,7 @@ tbmp --ci <command> ...
 ```
 
 `META_OPTS` for encode:
+
 - `--title`
 - `--author`
 - `--description`
@@ -171,6 +172,12 @@ tbmp --ci <command> ...
 - `--colorspace`
 - `--custom-map` (repeatable MessagePack map blob file)
 - `--meta-file` (structured MessagePack metadata blob)
+
+Encode helper flags:
+
+- `--pick-encoding` (auto pick between `raw` and `rle`)
+- `--auto-palette` (generate palette for indexed formats)
+- `--dither` (Floyd-Steinberg dither to target palette)
 
 - `inspect` prints header fields, section presence/sizes, EXTRA chunk summary,
   palette/masks info, metadata entries, and warnings.
@@ -208,6 +215,8 @@ This configures with tools/tests enabled, builds, and runs tests.
 
 ---
 
+<!-- markdownlint-disable MD033 -->
+
 ## Star History
 
 <a href="https://www.star-history.com/?repos=tbmp%2Ftbmp&type=date&legend=top-left">
@@ -222,4 +231,5 @@ This configures with tools/tests enabled, builds, and runs tests.
 
 ## License
 
-MIT. See LICENSE.
+Apache-v2.0
+See [LICENSE](LICENSE).

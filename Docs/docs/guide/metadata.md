@@ -12,7 +12,8 @@ The EXTRA section stores optional chunks identified by 4-byte tags. It appears a
 Used with indexed pixel formats (INDEX_1 through INDEX_8).
 
 **Structure:**
-```
+
+```txt
 [tag: "PALT"][length: 4 bytes]
   [palette_count: 4 bytes]
   [entries: palette_count * 4 bytes]
@@ -20,6 +21,7 @@ Used with indexed pixel formats (INDEX_1 through INDEX_8).
 ```
 
 **Example:**
+
 ```c
 TBmpPalette palette;
 palette.count = 256;
@@ -40,7 +42,8 @@ The library automatically writes the PALT chunk when you set `params.palette`.
 Used with the CUSTOM pixel format to define channel layouts.
 
 **Structure:**
-```
+
+```txt
 [tag: "MASK"][length: 4 bytes]
   [mask_r: 4 bytes]
   [mask_g: 4 bytes]
@@ -49,6 +52,7 @@ Used with the CUSTOM pixel format to define channel layouts.
 ```
 
 **Example:**
+
 ```c
 TBmpMasks masks;
 masks.r = 0x00FF0000;  // R in bits 16-23
@@ -126,6 +130,7 @@ Example custom map item:
 tBMP supports a strict structured metadata schema validator for MessagePack META blobs.
 
 Required fields:
+<!-- markdownlint-disable MD033 -->
 
 - `title`: string
 - `author`: string
@@ -134,6 +139,8 @@ Required fields:
 - `software`: string
 - `license`: string
 - `tags`: array<string>
+
+<!-- markdownlint-enable MD033 -->-
 
 Optional fields:
 

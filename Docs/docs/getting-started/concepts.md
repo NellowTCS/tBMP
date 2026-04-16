@@ -7,7 +7,7 @@ description: "How tBMP structures its data and why it works the way it does."
 
 A tBMP file looks like this on the wire:
 
-```
+```txt
 [magic: "tBMP"][header][data][extra][meta]
 ```
 

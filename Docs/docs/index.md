@@ -6,7 +6,7 @@ description: "A tiny bitmap format for compact, efficient image storage and deco
 **tBMP** is a binary image format designed for small bitmaps. It gives you multiple encoding options, metadata support, and a zero-dependency C library for reading, writing, and manipulating your images.
 
 ::: callout tip
-tBMP stands for Tiny Bitmap Format! 
+tBMP stands for Tiny Bitmap Format!
 :::
 
 ## What it solves

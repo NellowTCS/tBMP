@@ -3,7 +3,7 @@ title: "CLI"
 description: "Using the tbmp command-line toolkit"
 ---
 
-# tBMP CLI
+## tBMP CLI
 
 The project ships with a general CLI named `tbmp` when built with tools enabled.
 
@@ -46,6 +46,16 @@ Convert an input image to `.tbmp`.
 tbmp encode <input> <output.tbmp> [--format NAME] [--encoding NAME]
 ```
 
+Optional helper flags:
+
+- `--pick-encoding`: choose between raw and rle using a quick size heuristic.
+- `--auto-palette`: generate a palette automatically for indexed formats.
+- `--dither`: apply Floyd-Steinberg dithering to the selected palette.
+
+`--auto-palette` currently requires indexed formats (`index1`, `index2`,
+`index4`, `index8`). `--dither` requires a palette (for CLI usage this is
+typically combined with `--auto-palette`).
+
 Structured metadata options (all optional, but if any are provided the
 required schema fields must be complete):
 
@@ -66,18 +76,25 @@ pass individual metadata flags in the same command; flags that appear later
 override fields loaded from the file.
 
 Supported input formats:
+
 - PBM/PGM/PPM (`P1` through `P6`)
 - Formats handled by stb_image (PNG, BMP, JPEG, ...)
 
 Format options:
+
 - `rgba8888` (default)
 - `rgb888`
 - `rgb565`
 - `rgb555`
 - `rgb444`
 - `rgb332`
+- `index1`
+- `index2`
+- `index4`
+- `index8`
 
 Encoding options:
+
 - `raw` (default)
 - `rle`
 - `zerorange`
@@ -87,15 +104,17 @@ Example:
 
 ```bash
 tbmp encode sprite.png sprite.tbmp --format rgb565 --encoding rle \
-	--title "Forest Tiles" \
-	--author "Nellow" \
-	--description "Top-down biome tiles" \
-	--created "2026-04-16T19:30:00Z" \
-	--software "tbmp-cli 0.1" \
-	--license "CC-BY-4.0" \
-	--tags "tileset,rpg,forest" \
-	--dpi 144 \
-	--colorspace sRGB
+    --title "Forest Tiles" \
+    --author "Nellow" \
+    --description "Top-down biome tiles" \
+    --created "2026-04-16T19:30:00Z" \
+    --software "tbmp-cli 0.1" \
+    --license "CC-BY-4.0" \
+    --tags "tileset,rpg,forest" \
+    --dpi 144 \
+    --colorspace sRGB
+
+tbmp encode sprite.png sprite_index4.tbmp --format index4 --auto-palette --dither --pick-encoding
 ```
 
 ## `decode`
@@ -141,6 +160,7 @@ tbmp --ci inspect <input.tbmp>
 ```
 
 Reports:
+
 - Header fields
 - DATA/EXTRA/META presence and sizes
 - Palette and masks details
@@ -164,6 +184,7 @@ tbmp validate <input.tbmp> --strict
 ```
 
 Validation modes:
+
 - Basic (default): verifies the file parses successfully.
 - Strict (`--strict`): also fails on unknown or malformed `EXTRA` chunks,
   and fails if present `META` does not match the structured schema.

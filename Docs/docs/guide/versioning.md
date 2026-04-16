@@ -50,7 +50,7 @@ EXTRA is the main extension path. Keep it skippable.
 
 Each chunk is:
 
-```
+```txt
 [tag:4][length:4][body:length]
 ```
 

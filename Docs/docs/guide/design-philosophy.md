@@ -11,7 +11,7 @@ tBMP is for cases where common image formats are heavier than the job:
 - Small game sprites and UI textures.
 - Data pipelines that need predictable decode behavior.
 
-The goal is not "best compression at any cost". The goal is small, explicit, and easy to integrate. 
+The goal is not "best compression at any cost". The goal is small, explicit, and easy to integrate.
 
 ## Principles
 

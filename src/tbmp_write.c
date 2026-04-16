@@ -359,6 +359,32 @@ static size_t rle_max_data_size(uint32_t n, uint8_t bit_depth) {
     return (total > (size_t)-1) ? (size_t)-1 : (size_t)total;
 }
 
+static size_t estimate_rle_size(const TBmpFrame *frame,
+                                const TBmpWriteParams *params) {
+    uint32_t n = (uint32_t)frame->width * frame->height;
+    uint8_t vbytes = value_field_bytes(params->bit_depth);
+    size_t total = 0;
+
+    uint32_t i = 0;
+    while (i < n) {
+        uint32_t val = rgba_to_packed(frame->pixels[i], params->pixel_format,
+                                      params->palette, params->masks);
+        uint32_t run = 1;
+        while (run < 255U && i + run < n) {
+            uint32_t next =
+                rgba_to_packed(frame->pixels[i + run], params->pixel_format,
+                               params->palette, params->masks);
+            if (next != val)
+                break;
+            run++;
+        }
+        total += 1U + vbytes;
+        i += run;
+    }
+
+    return total;
+}
+
 /* Encode a RAW pixel array.  Returns bytes written or 0 on error. */
 static size_t encode_raw(const TBmpFrame *frame, const TBmpWriteParams *params,
                          uint8_t *out, size_t cap) {
@@ -658,5 +684,82 @@ TBmpError tbmp_write(const TBmpFrame *frame, const TBmpWriteParams *params,
     (void)data_start;
 
     *out_len = b.pos;
+    return TBMP_OK;
+}
+
+TBmpEncoding tbmp_pick_best_encoding(const TBmpFrame *frame,
+                                     const TBmpWriteParams *params) {
+    if (frame == NULL || params == NULL || frame->pixels == NULL)
+        return TBMP_ENC_RAW;
+    if (frame->width == 0 || frame->height == 0)
+        return TBMP_ENC_RAW;
+
+    uint32_t n = (uint32_t)frame->width * frame->height;
+    size_t raw_sz = raw_data_size(n, params->bit_depth);
+    size_t rle_sz = estimate_rle_size(frame, params);
+
+    if (rle_sz < raw_sz)
+        return TBMP_ENC_RLE;
+    return TBMP_ENC_RAW;
+}
+
+TBmpError tbmp_auto_palette_from_frame(const TBmpFrame *frame,
+                                       uint32_t max_colors, TBmpPalette *out) {
+    if (frame == NULL || out == NULL || frame->pixels == NULL)
+        return TBMP_ERR_NULL_PTR;
+    if (frame->width == 0 || frame->height == 0)
+        return TBMP_ERR_ZERO_DIMENSIONS;
+    if (max_colors == 0 || max_colors > TBMP_MAX_PALETTE)
+        return TBMP_ERR_BAD_PALETTE;
+
+    uint32_t count[32768];
+    uint32_t sum_r[32768];
+    uint32_t sum_g[32768];
+    uint32_t sum_b[32768];
+    memset(count, 0, sizeof(count));
+    memset(sum_r, 0, sizeof(sum_r));
+    memset(sum_g, 0, sizeof(sum_g));
+    memset(sum_b, 0, sizeof(sum_b));
+
+    uint32_t n = (uint32_t)frame->width * frame->height;
+    for (uint32_t i = 0; i < n; i++) {
+        TBmpRGBA p = frame->pixels[i];
+        uint32_t idx = ((uint32_t)(p.r >> 3) << 10) | ((uint32_t)(p.g >> 3) << 5) |
+                       (uint32_t)(p.b >> 3);
+        count[idx]++;
+        sum_r[idx] += p.r;
+        sum_g[idx] += p.g;
+        sum_b[idx] += p.b;
+    }
+
+    out->count = 0;
+    for (uint32_t k = 0; k < max_colors; k++) {
+        uint32_t best = 0;
+        uint32_t best_count = 0;
+        for (uint32_t i = 0; i < 32768U; i++) {
+            if (count[i] > best_count) {
+                best_count = count[i];
+                best = i;
+            }
+        }
+        if (best_count == 0)
+            break;
+
+        out->entries[out->count].r = (uint8_t)(sum_r[best] / best_count);
+        out->entries[out->count].g = (uint8_t)(sum_g[best] / best_count);
+        out->entries[out->count].b = (uint8_t)(sum_b[best] / best_count);
+        out->entries[out->count].a = 255;
+        out->count++;
+        count[best] = 0;
+    }
+
+    if (out->count == 0)
+        return TBMP_ERR_BAD_PALETTE;
+
+    while (out->count < max_colors) {
+        out->entries[out->count] = out->entries[0];
+        out->count++;
+    }
+
     return TBMP_OK;
 }

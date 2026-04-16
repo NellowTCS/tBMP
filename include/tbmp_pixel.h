@@ -46,6 +46,16 @@ TBmpRGBA tbmp_palette_lookup(const TBmpPalette *pal, uint32_t idx);
  */
 uint8_t tbmp_scale_channel(uint32_t val, uint32_t bits);
 
+/*
+ * tbmp_dither_to_palette - in-place Floyd-Steinberg dithering to palette.
+ *
+ * frame : RGBA frame to modify in place.
+ * pal   : target palette.
+ *
+ * Returns TBMP_OK on success or negative TBmpError on invalid input.
+ */
+TBmpError tbmp_dither_to_palette(TBmpFrame *frame, const TBmpPalette *pal);
+
 #ifdef __cplusplus
 }
 #endif

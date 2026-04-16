@@ -19,6 +19,7 @@ Index formats use a palette (stored in the EXTRA section) to define colors.
 | INDEX_8 | 8    | 256    | 256 entries  |
 
 **Best for:**
+
 - Pixel art with limited palettes
 - UI icons
 - Anywhere you have 256 colors or fewer
@@ -37,6 +38,7 @@ These pack RGB into 16 or 8 bits:
 | RGB_332 | 8    | 3 red, 3 green, 2 blue           |
 
 **Best for:**
+
 - Low-memory scenarios
 - Simple 3D textures
 - When you do not need alpha
@@ -51,6 +53,7 @@ Full color, no palette needed:
 | RGBA_8888 | 32   | R(8) G(8) B(8) A(8) - big-endian in stream |
 
 **Best for:**
+
 - Full color images
 - When you need transparency
 - Photo data
@@ -62,6 +65,7 @@ Define your own channel layout using masks in the EXTRA section.
 **Requires:** A MASK chunk in the EXTRA section specifying R, G, B, A bit masks.
 
 **Best for:**
+
 - Unusual color depths
 - Hardware-specific formats
 - When you need precise control

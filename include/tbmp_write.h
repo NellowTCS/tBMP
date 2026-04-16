@@ -63,6 +63,27 @@ size_t tbmp_write_needed_size(const TBmpFrame *frame,
 TBmpError tbmp_write(const TBmpFrame *frame, const TBmpWriteParams *params,
                      uint8_t *out, size_t out_cap, size_t *out_len);
 
+/*
+ * tbmp_pick_best_encoding - pick a practical encoding for the given frame.
+ *
+ * This helper currently compares RAW and RLE output size estimates for the
+ * selected pixel format/bit depth and returns the smaller option.
+ */
+TBmpEncoding tbmp_pick_best_encoding(const TBmpFrame *frame,
+                                     const TBmpWriteParams *params);
+
+/*
+ * tbmp_auto_palette_from_frame - generate a palette from frame colors.
+ *
+ * frame      : source RGBA frame.
+ * max_colors : target palette size (1..TBMP_MAX_PALETTE).
+ * out        : receives generated palette.
+ *
+ * Returns TBMP_OK on success, negative error code on invalid arguments.
+ */
+TBmpError tbmp_auto_palette_from_frame(const TBmpFrame *frame,
+                                       uint32_t max_colors, TBmpPalette *out);
+
 #ifdef __cplusplus
 }
 #endif

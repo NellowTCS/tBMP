@@ -73,6 +73,7 @@ TBmpError tbmp_open(const uint8_t *buf, size_t buf_len, TBmpImage *out);
 Parse and validate a tBMP buffer. Zero-allocation - pointers alias into the caller buffer.
 
 **Parameters:**
+
 - `buf` - pointer to file data
 - `buf_len` - byte length of buffer
 - `out` - output structure to fill
@@ -110,6 +111,7 @@ TBmpError tbmp_decode(const TBmpImage *img, TBmpFrame *frame);
 Fully decode an image to RGBA8888.
 
 **Parameters:**
+
 - `img` - parsed image from tbmp_open()
 - `frame` - output frame, caller provides `pixels` buffer
 
@@ -157,6 +159,7 @@ void tbmp_write_default_params(TBmpWriteParams *p);
 ```
 
 Fill p with safe defaults:
+
 - encoding = TBMP_ENC_RAW
 - pixel_format = TBMP_FMT_RGBA_8888
 - bit_depth = 32
@@ -190,6 +193,7 @@ int tbmp_meta_parse(const uint8_t *blob, size_t len, TBmpMeta *out);
 Decode a MessagePack META blob.
 
 **Returns:**
+
 - TBMP_OK (0) - success
 - Negative - error
 

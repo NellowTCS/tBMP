@@ -31,7 +31,7 @@ Tracks regions of zero-valued pixels separately from non-zero data.
 
 **How it works:**
 
-```
+```txt
 [count of zero-ranges][(start, length) pairs...][non-zero pixel count][non-zero values...]
 ```
 
@@ -47,7 +47,7 @@ Simple run-length encoding: (count, value) pairs.
 
 **How it works:**
 
-```
+```txt
 [(count, value), (count, value), ...]
 ```
 

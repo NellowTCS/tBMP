@@ -25,7 +25,7 @@
  * Encode options:
  *   --format   <name>  Pixel format. Choices:
  *                        rgba8888 (default), rgb888, rgb565, rgb555,
- *                        rgb444, rgb332
+ *                        rgb444, rgb332, index1, index2, index4, index8
  *   --encoding <name>  Encoding mode. Choices:
  *                        raw (default), rle, zerorange, span
  *
@@ -39,6 +39,7 @@
 #include "tbmp_imgio.h"
 #include "tbmp_meta.h"
 #include "tbmp_meta_cli.h"
+#include "tbmp_pixel.h"
 #include "tbmp_pngio.h"
 #include "tbmp_reader.h"
 #include "tbmp_types.h"
@@ -59,6 +60,14 @@ static const char *arg_get(int argc, char **argv, const char *flag,
     return default_val;
 }
 
+static int arg_has(int argc, char **argv, const char *flag) {
+    for (int i = 0; i < argc; i++) {
+        if (strcmp(argv[i], flag) == 0)
+            return 1;
+    }
+    return 0;
+}
+
 static int read_file_all(const char *path, uint8_t **out, size_t *out_len);
 
 static TBmpPixelFormat parse_format(const char *name, uint8_t *out_depth) {
@@ -67,6 +76,8 @@ static TBmpPixelFormat parse_format(const char *name, uint8_t *out_depth) {
         TBmpPixelFormat f;
         uint8_t d;
     } map[] = {
+        {"index1", TBMP_FMT_INDEX_1, 1},     {"index2", TBMP_FMT_INDEX_2, 2},
+        {"index4", TBMP_FMT_INDEX_4, 4},     {"index8", TBMP_FMT_INDEX_8, 8},
         {"rgba8888", TBMP_FMT_RGBA_8888, 32}, {"rgb888", TBMP_FMT_RGB_888, 24},
         {"rgb565", TBMP_FMT_RGB_565, 16},     {"rgb555", TBMP_FMT_RGB_555, 16},
         {"rgb444", TBMP_FMT_RGB_444, 16},     {"rgb332", TBMP_FMT_RGB_332, 8},
@@ -339,12 +350,13 @@ static void print_general_usage(void) {
         tbmp_ui_printlnf(
             "Input formats (encode): PBM/PGM/PPM P1-P6, PNG, BMP, JPEG, ...");
         tbmp_ui_printlnf("Pixel formats: rgba8888 (default), rgb888, rgb565, "
-                         "rgb555, rgb444, rgb332");
+                         "rgb555, rgb444, rgb332, index1, index2, index4, index8");
         tbmp_ui_printlnf("  (grayscale/bilevel sources default to rgb332)");
         tbmp_ui_printlnf("Encodings: raw (default), rle, zerorange, span");
         tbmp_ui_printlnf("META_OPTS: --title --author --description --created "
                          "--software --license --tags --dpi --colorspace "
                          "--custom-map --meta-file");
+        tbmp_ui_printlnf("Encode extras: --pick-encoding --auto-palette --dither");
         tbmp_ui_printlnf(
             "inspect: print header/sections/palette/masks/meta/chunks");
         tbmp_ui_printlnf(
@@ -381,12 +393,13 @@ static void print_general_usage(void) {
     tbmp_ui_box_line(
         "Input formats (encode): PBM/PGM/PPM P1-P6, PNG, BMP, JPEG, ...");
     tbmp_ui_box_line("Pixel formats: rgba8888 (default), rgb888, rgb565, "
-                     "rgb555, rgb444, rgb332");
+                     "rgb555, rgb444, rgb332, index1, index2, index4, index8");
     tbmp_ui_box_line("(grayscale/bilevel sources default to rgb332)");
     tbmp_ui_box_line("Encodings: raw (default), rle, zerorange, span");
     tbmp_ui_box_line("META_OPTS: --title --author --description --created "
                      "--software --license --tags --dpi --colorspace "
                      "--custom-map --meta-file");
+    tbmp_ui_box_line("Encode extras: --pick-encoding --auto-palette --dither");
     tbmp_ui_box_line(
         "inspect: print header/sections/palette/masks/meta/chunks");
     tbmp_ui_box_line(
@@ -404,7 +417,8 @@ static int cmd_encode(int argc, char **argv) {
                         "[--description D] [--created C] [--software S] "
                         "[--license L] [--tags a,b] [--dpi N] "
                         "[--colorspace CS] [--custom-map FILE ...] "
-                        "[--meta-file META.msgpack]");
+                        "[--meta-file META.msgpack] [--pick-encoding] "
+                        "[--auto-palette] [--dither]");
         return 1;
     }
 
@@ -454,6 +468,63 @@ static int cmd_encode(int argc, char **argv) {
     params.encoding = enc;
     params.pixel_format = fmt;
     params.bit_depth = bit_depth;
+
+    int opt_pick_encoding = arg_has(argc, argv, "--pick-encoding");
+    int opt_auto_palette = arg_has(argc, argv, "--auto-palette");
+    int opt_dither = arg_has(argc, argv, "--dither");
+
+    TBmpPalette auto_palette;
+    memset(&auto_palette, 0, sizeof(auto_palette));
+
+    if (opt_auto_palette) {
+        uint32_t max_colors = 0;
+        if (fmt == TBMP_FMT_INDEX_1)
+            max_colors = 2;
+        else if (fmt == TBMP_FMT_INDEX_2)
+            max_colors = 4;
+        else if (fmt == TBMP_FMT_INDEX_4)
+            max_colors = 16;
+        else if (fmt == TBMP_FMT_INDEX_8)
+            max_colors = 256;
+        else {
+            fprintf(stderr,
+                    "error: --auto-palette requires indexed format "
+                    "(index1/index2/index4/index8)\n");
+            tbmp_cli_img_free(pixels, free_with_stb);
+            return 1;
+        }
+
+        TBmpError pe = tbmp_auto_palette_from_frame(&frame, max_colors,
+                                                    &auto_palette);
+        if (pe != TBMP_OK) {
+            fprintf(stderr, "error: auto-palette failed: %s\n",
+                    tbmp_error_str(pe));
+            tbmp_cli_img_free(pixels, free_with_stb);
+            return 1;
+        }
+        params.palette = &auto_palette;
+    }
+
+    if (opt_dither) {
+        if (params.palette == NULL) {
+            fprintf(stderr,
+                    "error: --dither requires a palette (use --auto-palette)\n");
+            tbmp_cli_img_free(pixels, free_with_stb);
+            return 1;
+        }
+        TBmpError de = tbmp_dither_to_palette(&frame, params.palette);
+        if (de != TBMP_OK) {
+            fprintf(stderr, "error: dithering failed: %s\n", tbmp_error_str(de));
+            tbmp_cli_img_free(pixels, free_with_stb);
+            return 1;
+        }
+    }
+
+    if (opt_pick_encoding) {
+        params.encoding = tbmp_pick_best_encoding(&frame, &params);
+        enc_name = encoding_name(params.encoding);
+        enc = params.encoding;
+    }
 
     TBmpMeta meta;
     int has_meta = 0;

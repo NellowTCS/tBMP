@@ -2,6 +2,7 @@
 #include "test_suites.h"
 #include "tbmp_reader.h"
 #include "tbmp_decode.h"
+#include "tbmp_pixel.h"
 #include "tbmp_write.h"
 
 #include <stdlib.h>
@@ -147,5 +148,41 @@ void test_writer_roundtrip(void) {
         CHECK_GT((int)out_px[3].g, 0);
 
         free(enc_buf);
+    }
+
+    /* Auto-palette + dithering helpers */
+    {
+        TBmpRGBA src_px[16] = {
+            {255, 0, 0, 255},   {220, 20, 20, 255}, {0, 255, 0, 255},
+            {20, 220, 20, 255}, {0, 0, 255, 255},   {20, 20, 220, 255},
+            {255, 255, 0, 255}, {220, 220, 20, 255},
+            {0, 255, 255, 255}, {20, 220, 220, 255},
+            {255, 0, 255, 255}, {220, 20, 220, 255},
+            {64, 64, 64, 255},  {96, 96, 96, 255},   {192, 192, 192, 255},
+            {240, 240, 240, 255},
+        };
+        TBmpFrame frame = {4, 4, src_px};
+
+        TBmpPalette pal;
+        CHECK_OK(tbmp_auto_palette_from_frame(&frame, 4, &pal));
+        CHECK_EQ(pal.count, 4U);
+
+        CHECK_OK(tbmp_dither_to_palette(&frame, &pal));
+    }
+
+    /* Encoding heuristic helper */
+    {
+        TBmpRGBA src_px[64];
+        for (int i = 0; i < 64; i++)
+            src_px[i] = (TBmpRGBA){255, 0, 0, 255};
+
+        TBmpFrame frame = {8, 8, src_px};
+        TBmpWriteParams params;
+        tbmp_write_default_params(&params);
+        params.pixel_format = TBMP_FMT_RGB_332;
+        params.bit_depth = 8;
+
+        TBmpEncoding picked = tbmp_pick_best_encoding(&frame, &params);
+        CHECK_EQ(picked, TBMP_ENC_RLE);
     }
 }

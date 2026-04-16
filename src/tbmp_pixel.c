@@ -1,5 +1,7 @@
 #include "tbmp_pixel.h"
 
+#include <stdlib.h>
+
 /* Internal helpers (file-scope only). */
 
 /*
@@ -136,4 +138,100 @@ TBmpRGBA tbmp_pixel_to_rgba(uint32_t v, TBmpPixelFormat fmt,
         return black;
     }
     }
+}
+
+static uint8_t clamp_u8_int(int v) {
+    if (v < 0)
+        return 0;
+    if (v > 255)
+        return 255;
+    return (uint8_t)v;
+}
+
+static TBmpRGBA nearest_palette_color(const TBmpPalette *pal, uint8_t r,
+                                      uint8_t g, uint8_t b) {
+    uint32_t best_idx = 0;
+    uint32_t best_dist = UINT32_MAX;
+
+    for (uint32_t i = 0; i < pal->count; i++) {
+        int dr = (int)r - (int)pal->entries[i].r;
+        int dg = (int)g - (int)pal->entries[i].g;
+        int db = (int)b - (int)pal->entries[i].b;
+        uint32_t dist = (uint32_t)(dr * dr + dg * dg + db * db);
+        if (dist < best_dist) {
+            best_dist = dist;
+            best_idx = i;
+            if (dist == 0U)
+                break;
+        }
+    }
+
+    return pal->entries[best_idx];
+}
+
+TBmpError tbmp_dither_to_palette(TBmpFrame *frame, const TBmpPalette *pal) {
+    if (frame == NULL || pal == NULL || frame->pixels == NULL)
+        return TBMP_ERR_NULL_PTR;
+    if (frame->width == 0 || frame->height == 0)
+        return TBMP_ERR_ZERO_DIMENSIONS;
+    if (pal->count == 0)
+        return TBMP_ERR_BAD_PALETTE;
+
+    size_t row_stride = ((size_t)frame->width + 2U) * 3U;
+    int *err_cur = (int *)calloc(row_stride, sizeof(int));
+    int *err_next = (int *)calloc(row_stride, sizeof(int));
+    if (!err_cur || !err_next) {
+        free(err_cur);
+        free(err_next);
+        return TBMP_ERR_OUT_OF_MEMORY;
+    }
+
+    for (uint16_t y = 0; y < frame->height; y++) {
+        for (uint16_t x = 0; x < frame->width; x++) {
+            size_t pi = (size_t)y * frame->width + x;
+            size_t ei = ((size_t)x + 1U) * 3U;
+
+            int r = (int)frame->pixels[pi].r + err_cur[ei + 0] / 16;
+            int g = (int)frame->pixels[pi].g + err_cur[ei + 1] / 16;
+            int b = (int)frame->pixels[pi].b + err_cur[ei + 2] / 16;
+
+            uint8_t rr = clamp_u8_int(r);
+            uint8_t gg = clamp_u8_int(g);
+            uint8_t bb = clamp_u8_int(b);
+
+            TBmpRGBA chosen = nearest_palette_color(pal, rr, gg, bb);
+
+            int dr = (int)rr - (int)chosen.r;
+            int dg = (int)gg - (int)chosen.g;
+            int db = (int)bb - (int)chosen.b;
+
+            frame->pixels[pi] = chosen;
+
+            err_cur[ei + 3] += dr * 7;
+            err_cur[ei + 4] += dg * 7;
+            err_cur[ei + 5] += db * 7;
+
+            err_next[ei - 3] += dr * 3;
+            err_next[ei - 2] += dg * 3;
+            err_next[ei - 1] += db * 3;
+
+            err_next[ei + 0] += dr * 5;
+            err_next[ei + 1] += dg * 5;
+            err_next[ei + 2] += db * 5;
+
+            err_next[ei + 3] += dr;
+            err_next[ei + 4] += dg;
+            err_next[ei + 5] += db;
+        }
+
+        int *tmp = err_cur;
+        err_cur = err_next;
+        err_next = tmp;
+        for (size_t i = 0; i < row_stride; i++)
+            err_next[i] = 0;
+    }
+
+    free(err_cur);
+    free(err_next);
+    return TBMP_OK;
 }
