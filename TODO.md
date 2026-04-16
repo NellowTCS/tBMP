@@ -1,10 +1,7 @@
 # TODO
 
 - [ ] Add more sample files demonstrating structured metadata, palettes, masks, and EXTRA chunks
-- [x] Add optional dithering helpers for indexed formats
-- [x] Add “auto‑palette” generator for INDEX_1–8 encodings
-- [x] Add encoding heuristics helper (`tbmp_pick_best_encoding()`)
-- [ ] Add fuzz tester (random images -> encode -> decode -> verify)
+- [ ] Add fuzz tests (random images -> encode -> decode -> verify)
 
 ## Tools
 
