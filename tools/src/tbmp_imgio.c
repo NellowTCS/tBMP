@@ -68,8 +68,7 @@ static TBmpRGBA *pnm_load(const char *path, int *w, int *h, int *ch) {
         fclose(f);
         return NULL;
     }
-    if (m0 != 'P' || (m1 != '6' && m1 != '3' && m1 != '2' && m1 != '5' &&
-                      m1 != '1' && m1 != '4')) {
+    if (m0 != 'P' || (m1 != '1' && m1 != '2' && m1 != '3' && m1 != '4')) {
         fclose(f);
         return NULL;
     }
@@ -86,8 +85,8 @@ static TBmpRGBA *pnm_load(const char *path, int *w, int *h, int *ch) {
 
     int ascii = (m1 == '1' || m1 == '2' || m1 == '3');
     int bw = (m1 == '1' || m1 == '4');
-    int gray = (m1 == '2' || m1 == '5');
-    int color = (m1 == '3' || m1 == '6');
+    int gray = (m1 == '2');
+    int color = (m1 == '3');
     int C = color ? 3 : (gray ? 1 : 1);
 
     if (!bw) {
@@ -110,7 +109,9 @@ static TBmpRGBA *pnm_load(const char *path, int *w, int *h, int *ch) {
     }
 
     if (!ascii) {
-        size_t n = (size_t)W * H * C;
+        /* P4 is 1 bit/pixel, rows padded to whole bytes. */
+        size_t row_bytes = ((size_t)W + 7U) / 8U;
+        size_t n = row_bytes * (size_t)H;
         uint8_t *buf = (uint8_t *)malloc(n);
         if (!buf) {
             free(pix);
@@ -123,24 +124,26 @@ static TBmpRGBA *pnm_load(const char *path, int *w, int *h, int *ch) {
             fclose(f);
             return NULL;
         }
-        for (int i = 0; i < W * H; ++i) {
-            uint8_t r = 0, g = 0, b = 0;
-            if (bw) {
-                uint8_t v = buf[i] ? 0 : 255;
-                r = g = b = v;
-            } else if (gray) {
-                uint8_t v = (uint8_t)((buf[i] * 255) / maxv);
-                r = g = b = v;
-            } else {
-                r = (uint8_t)((buf[i * 3 + 0] * 255) / maxv);
-                g = (uint8_t)((buf[i * 3 + 1] * 255) / maxv);
-                b = (uint8_t)((buf[i * 3 + 2] * 255) / maxv);
+        for (int y = 0; y < H; ++y) {
+            for (int x = 0; x < W; ++x) {
+                size_t byte_idx = (size_t)y * row_bytes + (size_t)(x / 8);
+                int bit_idx = 7 - (x % 8);
+                int bit = (buf[byte_idx] >> bit_idx) & 1;
+                uint8_t v = bit ? 0 : 255;
+                int i = y * W + x;
+
+                pix[i].r = v;
+                pix[i].g = v;
+                pix[i].b = v;
+                pix[i].a = 255;
             }
-            pix[i].r = r;
-            pix[i].g = g;
-            pix[i].b = b;
-            pix[i].a = 255;
         }
+
+        /* Silence unused-branch variables in this P4-only binary path. */
+        (void)bw;
+        (void)gray;
+        (void)color;
+
         free(buf);
     } else {
         for (int i = 0; i < W * H; ++i) {
@@ -188,9 +191,27 @@ static TBmpRGBA *pnm_load(const char *path, int *w, int *h, int *ch) {
 
 TBmpRGBA *tbmp_cli_img_load(const char *path, int *out_w, int *out_h,
                             int *out_channels, int *out_uses_stb) {
-    int w = 0, h = 0, ch = 0;
-    TBmpRGBA *pix = pnm_load(path, &w, &h, &ch);
-    if (pix) {
+    FILE *f = fopen(path, "rb");
+    if (!f) {
+        fprintf(stderr, "error: cannot open '%s'\n", path);
+        return NULL;
+    }
+    char m0 = 0, m1 = 0;
+    size_t nr = fread(&m0, 1, 1, f);
+    nr += fread(&m1, 1, 1, f);
+    fclose(f);
+    if (nr < 2) {
+        fprintf(stderr, "error: cannot read '%s'\n", path);
+        return NULL;
+    }
+
+    if (m0 == 'P' && m1 >= '1' && m1 <= '4') {
+        int w = 0, h = 0, ch = 0;
+        TBmpRGBA *pix = pnm_load(path, &w, &h, &ch);
+        if (!pix) {
+            fprintf(stderr, "error: cannot parse '%s' as PNM P1-P4\n", path);
+            return NULL;
+        }
         *out_w = w;
         *out_h = h;
         *out_channels = ch;
@@ -198,9 +219,14 @@ TBmpRGBA *tbmp_cli_img_load(const char *path, int *out_w, int *out_h,
         return pix;
     }
 
+    int w = 0, h = 0;
     int n = 0;
     unsigned char *data = stbi_load(path, &w, &h, &n, 4);
-    if (!data) return NULL;
+    if (!data) {
+        fprintf(stderr, "error: cannot load '%s': %s\n", path,
+                stbi_failure_reason());
+        return NULL;
+    }
 
     size_t count = (size_t)w * h;
     TBmpRGBA *out = (TBmpRGBA *)data;

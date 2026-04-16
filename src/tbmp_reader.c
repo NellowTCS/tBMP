@@ -138,8 +138,7 @@ TBmpError tbmp_validate_head(const TBmpHead *head) {
         return TBMP_ERR_NULL_PTR;
 
     /* Version. */
-    if (head->version != TBMP_VERSION_1_0 &&
-        head->version != TBMP_VERSION_1_0) {
+    if (head->version != TBMP_VERSION_1_0) {
         return TBMP_ERR_BAD_VERSION;
     }
 
