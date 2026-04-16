@@ -16,6 +16,50 @@ static size_t wbuf_strnlen(const char *s, size_t max) {
     return n;
 }
 
+static int meta_has_content(const TBmpMeta *m) {
+    return (m != NULL);
+}
+
+static size_t meta_estimated_size(const TBmpMeta *m) {
+    if (!meta_has_content(m))
+        return 0U;
+
+    size_t sz = 5U; /* map header worst-case */
+
+    /* required string fields */
+    sz += 1U + 5U + wbuf_strnlen(m->title, TBMP_META_FIELD_MAX);
+    sz += 1U + 6U + wbuf_strnlen(m->author, TBMP_META_FIELD_MAX);
+    sz += 1U + 11U + wbuf_strnlen(m->description, TBMP_META_FIELD_MAX);
+    sz += 1U + 7U + wbuf_strnlen(m->created, TBMP_META_FIELD_MAX);
+    sz += 1U + 8U + wbuf_strnlen(m->software, TBMP_META_FIELD_MAX);
+    sz += 1U + 7U + wbuf_strnlen(m->license, TBMP_META_FIELD_MAX);
+
+    /* tags key + array + each tag string */
+    sz += 1U + 4U;
+    sz += 3U;
+    for (uint32_t i = 0; i < m->tag_count; i++) {
+        sz += 1U + wbuf_strnlen(m->tags[i], TBMP_META_TAG_MAX);
+    }
+
+    if (m->has_dpi) {
+        sz += 1U + 3U;
+        sz += 5U;
+    }
+
+    if (m->colorspace[0] != '\0') {
+        sz += 1U + 10U + wbuf_strnlen(m->colorspace, TBMP_META_FIELD_MAX);
+    }
+
+    if (m->custom_count > 0) {
+        sz += 1U + 6U;
+        sz += 3U;
+        for (uint32_t i = 0; i < m->custom_count; i++)
+            sz += m->custom[i].len;
+    }
+
+    return sz;
+}
+
 /* Write buffer context - tracks position and remaining capacity. */
 typedef struct WBuf {
     uint8_t *data;
@@ -466,20 +510,7 @@ size_t tbmp_write_needed_size(const TBmpFrame *frame,
     if (params->masks)
         extra += 8U + 16U;
 
-    /* META size - worst-case MessagePack encoding of TBmpMeta.
-   * map32 header = 5 bytes; per entry: str32 key (5 + key_len) +
-   * worst value = float64 (9 bytes) or str32 (5 + TBMP_META_STR_MAX). */
-    size_t meta = 0;
-    if (params->meta != NULL && params->meta->count > 0) {
-        meta =
-            5U; /* map header: fixmap (1B) covers up to 15; map16/32 up to 5B */
-        for (uint32_t i = 0; i < params->meta->count; i++) {
-            size_t key_len =
-                wbuf_strnlen(params->meta->entries[i].key, TBMP_META_KEY_MAX);
-            meta += 5U + key_len;           /* str32 key header + bytes */
-            meta += 5U + TBMP_META_STR_MAX; /* worst value */
-        }
-    }
+    size_t meta = meta_estimated_size(params->meta);
 
     /* 4 (magic) + 26 (wire head) + data_max + extra + meta */
     size_t total = TBMP_MIN_FILE_SIZE + data_max + extra + meta;
@@ -563,12 +594,14 @@ TBmpError tbmp_write(const TBmpFrame *frame, const TBmpWriteParams *params,
 
     /* 5. META. */
     size_t meta_start = b.pos;
-    if (params->meta != NULL && params->meta->count > 0) {
+    if (meta_has_content(params->meta)) {
         size_t meta_written = 0;
         int rc = tbmp_meta_encode(params->meta, b.data + b.pos, b.cap - b.pos,
                                   &meta_written);
-        if (rc != TBMP_OK)
+        if (rc == TBMP_ERR_OUT_OF_MEMORY)
             return TBMP_ERR_OUT_OF_MEMORY;
+        if (rc != TBMP_OK)
+            return TBMP_ERR_INCONSISTENT;
         b.pos += meta_written;
     }
     uint32_t meta_size = (uint32_t)(b.pos - meta_start);

@@ -108,8 +108,10 @@ void tbmp_mp_write_double(TBmpMpWriter *w, double v);
 void tbmp_mp_write_str(TBmpMpWriter *w, const char *data, uint32_t len);
 void tbmp_mp_write_cstr(TBmpMpWriter *w, const char *cstr);
 void tbmp_mp_write_bin(TBmpMpWriter *w, const void *data, uint32_t len);
+void tbmp_mp_write_raw(TBmpMpWriter *w, const uint8_t *data, uint32_t len);
 
 /* Container header writers. */
+void tbmp_mp_start_array(TBmpMpWriter *w, uint32_t count);
 void tbmp_mp_start_map(TBmpMpWriter *w, uint32_t count);
 
 #ifdef __cplusplus

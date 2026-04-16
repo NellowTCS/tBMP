@@ -531,9 +531,9 @@ void test_decode_block_sparse(void) {
     /* Invalid block dimensions (bw=0) -> error */
     {
         uint8_t data[8] = {0, 0, 2, 0, 0, 0, 0, 0}; /* bw=0,bh=2,num_blocks=0 */
-        size_t n = build_tbmp(buf, sizeof(buf), TBMP_VERSION_1_0, 4, 4, 8, 5,
-                              7 /*RGB332*/, 0, data, sizeof(data), NULL, 0,
-                              NULL, 0);
+        size_t n =
+            build_tbmp(buf, sizeof(buf), TBMP_VERSION_1_0, 4, 4, 8, 5,
+                       7 /*RGB332*/, 0, data, sizeof(data), NULL, 0, NULL, 0);
         CHECK_OK(tbmp_open(buf, n, &img));
         CHECK_ERR(tbmp_decode(&img, &frame), TBMP_ERR_BAD_BLOCK);
     }
@@ -553,7 +553,8 @@ void test_decode_block_sparse(void) {
         p += 4; /* num_blocks=1 */
         p[0] = 4;
         p[1] = p[2] = p[3] = 0;
-        p += 4; /* block_index=4 (invalid for 3x3 -> 4 tiles total, max idx 3) */
+        p +=
+            4; /* block_index=4 (invalid for 3x3 -> 4 tiles total, max idx 3) */
         p[0] = 4;
         p[1] = p[2] = p[3] = 0;
         p += 4; /* block_data_size=4 */
@@ -561,8 +562,8 @@ void test_decode_block_sparse(void) {
         p += 4;
 
         size_t n = build_tbmp(buf, sizeof(buf), TBMP_VERSION_1_0, 3, 3, 8, 5,
-                              7 /*RGB332*/, 0, data, (uint32_t)(p - data),
-                              NULL, 0, NULL, 0);
+                              7 /*RGB332*/, 0, data, (uint32_t)(p - data), NULL,
+                              0, NULL, 0);
         CHECK_OK(tbmp_open(buf, n, &img));
         CHECK_ERR(tbmp_decode(&img, &frame), TBMP_ERR_BAD_BLOCK);
     }
@@ -591,8 +592,8 @@ void test_decode_block_sparse(void) {
         p += 2; /* only 2 bytes provided */
 
         size_t n = build_tbmp(buf, sizeof(buf), TBMP_VERSION_1_0, 4, 4, 8, 5,
-                              7 /*RGB332*/, 0, data, (uint32_t)(p - data),
-                              NULL, 0, NULL, 0);
+                              7 /*RGB332*/, 0, data, (uint32_t)(p - data), NULL,
+                              0, NULL, 0);
         CHECK_OK(tbmp_open(buf, n, &img));
         CHECK_ERR(tbmp_decode(&img, &frame), TBMP_ERR_TRUNCATED);
     }

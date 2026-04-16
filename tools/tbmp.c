@@ -60,11 +60,14 @@
 
 #include "tbmp_decode.h"
 #include "tbmp_meta.h"
+#include "tbmp_msgpack.h"
 #include "tbmp_reader.h"
 #include "tbmp_types.h"
 #include "tbmp_ui.h"
 #include "tbmp_write.h"
 
+#include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -337,6 +340,240 @@ static const char *arg_get(int argc, char **argv, const char *flag,
     return default_val;
 }
 
+static int read_file_all(const char *path, uint8_t **out, size_t *out_len);
+
+static int append_meta_tag(TBmpMeta *meta, const char *tag, size_t len) {
+    if (meta->tag_count >= TBMP_META_MAX_TAGS) {
+        fprintf(stderr, "error: too many tags (max %u)\n", TBMP_META_MAX_TAGS);
+        return 1;
+    }
+    if (len == 0 || len > TBMP_META_TAG_MAX) {
+        fprintf(stderr, "error: invalid tag length %zu (max %u)\n", len,
+                TBMP_META_TAG_MAX);
+        return 1;
+    }
+
+    memcpy(meta->tags[meta->tag_count], tag, len);
+    meta->tags[meta->tag_count][len] = '\0';
+    meta->tag_count++;
+    return 0;
+}
+
+static int parse_tags_csv(TBmpMeta *meta, const char *csv) {
+    const char *p = csv;
+    if (csv == NULL || csv[0] == '\0') {
+        fprintf(stderr, "error: --tags requires at least one value\n");
+        return 1;
+    }
+
+    while (*p != '\0') {
+        const char *start = p;
+        while (*p != ',' && *p != '\0')
+            p++;
+        const char *end = p;
+
+        while (start < end && isspace((unsigned char)*start))
+            start++;
+        while (end > start && isspace((unsigned char)end[-1]))
+            end--;
+
+        if (append_meta_tag(meta, start, (size_t)(end - start)) != 0)
+            return 1;
+
+        if (*p == ',')
+            p++;
+    }
+
+    return 0;
+}
+
+static void mp_skip_value(TBmpMpReader *r) {
+    TBmpMpTag tag = tbmp_mp_read_tag(r);
+    if (tbmp_mp_reader_error(r))
+        return;
+
+    switch (tag.type) {
+    case TBMP_MP_NIL:
+    case TBMP_MP_BOOL:
+    case TBMP_MP_UINT:
+    case TBMP_MP_INT:
+    case TBMP_MP_FLOAT:
+    case TBMP_MP_DOUBLE:
+        break;
+    case TBMP_MP_STR:
+        tbmp_mp_skip_bytes(r, tag.v.len);
+        tbmp_mp_done_str(r);
+        break;
+    case TBMP_MP_BIN:
+        tbmp_mp_skip_bytes(r, tag.v.len);
+        tbmp_mp_done_bin(r);
+        break;
+    case TBMP_MP_EXT:
+        tbmp_mp_skip_bytes(r, tag.v.len);
+        break;
+    case TBMP_MP_ARRAY:
+        for (uint32_t i = 0; i < tag.v.len; i++)
+            mp_skip_value(r);
+        tbmp_mp_done_array(r);
+        break;
+    case TBMP_MP_MAP:
+        for (uint32_t i = 0; i < tag.v.len * 2U; i++)
+            mp_skip_value(r);
+        tbmp_mp_done_map(r);
+        break;
+    default:
+        break;
+    }
+}
+
+static int validate_custom_map_blob(const uint8_t *buf, size_t len) {
+    TBmpMpReader r;
+    tbmp_mp_reader_init(&r, buf, len);
+    TBmpMpTag tag = tbmp_mp_read_tag(&r);
+    if (tbmp_mp_reader_error(&r) || tag.type != TBMP_MP_MAP)
+        return 1;
+
+    for (uint32_t i = 0; i < tag.v.len; i++) {
+        TBmpMpTag key = tbmp_mp_read_tag(&r);
+        if (tbmp_mp_reader_error(&r) || key.type != TBMP_MP_STR)
+            return 1;
+        tbmp_mp_skip_bytes(&r, key.v.len);
+        tbmp_mp_done_str(&r);
+        if (tbmp_mp_reader_error(&r))
+            return 1;
+        mp_skip_value(&r);
+        if (tbmp_mp_reader_error(&r))
+            return 1;
+    }
+
+    tbmp_mp_done_map(&r);
+    return tbmp_mp_reader_error(&r) || r.pos != len;
+}
+
+static int parse_encode_meta_flags(int argc, char **argv, TBmpMeta *meta,
+                                   int *has_meta) {
+    memset(meta, 0, sizeof(*meta));
+    *has_meta = 0;
+
+    for (int i = 3; i < argc; i++) {
+        const char *a = argv[i];
+
+        if (strcmp(a, "--title") == 0 || strcmp(a, "--author") == 0 ||
+            strcmp(a, "--description") == 0 || strcmp(a, "--created") == 0 ||
+            strcmp(a, "--software") == 0 || strcmp(a, "--license") == 0 ||
+            strcmp(a, "--tags") == 0 || strcmp(a, "--dpi") == 0 ||
+            strcmp(a, "--colorspace") == 0 || strcmp(a, "--custom-map") == 0) {
+            *has_meta = 1;
+        }
+
+        if (strcmp(a, "--title") == 0 || strcmp(a, "--author") == 0 ||
+            strcmp(a, "--description") == 0 || strcmp(a, "--created") == 0 ||
+            strcmp(a, "--software") == 0 || strcmp(a, "--license") == 0 ||
+            strcmp(a, "--tags") == 0 || strcmp(a, "--dpi") == 0 ||
+            strcmp(a, "--colorspace") == 0 || strcmp(a, "--custom-map") == 0) {
+            if (i + 1 >= argc) {
+                fprintf(stderr, "error: %s requires a value\n", a);
+                return 1;
+            }
+            i++;
+        } else {
+            continue;
+        }
+
+        if (strcmp(a, "--title") == 0) {
+            if (strlen(argv[i]) > TBMP_META_FIELD_MAX)
+                return fprintf(stderr, "error: --title too long\n"), 1;
+            strcpy(meta->title, argv[i]);
+        } else if (strcmp(a, "--author") == 0) {
+            if (strlen(argv[i]) > TBMP_META_FIELD_MAX)
+                return fprintf(stderr, "error: --author too long\n"), 1;
+            strcpy(meta->author, argv[i]);
+        } else if (strcmp(a, "--description") == 0) {
+            if (strlen(argv[i]) > TBMP_META_FIELD_MAX)
+                return fprintf(stderr, "error: --description too long\n"), 1;
+            strcpy(meta->description, argv[i]);
+        } else if (strcmp(a, "--created") == 0) {
+            if (strlen(argv[i]) > TBMP_META_FIELD_MAX)
+                return fprintf(stderr, "error: --created too long\n"), 1;
+            strcpy(meta->created, argv[i]);
+        } else if (strcmp(a, "--software") == 0) {
+            if (strlen(argv[i]) > TBMP_META_FIELD_MAX)
+                return fprintf(stderr, "error: --software too long\n"), 1;
+            strcpy(meta->software, argv[i]);
+        } else if (strcmp(a, "--license") == 0) {
+            if (strlen(argv[i]) > TBMP_META_FIELD_MAX)
+                return fprintf(stderr, "error: --license too long\n"), 1;
+            strcpy(meta->license, argv[i]);
+        } else if (strcmp(a, "--colorspace") == 0) {
+            if (strlen(argv[i]) > TBMP_META_FIELD_MAX)
+                return fprintf(stderr, "error: --colorspace too long\n"), 1;
+            strcpy(meta->colorspace, argv[i]);
+        } else if (strcmp(a, "--tags") == 0) {
+            if (parse_tags_csv(meta, argv[i]) != 0)
+                return 1;
+        } else if (strcmp(a, "--dpi") == 0) {
+            char *endp = NULL;
+            errno = 0;
+            unsigned long v = strtoul(argv[i], &endp, 10);
+            if (errno != 0 || endp == argv[i] || *endp != '\0' ||
+                v > UINT32_MAX) {
+                fprintf(stderr, "error: invalid --dpi value '%s'\n", argv[i]);
+                return 1;
+            }
+            meta->has_dpi = 1;
+            meta->dpi = (uint32_t)v;
+        } else if (strcmp(a, "--custom-map") == 0) {
+            if (meta->custom_count >= TBMP_META_MAX_CUSTOM_ITEMS) {
+                fprintf(stderr, "error: too many --custom-map items (max %u)\n",
+                        TBMP_META_MAX_CUSTOM_ITEMS);
+                return 1;
+            }
+
+            uint8_t *raw = NULL;
+            size_t raw_len = 0;
+            if (read_file_all(argv[i], &raw, &raw_len) != 0)
+                return 1;
+
+            if (raw_len > TBMP_META_CUSTOM_ITEM_MAX) {
+                fprintf(stderr,
+                        "error: --custom-map '%s' is too large (%zu bytes, max "
+                        "%u)\n",
+                        argv[i], raw_len, TBMP_META_CUSTOM_ITEM_MAX);
+                free(raw);
+                return 1;
+            }
+            if (validate_custom_map_blob(raw, raw_len) != 0) {
+                fprintf(
+                    stderr,
+                    "error: --custom-map '%s' must be a MessagePack map blob\n",
+                    argv[i]);
+                free(raw);
+                return 1;
+            }
+
+            meta->custom[meta->custom_count].len = (uint32_t)raw_len;
+            memcpy(meta->custom[meta->custom_count].data, raw, raw_len);
+            meta->custom_count++;
+            free(raw);
+        }
+    }
+
+    if (*has_meta) {
+        uint8_t tmp[8192];
+        size_t tmp_len = 0;
+        int rc = tbmp_meta_encode(meta, tmp, sizeof(tmp), &tmp_len);
+        if (rc != TBMP_OK) {
+            fprintf(
+                stderr,
+                "error: structured metadata is incomplete/invalid (code %d)\n",
+                rc);
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 static TBmpPixelFormat parse_format(const char *name, uint8_t *out_depth) {
     struct {
         const char *n;
@@ -424,7 +661,7 @@ static const char *encoding_name(TBmpEncoding enc) {
     }
 }
 
-/* print_meta - display decoded META entries and return entry count. */
+/* print_meta - display structured META fields and return field count. */
 static uint32_t print_meta(const TBmpImage *img) {
     if (img->meta_len == 0 || img->meta == NULL)
         return 0;
@@ -434,40 +671,45 @@ static uint32_t print_meta(const TBmpImage *img) {
         tbmp_ui_status_warn("META section present but could not be parsed");
         return 0;
     }
-    if (meta.count == 0)
-        return 0;
+    tbmp_ui_box_kv("title", "%s", meta.title);
+    tbmp_ui_box_kv("author", "%s", meta.author);
+    tbmp_ui_box_kv("description", "%s", meta.description);
+    tbmp_ui_box_kv("created", "%s", meta.created);
+    tbmp_ui_box_kv("software", "%s", meta.software);
+    tbmp_ui_box_kv("license", "%s", meta.license);
 
-    for (uint32_t i = 0; i < meta.count; i++) {
-        const TBmpMetaEntry *e = &meta.entries[i];
-        switch (e->value.type) {
-        case TBMP_META_NIL:
-            tbmp_ui_box_kv(e->key, "%s", "nil");
-            break;
-        case TBMP_META_BOOL:
-            tbmp_ui_box_kv(e->key, "%s", e->value.u ? "true" : "false");
-            break;
-        case TBMP_META_UINT:
-            tbmp_ui_box_kv(e->key, "%llu", (unsigned long long)e->value.u);
-            break;
-        case TBMP_META_INT:
-            tbmp_ui_box_kv(e->key, "%lld", (long long)e->value.i);
-            break;
-        case TBMP_META_FLOAT:
-            tbmp_ui_box_kv(e->key, "%g", e->value.f);
-            break;
-        case TBMP_META_STR:
-            tbmp_ui_box_kv(e->key, "\"%s\"", (const char *)e->value.s);
-            break;
-        case TBMP_META_BIN:
-            tbmp_ui_box_kv(e->key, "<binary %u bytes>", e->value.bin_len);
-            break;
-        default:
-            tbmp_ui_box_kv(e->key, "%s", "?");
-            break;
+    if (meta.has_dpi)
+        tbmp_ui_box_kv("dpi", "%u", meta.dpi);
+    if (meta.colorspace[0] != '\0')
+        tbmp_ui_box_kv("colorspace", "%s", meta.colorspace);
+
+    {
+        char tags_line[256];
+        size_t pos = 0;
+        tags_line[0] = '\0';
+        for (uint32_t i = 0; i < meta.tag_count; i++) {
+            int n = snprintf(tags_line + pos, sizeof(tags_line) - pos, "%s%s",
+                             (i == 0) ? "" : ", ", meta.tags[i]);
+            if (n < 0)
+                break;
+            if ((size_t)n >= sizeof(tags_line) - pos) {
+                pos = sizeof(tags_line) - 1U;
+                break;
+            }
+            pos += (size_t)n;
         }
+        tbmp_ui_box_kv("tags", "%s", tags_line);
     }
 
-    return meta.count;
+    tbmp_ui_box_kv("custom", "%u item(s)", meta.custom_count);
+    for (uint32_t i = 0; i < meta.custom_count; i++) {
+        tbmp_ui_box_linef("custom[%u]: msgpack map (%u bytes)", i,
+                          meta.custom[i].len);
+    }
+
+    return 7U + (meta.has_dpi ? 1U : 0U) +
+           ((meta.colorspace[0] != '\0') ? 1U : 0U) + meta.tag_count +
+           meta.custom_count;
 }
 
 /*
@@ -619,17 +861,25 @@ static void print_general_usage(void) {
         tbmp_ui_printlnf("  --help  show this help");
         tbmp_ui_printlnf("");
         tbmp_ui_printlnf("  tbmp --ci <command> [args...]");
-        tbmp_ui_printlnf("  tbmp encode <input> <output.tbmp> [--format NAME] [--encoding NAME]");
+        tbmp_ui_printlnf("  tbmp encode <input> <output.tbmp> [--format NAME] "
+                         "[--encoding NAME] [META_OPTS]");
         tbmp_ui_printlnf("  tbmp decode <input.tbmp> <output.ppm>");
         tbmp_ui_printlnf("  tbmp inspect <input.tbmp>");
         tbmp_ui_printlnf("  tbmp dump-rgba <input.tbmp> <output.rgba>");
         tbmp_ui_printlnf("");
-        tbmp_ui_printlnf("Input formats (encode): PBM/PGM/PPM P1-P6, PNG, BMP, JPEG, ...");
-        tbmp_ui_printlnf("Pixel formats: rgba8888 (default), rgb888, rgb565, rgb555, rgb444, rgb332");
+        tbmp_ui_printlnf(
+            "Input formats (encode): PBM/PGM/PPM P1-P6, PNG, BMP, JPEG, ...");
+        tbmp_ui_printlnf("Pixel formats: rgba8888 (default), rgb888, rgb565, "
+                         "rgb555, rgb444, rgb332");
         tbmp_ui_printlnf("  (grayscale/bilevel sources default to rgb332)");
         tbmp_ui_printlnf("Encodings: raw (default), rle, zerorange, span");
-        tbmp_ui_printlnf("inspect: print header/sections/palette/masks/meta/chunks");
-        tbmp_ui_printlnf("dump-rgba: dump decoded raw RGBA bytes (R,G,B,A per pixel)");
+        tbmp_ui_printlnf("META_OPTS: --title --author --description --created "
+                         "--software --license --tags --dpi --colorspace "
+                         "--custom-map");
+        tbmp_ui_printlnf(
+            "inspect: print header/sections/palette/masks/meta/chunks");
+        tbmp_ui_printlnf(
+            "dump-rgba: dump decoded raw RGBA bytes (R,G,B,A per pixel)");
         return;
     }
 
@@ -645,7 +895,8 @@ static void print_general_usage(void) {
     tbmp_ui_section("Commands");
     tbmp_ui_table_begin("Command Usage");
     tbmp_ui_table_row("global", "tbmp --ci <command> [args...]");
-    tbmp_ui_table_row("encode", "tbmp encode <input> <output.tbmp> [--format NAME] [--encoding NAME]");
+    tbmp_ui_table_row("encode", "tbmp encode <input> <output.tbmp> [--format "
+                                "NAME] [--encoding NAME] [META_OPTS]");
     tbmp_ui_table_row("decode", "tbmp decode <input.tbmp> <output.ppm>");
     tbmp_ui_table_row("inspect", "tbmp inspect <input.tbmp>");
     tbmp_ui_table_row("dump-rgba", "tbmp dump-rgba <input.tbmp> <output.rgba>");
@@ -653,12 +904,19 @@ static void print_general_usage(void) {
 
     tbmp_ui_section("Notes");
     tbmp_ui_box_begin("Format Notes");
-    tbmp_ui_box_line("Input formats (encode): PBM/PGM/PPM P1-P6, PNG, BMP, JPEG, ...");
-    tbmp_ui_box_line("Pixel formats: rgba8888 (default), rgb888, rgb565, rgb555, rgb444, rgb332");
+    tbmp_ui_box_line(
+        "Input formats (encode): PBM/PGM/PPM P1-P6, PNG, BMP, JPEG, ...");
+    tbmp_ui_box_line("Pixel formats: rgba8888 (default), rgb888, rgb565, "
+                     "rgb555, rgb444, rgb332");
     tbmp_ui_box_line("(grayscale/bilevel sources default to rgb332)");
     tbmp_ui_box_line("Encodings: raw (default), rle, zerorange, span");
-    tbmp_ui_box_line("inspect: print header/sections/palette/masks/meta/chunks");
-    tbmp_ui_box_line("dump-rgba: dump decoded raw RGBA bytes (R,G,B,A per pixel)");
+    tbmp_ui_box_line("META_OPTS: --title --author --description --created "
+                     "--software --license --tags --dpi --colorspace "
+                     "--custom-map");
+    tbmp_ui_box_line(
+        "inspect: print header/sections/palette/masks/meta/chunks");
+    tbmp_ui_box_line(
+        "dump-rgba: dump decoded raw RGBA bytes (R,G,B,A per pixel)");
     tbmp_ui_box_end();
 }
 
@@ -666,7 +924,11 @@ static void print_general_usage(void) {
 static int cmd_encode(int argc, char **argv) {
     /* argv[0]="encode", argv[1]=input, argv[2]=output, argv[3..]=options */
     if (argc < 3) {
-        print_cmd_usage("tbmp encode <input> <output.tbmp> [--format NAME] [--encoding NAME]");
+        print_cmd_usage("tbmp encode <input> <output.tbmp> [--format NAME] "
+                        "[--encoding NAME] [--title T] [--author A] "
+                        "[--description D] [--created C] [--software S] "
+                        "[--license L] [--tags a,b] [--dpi N] "
+                        "[--colorspace CS] [--custom-map FILE ...]");
         return 1;
     }
 
@@ -717,6 +979,18 @@ static int cmd_encode(int argc, char **argv) {
     params.encoding = enc;
     params.pixel_format = fmt;
     params.bit_depth = bit_depth;
+
+    TBmpMeta meta;
+    int has_meta = 0;
+    if (parse_encode_meta_flags(argc, argv, &meta, &has_meta) != 0) {
+        if (free_with_stb)
+            stbi_image_free(pixels);
+        else
+            free(pixels);
+        return 1;
+    }
+    if (has_meta)
+        params.meta = &meta;
 
 /* img_free - free pixel buffer using the correct allocator. */
 #define img_free(ptr)                                                          \
@@ -772,6 +1046,9 @@ static int cmd_encode(int argc, char **argv) {
     tbmp_ui_box_kv("size", "%dx%d", w, h);
     tbmp_ui_box_kv("source", "%d channels", src_channels);
     tbmp_ui_box_kv("mode", "%s / %s", fmt_name, enc_name);
+    if (has_meta)
+        tbmp_ui_box_kv("meta", "structured (%u tags, %u custom)",
+                       meta.tag_count, meta.custom_count);
     tbmp_ui_box_kv("bytes", "%zu", written);
     tbmp_ui_box_end();
 
@@ -797,8 +1074,7 @@ static int cmd_decode(int argc, char **argv) {
     uint8_t *raw = NULL;
     size_t raw_len = 0;
     tbmp_ui_step_begin("read input file");
-    if (read_file_all(in_path, &raw, &raw_len) != 0)
-    {
+    if (read_file_all(in_path, &raw, &raw_len) != 0) {
         tbmp_ui_step_end_fail();
         return 1;
     }
@@ -945,8 +1221,7 @@ static int cmd_dump_rgba(int argc, char **argv) {
     uint8_t *raw = NULL;
     size_t raw_len = 0;
     tbmp_ui_step_begin("read input file");
-    if (read_file_all(in_path, &raw, &raw_len) != 0)
-    {
+    if (read_file_all(in_path, &raw, &raw_len) != 0) {
         tbmp_ui_step_end_fail();
         return 1;
     }
@@ -1086,11 +1361,25 @@ static int cmd_inspect(int argc, char **argv) {
     uint32_t unknown_chunks = print_extra(&img);
     tbmp_ui_box_end();
 
+    int structured_meta_rc = TBMP_META_ERR_REQUIRED_MISSING;
+
     if (img.meta_len > 0 && img.meta != NULL) {
+        structured_meta_rc =
+            tbmp_meta_validate_structured_blob(img.meta, img.meta_len);
         tbmp_ui_box_begin("Metadata");
         (void)print_meta(&img);
         tbmp_ui_box_end();
     }
+
+    tbmp_ui_box_begin("META");
+    if (img.meta_len == 0 || img.meta == NULL) {
+        tbmp_ui_box_line("not present");
+    } else if (structured_meta_rc == TBMP_OK) {
+        tbmp_ui_status_success("schema valid");
+    } else {
+        tbmp_ui_status_warn("schema invalid (code %d)", structured_meta_rc);
+    }
+    tbmp_ui_box_end();
 
     tbmp_ui_box_begin("Warnings");
     if (unknown_chunks > 0) {

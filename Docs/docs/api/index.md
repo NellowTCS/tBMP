@@ -191,16 +191,7 @@ Decode a MessagePack META blob.
 
 **Returns:**
 - TBMP_OK (0) - success
-- TBMP_META_WARN_STR_TRUNC (1) - success, string truncated
 - Negative - error
-
-### tbmp_meta_find
-
-```c
-const TBmpMetaEntry *tbmp_meta_find(const TBmpMeta *meta, const char *key);
-```
-
-Look up an entry by key. Returns NULL if not found.
 
 ### tbmp_meta_encode
 
@@ -209,6 +200,14 @@ int tbmp_meta_encode(const TBmpMeta *meta, uint8_t *out, size_t out_cap, size_t 
 ```
 
 Serialize TBmpMeta to MessagePack.
+
+### tbmp_meta_validate_structured_blob
+
+```c
+int tbmp_meta_validate_structured_blob(const uint8_t *blob, size_t len);
+```
+
+Validate that a META blob matches the strict schema.
 
 ## Rotation API (tbmp_rotate.h)
 

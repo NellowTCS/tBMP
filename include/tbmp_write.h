@@ -21,9 +21,9 @@ typedef struct TBmpWriteParams {
     /* Optional masks - required for CUSTOM format.  Emits a MASK chunk. */
     const TBmpMasks *masks; /* NULL means no masks */
 
-    /* Optional META section.  If non-NULL and meta->count > 0, the encoder
-   * encodes the entries as a MessagePack map and stores them in the
-   * META section of the file. */
+    /* Optional structured META section. If non-NULL, the encoder writes the
+   * strict metadata schema (title/author/description/created/software/license,
+   * tags, optional dpi/colorspace/custom). */
     const TBmpMeta *meta; /* NULL means no META section */
 
     uint16_t version; /* TBMP_VERSION_1_0 */

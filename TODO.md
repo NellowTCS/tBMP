@@ -1,26 +1,18 @@
 # TODO
 
-- [ ] Structured metadata with real schema (title, author, description, created, tags, etc.)
-- [x] Add metadata validation helpers (type checking, length checking, required fields)
-- [x] Add metadata round‑trip tests (encode -> decode -> compare)
+- [x] Structured metadata with real schema (title, author, description, created, tags, etc.)
 - [ ] Add more sample files demonstrating structured metadata, palettes, masks, and EXTRA chunks
 - [ ] Add tBMP versioning clarifications and rules for format evolution
 - [ ] Add tBMP -> PNG exporter (for debugging + web demo)
-- [x] Add tBMP -> raw RGBA dump tool
 - [ ] Add optional dithering helpers for indexed formats
 - [ ] Add “auto‑palette” generator for INDEX_1–8 encodings
 - [ ] Add encoding heuristics helper (`tbmp_pick_best_encoding()`)
 - [ ] Add fuzz tester (random images -> encode -> decode -> verify)
-- [x] Add tests for malformed EXTRA chunks
-- [x] Add tests for malformed MsgPack metadata
-- [x] Add tests for sparse/block‑sparse edge cases
 
 ## Tools
-- [x] unify all CLI things into one
 - [ ] Add validator CLI (with optional strict mode) (`validate --strict`)
 - [ ] Expand `conv` with metadata flags (`--title`, `--author`, `--tags`, etc.)
 - [ ] Add `--meta-json` or `--meta-file` for bulk metadata injection
-- [x] Add `inspect` CLI (header, metadata, EXTRA, warnings)
 - [ ] Add `extract_sprites` (grid or metadata‑based sprite extraction)
 - [ ] buildscripts and dev conveniences
 
@@ -46,7 +38,7 @@
 - [ ] Show masks bit layout
 
 ## Documentation
-- [ ] Update `/Docs/docs/guide/metadata.md` with structured metadata schema
+- [x] Update `/Docs/docs/guide/metadata.md` with structured metadata schema
 - [ ] Add examples for writing/reading structured metadata
 - [ ] Add section on custom fields + namespacing
 - [ ] Add section on EXTRA chunks (PALT, MASK, etc.)

@@ -142,7 +142,7 @@ Full documentation is available in the Docs/ folder.
 When built with `-DTBMP_BUILD_TOOLS=ON`, the `tbmp` executable supports:
 
 ```bash
-tbmp encode <input> <output.tbmp> [--format NAME] [--encoding NAME]
+tbmp encode <input> <output.tbmp> [--format NAME] [--encoding NAME] [META_OPTS]
 tbmp decode <input.tbmp> <output.ppm>
 tbmp inspect <input.tbmp>
 tbmp dump-rgba <input.tbmp> <output.rgba>
@@ -151,6 +151,18 @@ tbmp dump-rgba <input.tbmp> <output.rgba>
 tbmp --help
 tbmp --ci <command> ...
 ```
+
+`META_OPTS` for encode:
+- `--title`
+- `--author`
+- `--description`
+- `--created`
+- `--software`
+- `--license`
+- `--tags` (comma-separated)
+- `--dpi`
+- `--colorspace`
+- `--custom-map` (repeatable MessagePack map blob file)
 
 - `inspect` prints header fields, section presence/sizes, EXTRA chunk summary,
   palette/masks info, metadata entries, and warnings.

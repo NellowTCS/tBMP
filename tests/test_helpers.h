@@ -80,7 +80,7 @@ static inline size_t build_tbmp(uint8_t *buf, size_t cap, uint16_t version,
 
 #define BT_PUT_U32(v)                                                          \
     do {                                                                       \
-        p[0] = (uint8_t)((v)&0xFF);                                            \
+        p[0] = (uint8_t)((v) & 0xFF);                                          \
         p[1] = (uint8_t)(((v) >> 8) & 0xFF);                                   \
         p[2] = (uint8_t)(((v) >> 16) & 0xFF);                                  \
         p[3] = (uint8_t)(((v) >> 24) & 0xFF);                                  \
@@ -162,7 +162,7 @@ static inline size_t build_mask_extra(uint8_t *buf, size_t cap, TBmpMasks m) {
 
 #define BT_W32(v)                                                              \
     do {                                                                       \
-        p[0] = (uint8_t)((v)&0xFF);                                            \
+        p[0] = (uint8_t)((v) & 0xFF);                                          \
         p[1] = (uint8_t)(((v) >> 8) & 0xFF);                                   \
         p[2] = (uint8_t)(((v) >> 16) & 0xFF);                                  \
         p[3] = (uint8_t)(((v) >> 24) & 0xFF);                                  \

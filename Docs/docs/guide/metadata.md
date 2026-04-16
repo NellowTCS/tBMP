@@ -61,7 +61,7 @@ params.masks = &masks;
 
 ## Metadata Section (META)
 
-The META section is a raw MessagePack map. Store arbitrary key-value data here - creation time, author, tool info, application-specific tags.
+The META section is a strict structured MessagePack map.
 
 **Structure:** Single MessagePack map at the end of the file (after EXTRA, if present).
 
@@ -69,19 +69,22 @@ The META section is a raw MessagePack map. Store arbitrary key-value data here -
 
 ```c
 TBmpMeta meta;
-meta.count = 3;
+memset(&meta, 0, sizeof(meta));
 
-strcpy(meta.entries[0].key, "author");
-meta.entries[0].value.type = TBMP_META_STR;
-strcpy((char *)meta.entries[0].value.s, "Game Studio");
-meta.entries[0].value.bin_len = strlen("Game Studio");
+strcpy(meta.title, "Forest Tiles");
+strcpy(meta.author, "Nellow");
+strcpy(meta.description, "Top-down biome tiles");
+strcpy(meta.created, "2026-04-16T19:30:00Z");
+strcpy(meta.software, "tbmp-cli 0.1");
+strcpy(meta.license, "CC-BY-4.0");
 
-strcpy(meta.entries[1].key, "created");
-meta.entries[1].value.type = TBMP_META_UINT;
-meta.entries[1].value.u = 1699999999;
+meta.tag_count = 2;
+strcpy(meta.tags[0], "tileset");
+strcpy(meta.tags[1], "forest");
 
-strcpy(meta.entries[2].key, "layer");
-meta.entries[2].value.type = TBMP_META_NIL;
+meta.has_dpi = 1;
+meta.dpi = 144;
+strcpy(meta.colorspace, "sRGB");
 
 params.meta = &meta;
 ```
@@ -90,26 +93,64 @@ params.meta = &meta;
 
 ```c
 TBmpMeta meta;
-int ret = tbmp_meta_parse(img.meta, img.meta_len, &meta);
-if (ret >= 0) {
-    const TBmpMetaEntry *e = tbmp_meta_find(&meta, "author");
-    if (e && e->value.type == TBMP_META_STR) {
-        printf("Author: %s\n", e->value.s);
-    }
+if (tbmp_meta_parse(img.meta, img.meta_len, &meta) == TBMP_OK) {
+  printf("Title: %s\n", meta.title);
+  printf("Author: %s\n", meta.author);
 }
 ```
 
-### Supported Value Types
+`custom` remains the extensibility path: it stores `array<map<string, any>>` where each item is preserved as raw MessagePack map bytes.
 
-- `TBMP_META_NIL` - null
-- `TBMP_META_BOOL` - true/false
-- `TBMP_META_UINT` - unsigned integer
-- `TBMP_META_INT` - signed integer
-- `TBMP_META_FLOAT` - floating point
-- `TBMP_META_STR` - UTF-8 string
-- `TBMP_META_BIN` - binary data
+## Metadata Schema
 
-Limits: 32 entries max, 63-byte keys, 127-byte strings.
+tBMP supports a strict structured metadata schema validator for MessagePack META blobs.
+
+Required fields:
+
+- `title`: string
+- `author`: string
+- `description`: string
+- `created`: string
+- `software`: string
+- `license`: string
+- `tags`: array<string>
+
+Optional fields:
+
+- `dpi`: non-negative int/uint
+- `colorspace`: string
+- `custom`: array<map<string, any>>
+
+Unknown top-level keys are rejected by schema validation.
+
+### Validate Metadata
+
+```c
+int rc = tbmp_meta_validate_structured_blob(img.meta, img.meta_len);
+if (rc != TBMP_OK) {
+    /* metadata does not match the strict schema */
+}
+```
+
+### Example Structured META
+
+```json
+{
+  "title": "Forest Tiles",
+  "author": "Nellow",
+  "description": "Top-down biome tiles",
+  "created": "2026-04-16T19:30:00Z",
+  "software": "tbmp-cli 0.1",
+  "license": "CC-BY-4.0",
+  "tags": ["tileset", "rpg", "forest"],
+  "dpi": 144,
+  "colorspace": "sRGB",
+  "custom": [
+    { "team": "gfx", "build": 7 },
+    { "experimental": true }
+  ]
+}
+```
 
 ## When to Use Each
 

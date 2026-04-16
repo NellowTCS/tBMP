@@ -7,121 +7,73 @@
 extern "C" {
 #endif
 
-/* Additional error/warning codes returned by tbmp_meta_parse(). */
+/* Additional error/warning codes returned by metadata helpers. */
 
 /* The root MessagePack object is not a map.
- * Returned as a negative int (compatible with TBmpError). */
+ * Returned as a negative int. */
 #define TBMP_META_ERR_NOT_A_MAP (-20)
 
 /* A map key was not a MessagePack string.
- * Returned as a negative int (compatible with TBmpError). */
+ * Returned as a negative int. */
 #define TBMP_META_ERR_BAD_KEY (-21)
 
 /* The blob is truncated / malformed (MPack flagged a reader error).
- * Returned as a negative int (compatible with TBmpError). */
+ * Returned as a negative int. */
 #define TBMP_META_ERR_TRUNCATED (-22)
 
-/* A required metadata key is missing.
- * Returned as a negative int (compatible with TBmpError). */
+/* A required structured field is missing.
+ * Returned as a negative int. */
 #define TBMP_META_ERR_REQUIRED_MISSING (-23)
 
 /* A metadata value has an unexpected type.
- * Returned as a negative int (compatible with TBmpError). */
+ * Returned as a negative int. */
 #define TBMP_META_ERR_TYPE_MISMATCH (-24)
 
-/* A string/bin metadata value length is outside allowed bounds.
- * Returned as a negative int (compatible with TBmpError). */
+/* A string/array metadata value length is outside allowed bounds.
+ * Returned as a negative int. */
 #define TBMP_META_ERR_LENGTH_OUT_OF_RANGE (-25)
 
-/* Non-fatal: at least one string/bin value was silently truncated to
- * TBMP_META_STR_MAX bytes.  Parse continues; partial results are valid.
- * Returned as a positive int (not an error). */
-#define TBMP_META_WARN_STR_TRUNC (1)
+/* Structured metadata contains an unknown top-level key.
+ * Returned as a negative int. */
+#define TBMP_META_ERR_SCHEMA_UNKNOWN_KEY (-26)
 
-/*
- * tbmp_meta_parse - decode a raw MessagePack META blob into TBmpMeta.
- *
- * blob : pointer to raw MessagePack bytes.  May be NULL iff len == 0.
- * len  : byte length of the blob.
- * out  : caller-allocated TBmpMeta to receive the decoded entries.
- *        Always zeroed on entry.
- *
- * Returns:
- *   TBMP_OK (0)                    - all entries decoded successfully.
- *   TBMP_META_WARN_STR_TRUNC (1)   - success with at least one truncated str.
- *   TBMP_ERR_NULL_PTR (-1)         - out is NULL, or blob is NULL and len > 0.
- *   TBMP_META_ERR_NOT_A_MAP (-20)  - root object is not a MessagePack map.
- *   TBMP_META_ERR_BAD_KEY   (-21)  - a map key is not a string.
- *   TBMP_META_ERR_TRUNCATED (-22)  - blob is malformed / unexpectedly short.
- *
- * Entries beyond TBMP_META_MAX_ENTRIES are silently dropped.
- * Unsupported value types (array, nested map, ext) are stored as
- * TBMP_META_NIL with the key present.
- */
+/* Structured metadata repeats a top-level key.
+ * Returned as a negative int. */
+#define TBMP_META_ERR_SCHEMA_DUPLICATE_KEY (-27)
+
+/* Parse strict structured metadata from MessagePack blob into TBmpMeta. */
 int tbmp_meta_parse(const uint8_t *blob, size_t len, TBmpMeta *out);
-
-/*
- * tbmp_meta_find - look up a decoded entry by key (linear scan, O(n)).
- *
- * meta : pointer to a successfully parsed TBmpMeta.
- * key  : NUL-terminated key string to search for.
- *
- * Returns a pointer to the first matching TBmpMetaEntry, or NULL if not
- * found.
- */
-const TBmpMetaEntry *tbmp_meta_find(const TBmpMeta *meta, const char *key);
 
 /*
  * tbmp_meta_encode - serialize a TBmpMeta to a raw MessagePack blob.
  *
- * meta    : source metadata (may be NULL: writes empty map, 1 byte).
+ * meta    : source structured metadata.
  * out     : caller-supplied output buffer.
  * out_cap : capacity of out in bytes.
  * out_len : receives the number of bytes written on success.
  *
- * Returns TBMP_OK on success, TBMP_ERR_NULL_PTR if out/out_len are NULL,
- * TBMP_ERR_OUT_OF_MEMORY if the buffer is too small.
+ * Returns TBMP_OK on success.
+ * Returns TBMP_ERR_NULL_PTR for NULL pointers,
+ * TBMP_ERR_OUT_OF_MEMORY if the buffer is too small,
+ * or TBMP_META_ERR_* when schema requirements are not met.
  */
 int tbmp_meta_encode(const TBmpMeta *meta, uint8_t *out, size_t out_cap,
                      size_t *out_len);
 
 /*
- * tbmp_meta_validate_required_key - ensure a required key exists.
+ * tbmp_meta_validate_structured_blob - validate strict structured metadata.
  *
- * Returns:
- *   TBMP_OK on success
- *   TBMP_ERR_NULL_PTR if meta/key are NULL
- *   TBMP_META_ERR_REQUIRED_MISSING if key does not exist
+ * Required fields:
+ *   title, author, description, created, software, license: string
+ *   tags: array<string>
+ * Optional fields:
+ *   dpi: non-negative int/uint
+ *   colorspace: string
+ *   custom: array<map<string, any>>
+ *
+ * Unknown or duplicate top-level keys are rejected.
  */
-int tbmp_meta_validate_required_key(const TBmpMeta *meta, const char *key);
-
-/*
- * tbmp_meta_validate_type - ensure a key exists and has expected type.
- *
- * Returns:
- *   TBMP_OK on success
- *   TBMP_ERR_NULL_PTR if meta/key are NULL
- *   TBMP_META_ERR_REQUIRED_MISSING if key does not exist
- *   TBMP_META_ERR_TYPE_MISMATCH if type differs
- */
-int tbmp_meta_validate_type(const TBmpMeta *meta, const char *key,
-                            TBmpMetaValueType expected_type);
-
-/*
- * tbmp_meta_validate_length - validate string/bin payload length bounds.
- *
- * The key must exist and be of type TBMP_META_STR or TBMP_META_BIN.
- * For STR values, the embedded NUL terminator is excluded from length.
- *
- * Returns:
- *   TBMP_OK on success
- *   TBMP_ERR_NULL_PTR if meta/key are NULL
- *   TBMP_META_ERR_REQUIRED_MISSING if key does not exist
- *   TBMP_META_ERR_TYPE_MISMATCH if key is not STR/BIN
- *   TBMP_META_ERR_LENGTH_OUT_OF_RANGE if length not in [min_len, max_len]
- */
-int tbmp_meta_validate_length(const TBmpMeta *meta, const char *key,
-                              uint32_t min_len, uint32_t max_len);
+int tbmp_meta_validate_structured_blob(const uint8_t *blob, size_t len);
 
 #ifdef __cplusplus
 }

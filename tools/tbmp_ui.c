@@ -262,7 +262,8 @@ void tbmp_ui_box_line(const char *text) {
             }
         }
 
-        snprintf(buf, sizeof(buf), "%-*.*s", inner_width, (int)chunk, text + pos);
+        snprintf(buf, sizeof(buf), "%-*.*s", inner_width, (int)chunk,
+                 text + pos);
         printf("%s| %s |%s\n", ui_accent_color(), buf, ui_color(ANSI_RESET));
         pos = next_pos;
     }
@@ -302,8 +303,8 @@ void tbmp_ui_box_begin(const char *title) {
         snprintf(buf, sizeof(buf), "%-*.*s", inner_width, inner_width, title);
 
         ui_box_border();
-        printf("%s| %s%s%s |%s\n", ui_accent_color(), ui_color(ANSI_BOLD),
-               buf, ui_color(ANSI_RESET), ui_color(ANSI_RESET));
+        printf("%s| %s%s%s |%s\n", ui_accent_color(), ui_color(ANSI_BOLD), buf,
+               ui_color(ANSI_RESET), ui_color(ANSI_RESET));
         ui_box_border();
     }
 }

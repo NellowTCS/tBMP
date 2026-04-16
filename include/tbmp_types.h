@@ -176,53 +176,49 @@ typedef struct TBmpFrame {
  * tbmp_meta_parse() decodes it into TBmpMeta without heap allocation.
  */
 
-/* Maximum number of key/value entries decoded from a META blob. */
-#define TBMP_META_MAX_ENTRIES 32U
+/* Maximum top-level string length (without NUL). */
+#define TBMP_META_FIELD_MAX 127U
 
-/* Maximum key string length (bytes, not including NUL terminator). */
+/* Maximum key string length inside custom map entries. */
 #define TBMP_META_KEY_MAX 63U
 
-/* Maximum string/bin value length stored inline (bytes). */
-#define TBMP_META_STR_MAX 127U
+/* Maximum single tag length (without NUL). */
+#define TBMP_META_TAG_MAX 31U
 
-/* Discriminator for TBmpMetaValue. */
-typedef enum TBmpMetaValueType {
-    TBMP_META_NIL = 0,   /* MessagePack nil                                */
-    TBMP_META_BOOL = 1,  /* bool, stored in TBmpMetaValue::u as 0/1        */
-    TBMP_META_UINT = 2,  /* unsigned integer, stored in TBmpMetaValue::u   */
-    TBMP_META_INT = 3,   /* signed integer,   stored in TBmpMetaValue::i   */
-    TBMP_META_FLOAT = 4, /* float32 or float64, stored in TBmpMetaValue::f */
-    TBMP_META_STR = 5,   /* UTF-8 string, NUL-terminated in ::s            */
-    TBMP_META_BIN = 6,   /* raw binary, first ::bin_len bytes of ::s       */
-} TBmpMetaValueType;
+/* Maximum number of tags in structured metadata. */
+#define TBMP_META_MAX_TAGS 16U
 
-/*
- * TBmpMetaValue - tagged-union value cell.
- * No heap; string/bin payloads are capped at TBMP_META_STR_MAX bytes.
- */
-typedef struct TBmpMetaValue {
-    TBmpMetaValueType type;
-    union {
-        uint64_t u; /* TBMP_META_UINT, TBMP_META_BOOL   */
-        int64_t i;  /* TBMP_META_INT                    */
-        double f;   /* TBMP_META_FLOAT                  */
-        struct {
-            uint8_t s[TBMP_META_STR_MAX + 1U]; /* NUL-terminated str/bin */
-            uint32_t bin_len;                  /* byte length for BIN    */
-        };
-    };
-} TBmpMetaValue;
+/* Maximum number of custom map entries in `custom` array. */
+#define TBMP_META_MAX_CUSTOM_ITEMS 16U
 
-/* One key/value pair decoded from the MessagePack map. */
-typedef struct TBmpMetaEntry {
-    char key[TBMP_META_KEY_MAX + 1U]; /* NUL-terminated UTF-8 key */
-    TBmpMetaValue value;
-} TBmpMetaEntry;
+/* Maximum encoded bytes per custom map item. */
+#define TBMP_META_CUSTOM_ITEM_MAX 256U
 
-/* Decoded META section.  Stack-allocatable; no heap used. */
+/* One raw MessagePack map blob from structured `custom` array. */
+typedef struct TBmpMetaCustomItem {
+    uint32_t len;
+    uint8_t data[TBMP_META_CUSTOM_ITEM_MAX];
+} TBmpMetaCustomItem;
+
+/* Strict structured META representation. */
 typedef struct TBmpMeta {
-    uint32_t count; /* number of valid entries */
-    TBmpMetaEntry entries[TBMP_META_MAX_ENTRIES];
+    char title[TBMP_META_FIELD_MAX + 1U];
+    char author[TBMP_META_FIELD_MAX + 1U];
+    char description[TBMP_META_FIELD_MAX + 1U];
+    char created[TBMP_META_FIELD_MAX + 1U];
+    char software[TBMP_META_FIELD_MAX + 1U];
+    char license[TBMP_META_FIELD_MAX + 1U];
+
+    uint8_t has_dpi;
+    uint32_t dpi;
+
+    char colorspace[TBMP_META_FIELD_MAX + 1U];
+
+    uint32_t tag_count;
+    char tags[TBMP_META_MAX_TAGS][TBMP_META_TAG_MAX + 1U];
+
+    uint32_t custom_count;
+    TBmpMetaCustomItem custom[TBMP_META_MAX_CUSTOM_ITEMS];
 } TBmpMeta;
 
 #ifdef __cplusplus

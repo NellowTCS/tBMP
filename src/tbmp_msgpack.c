@@ -11,6 +11,10 @@ Adapted from https://github.com/ludocode/mpack
 
 /* rd_u8 - read one byte; set error and return 0 if exhausted. */
 static uint8_t rd_u8(TBmpMpReader *r) {
+    if (r->data == NULL) {
+        r->error = true;
+        return 0;
+    }
     if (r->pos >= r->len) {
         r->error = true;
         return 0;
@@ -61,7 +65,11 @@ static void wr_u64be(TBmpMpWriter *w, uint64_t v) {
 }
 
 static void wr_bytes(TBmpMpWriter *w, const void *src, size_t n) {
-    if (w->pos + n > w->cap) {
+    if (n > 0 && src == NULL) {
+        w->error = true;
+        return;
+    }
+    if (w->pos > w->cap || n > (w->cap - w->pos)) {
         w->error = true;
         return;
     }
@@ -75,7 +83,7 @@ void tbmp_mp_reader_init(TBmpMpReader *r, const uint8_t *data, size_t len) {
     r->data = data;
     r->pos = 0;
     r->len = len;
-    r->error = false;
+    r->error = (data == NULL && len > 0);
 }
 
 bool tbmp_mp_reader_error(const TBmpMpReader *r) {
@@ -298,7 +306,11 @@ TBmpMpTag tbmp_mp_read_tag(TBmpMpReader *r) {
 void tbmp_mp_read_bytes(TBmpMpReader *r, void *dst, size_t count) {
     if (r->error || count == 0)
         return;
-    if (r->pos + count > r->len) {
+    if (dst == NULL || r->data == NULL) {
+        r->error = true;
+        return;
+    }
+    if (r->pos > r->len || count > (r->len - r->pos)) {
         r->error = true;
         return;
     }
@@ -309,7 +321,7 @@ void tbmp_mp_read_bytes(TBmpMpReader *r, void *dst, size_t count) {
 void tbmp_mp_skip_bytes(TBmpMpReader *r, size_t count) {
     if (r->error || count == 0)
         return;
-    if (r->pos + count > r->len) {
+    if (r->pos > r->len || count > (r->len - r->pos)) {
         r->error = true;
         return;
     }
@@ -336,7 +348,7 @@ void tbmp_mp_writer_init(TBmpMpWriter *w, uint8_t *buf, size_t cap) {
     w->buf = buf;
     w->cap = cap;
     w->pos = 0;
-    w->error = false;
+    w->error = (buf == NULL && cap > 0);
 }
 
 bool tbmp_mp_writer_error(const TBmpMpWriter *w) {
@@ -442,6 +454,22 @@ void tbmp_mp_write_bin(TBmpMpWriter *w, const void *data, uint32_t len) {
         wr_u32be(w, len);
     }
     wr_bytes(w, data, len);
+}
+
+void tbmp_mp_write_raw(TBmpMpWriter *w, const uint8_t *data, uint32_t len) {
+    wr_bytes(w, data, len);
+}
+
+void tbmp_mp_start_array(TBmpMpWriter *w, uint32_t count) {
+    if (count <= 15) {
+        wr_u8(w, (uint8_t)(0x90 | count));
+    } else if (count <= 0xffff) {
+        wr_u8(w, 0xdc);
+        wr_u16be(w, (uint16_t)count);
+    } else {
+        wr_u8(w, 0xdd);
+        wr_u32be(w, count);
+    }
 }
 
 void tbmp_mp_start_map(TBmpMpWriter *w, uint32_t count) {

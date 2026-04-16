@@ -46,6 +46,20 @@ Convert an input image to `.tbmp`.
 tbmp encode <input> <output.tbmp> [--format NAME] [--encoding NAME]
 ```
 
+Structured metadata options (all optional, but if any are provided the
+required schema fields must be complete):
+
+- `--title TEXT`
+- `--author TEXT`
+- `--description TEXT`
+- `--created TEXT`
+- `--software TEXT`
+- `--license TEXT`
+- `--tags tag1,tag2,...`
+- `--dpi N`
+- `--colorspace NAME`
+- `--custom-map FILE` (repeatable; each file must be a MessagePack map blob)
+
 Supported input formats:
 - PBM/PGM/PPM (`P1` through `P6`)
 - Formats handled by stb_image (PNG, BMP, JPEG, ...)
@@ -67,7 +81,16 @@ Encoding options:
 Example:
 
 ```bash
-tbmp encode sprite.png sprite.tbmp --format rgb565 --encoding rle
+tbmp encode sprite.png sprite.tbmp --format rgb565 --encoding rle \
+	--title "Forest Tiles" \
+	--author "Nellow" \
+	--description "Top-down biome tiles" \
+	--created "2026-04-16T19:30:00Z" \
+	--software "tbmp-cli 0.1" \
+	--license "CC-BY-4.0" \
+	--tags "tileset,rpg,forest" \
+	--dpi 144 \
+	--colorspace sRGB
 ```
 
 ## `decode`

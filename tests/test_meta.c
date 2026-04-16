@@ -1,59 +1,41 @@
 #include "test_helpers.h"
 #include "test_suites.h"
 #include "tbmp_meta.h"
+#include "tbmp_msgpack.h"
 #include "tbmp_reader.h"
 #include "tbmp_write.h"
 
 #include <string.h>
 
-static int meta_equal(const TBmpMeta *a, const TBmpMeta *b) {
-    if (a == NULL || b == NULL)
-        return 0;
-    if (a->count != b->count)
-        return 0;
+static void fill_valid_meta(TBmpMeta *m) {
+    memset(m, 0, sizeof(*m));
+    strcpy(m->title, "Forest Tiles");
+    strcpy(m->author, "Nellow");
+    strcpy(m->description, "Top-down biome tiles");
+    strcpy(m->created, "2026-04-16T19:30:00Z");
+    strcpy(m->software, "tbmp-cli 0.1");
+    strcpy(m->license, "CC-BY-4.0");
 
-    for (uint32_t i = 0; i < a->count; i++) {
-        const TBmpMetaEntry *ea = &a->entries[i];
-        const TBmpMetaEntry *eb = &b->entries[i];
+    m->tag_count = 3;
+    strcpy(m->tags[0], "tileset");
+    strcpy(m->tags[1], "rpg");
+    strcpy(m->tags[2], "forest");
 
-        if (strncmp(ea->key, eb->key, TBMP_META_KEY_MAX + 1U) != 0)
-            return 0;
-        if (ea->value.type != eb->value.type)
-            return 0;
+    m->has_dpi = 1;
+    m->dpi = 144;
+    strcpy(m->colorspace, "sRGB");
 
-        switch (ea->value.type) {
-        case TBMP_META_NIL:
-            break;
-        case TBMP_META_BOOL:
-        case TBMP_META_UINT:
-            if (ea->value.u != eb->value.u)
-                return 0;
-            break;
-        case TBMP_META_INT:
-            if (ea->value.i != eb->value.i)
-                return 0;
-            break;
-        case TBMP_META_FLOAT:
-            if (ea->value.f != eb->value.f)
-                return 0;
-            break;
-        case TBMP_META_STR:
-            if (strncmp((const char *)ea->value.s, (const char *)eb->value.s,
-                        TBMP_META_STR_MAX + 1U) != 0)
-                return 0;
-            break;
-        case TBMP_META_BIN:
-            if (ea->value.bin_len != eb->value.bin_len)
-                return 0;
-            if (memcmp(ea->value.s, eb->value.s, ea->value.bin_len) != 0)
-                return 0;
-            break;
-        default:
-            return 0;
-        }
+    m->custom_count = 1;
+    {
+        TBmpMpWriter w;
+        tbmp_mp_writer_init(&w, m->custom[0].data, TBMP_META_CUSTOM_ITEM_MAX);
+        tbmp_mp_start_map(&w, 2);
+        tbmp_mp_write_cstr(&w, "team");
+        tbmp_mp_write_cstr(&w, "gfx");
+        tbmp_mp_write_cstr(&w, "build");
+        tbmp_mp_write_uint(&w, 7U);
+        m->custom[0].len = (uint32_t)tbmp_mp_writer_used(&w);
     }
-
-    return 1;
 }
 
 void test_meta(void) {
@@ -61,260 +43,184 @@ void test_meta(void) {
 
     /* tbmp_meta_parse: NULL out returns error */
     {
-        uint8_t blob[1] = {0x80}; /* fixmap size 0 */
+        uint8_t blob[1] = {0x80};
         CHECK_ERR(tbmp_meta_parse(blob, 1, NULL), TBMP_ERR_NULL_PTR);
     }
 
-    /* tbmp_meta_parse: NULL blob with len>0 returns error */
-    {
-        TBmpMeta m;
-        CHECK_ERR(tbmp_meta_parse(NULL, 4, &m), TBMP_ERR_NULL_PTR);
-    }
-
-    /* tbmp_meta_parse: empty blob (len=0) -> zero entries, OK */
-    {
-        TBmpMeta m;
-        CHECK_OK(tbmp_meta_parse(NULL, 0, &m));
-        CHECK_EQ(m.count, 0U);
-    }
-
-    /* tbmp_meta_parse: fixmap {} (0x80) -> zero entries */
-    {
-        uint8_t blob[1] = {0x80};
-        TBmpMeta m;
-        CHECK_OK(tbmp_meta_parse(blob, 1, &m));
-        CHECK_EQ(m.count, 0U);
-    }
-
-    /* tbmp_meta_parse: root not a map -> TBMP_META_ERR_NOT_A_MAP */
-    {
-        uint8_t blob[1] = {0x01}; /* fixint 1, not a map */
-        TBmpMeta m;
-        CHECK_ERR(tbmp_meta_parse(blob, 1, &m), TBMP_META_ERR_NOT_A_MAP);
-    }
-
-    /* tbmp_meta_parse: fixmap with integer key -> TBMP_META_ERR_BAD_KEY */
-    {
-        /* {1: true} - key is int, not str */
-        uint8_t blob[] = {0x81, 0x01, 0xc3};
-        TBmpMeta m;
-        CHECK_ERR(tbmp_meta_parse(blob, sizeof(blob), &m),
-                  TBMP_META_ERR_BAD_KEY);
-    }
-
-    /* tbmp_meta_parse: truncated blob -> TBMP_META_ERR_TRUNCATED */
-    {
-        /* fixmap size 1 but no data follows */
-        uint8_t blob[1] = {0x81};
-        TBmpMeta m;
-        CHECK_ERR(tbmp_meta_parse(blob, 1, &m), TBMP_META_ERR_TRUNCATED);
-    }
-
-    /* tbmp_meta_parse: malformed MessagePack payloads -> TRUNCATED */
-    {
-        /* map with key but missing value bytes */
-        uint8_t missing_value[] = {0x81, 0xa1, 'k'};
-        TBmpMeta m;
-        CHECK_ERR(tbmp_meta_parse(missing_value, sizeof(missing_value), &m),
-                  TBMP_META_ERR_TRUNCATED);
-
-        /* map with str header declaring 3 bytes but only 2 provided */
-        uint8_t short_str[] = {0x81, 0xa1, 'k', 0xa3, 'a', 'b'};
-        CHECK_ERR(tbmp_meta_parse(short_str, sizeof(short_str), &m),
-                  TBMP_META_ERR_TRUNCATED);
-
-        /* map with bin8 length 4 but only 2 bytes provided */
-        uint8_t short_bin[] = {0x81, 0xa1, 'b', 0xc4, 0x04, 0xde, 0xad};
-        CHECK_ERR(tbmp_meta_parse(short_bin, sizeof(short_bin), &m),
-                  TBMP_META_ERR_TRUNCATED);
-    }
-
-    /* tbmp_meta_encode + tbmp_meta_parse round-trip: all value types */
+    /* tbmp_meta_parse: strict structured parse and round-trip */
     {
         TBmpMeta src;
-        memset(&src, 0, sizeof(src));
+        fill_valid_meta(&src);
 
-        /* nil */
-        strncpy(src.entries[0].key, "nil_key", TBMP_META_KEY_MAX);
-        src.entries[0].value.type = TBMP_META_NIL;
-
-        /* bool true */
-        strncpy(src.entries[1].key, "flag", TBMP_META_KEY_MAX);
-        src.entries[1].value.type = TBMP_META_BOOL;
-        src.entries[1].value.u = 1U;
-
-        /* uint */
-        strncpy(src.entries[2].key, "width", TBMP_META_KEY_MAX);
-        src.entries[2].value.type = TBMP_META_UINT;
-        src.entries[2].value.u = 640U;
-
-        /* int (negative) */
-        strncpy(src.entries[3].key, "offset", TBMP_META_KEY_MAX);
-        src.entries[3].value.type = TBMP_META_INT;
-        src.entries[3].value.i = -42;
-
-        /* float */
-        strncpy(src.entries[4].key, "scale", TBMP_META_KEY_MAX);
-        src.entries[4].value.type = TBMP_META_FLOAT;
-        src.entries[4].value.f = 1.5;
-
-        /* str */
-        strncpy(src.entries[5].key, "author", TBMP_META_KEY_MAX);
-        src.entries[5].value.type = TBMP_META_STR;
-        strncpy((char *)src.entries[5].value.s, "Alice", TBMP_META_STR_MAX);
-
-        /* bin */
-        strncpy(src.entries[6].key, "thumb", TBMP_META_KEY_MAX);
-        src.entries[6].value.type = TBMP_META_BIN;
-        src.entries[6].value.s[0] = 0xDE;
-        src.entries[6].value.s[1] = 0xAD;
-        src.entries[6].value.bin_len = 2U;
-
-        src.count = 7U;
-
-        /* Encode */
-        uint8_t blob[512];
+        uint8_t blob[1024];
         size_t blob_len = 0;
         CHECK_OK(tbmp_meta_encode(&src, blob, sizeof(blob), &blob_len));
         CHECK_GT(blob_len, 0U);
 
-        /* Parse back */
         TBmpMeta dst;
         CHECK_OK(tbmp_meta_parse(blob, blob_len, &dst));
-        CHECK_EQ(dst.count, 7U);
 
-        /* nil */
-        const TBmpMetaEntry *e;
-        e = tbmp_meta_find(&dst, "nil_key");
-        CHECK_NE(e, NULL);
-        if (e)
-            CHECK_EQ(e->value.type, TBMP_META_NIL);
+        CHECK_EQ(strcmp(dst.title, src.title), 0);
+        CHECK_EQ(strcmp(dst.author, src.author), 0);
+        CHECK_EQ(strcmp(dst.description, src.description), 0);
+        CHECK_EQ(strcmp(dst.created, src.created), 0);
+        CHECK_EQ(strcmp(dst.software, src.software), 0);
+        CHECK_EQ(strcmp(dst.license, src.license), 0);
+        CHECK_EQ(dst.tag_count, src.tag_count);
+        CHECK_EQ(strcmp(dst.tags[0], src.tags[0]), 0);
+        CHECK_EQ(strcmp(dst.tags[1], src.tags[1]), 0);
+        CHECK_EQ(strcmp(dst.tags[2], src.tags[2]), 0);
+        CHECK_EQ(dst.has_dpi, src.has_dpi);
+        CHECK_EQ(dst.dpi, src.dpi);
+        CHECK_EQ(strcmp(dst.colorspace, src.colorspace), 0);
+        CHECK_EQ(dst.custom_count, src.custom_count);
+        CHECK_EQ(dst.custom[0].len, src.custom[0].len);
+        CHECK_EQ(
+            memcmp(dst.custom[0].data, src.custom[0].data, src.custom[0].len),
+            0);
 
-        /* bool */
-        e = tbmp_meta_find(&dst, "flag");
-        CHECK_NE(e, NULL);
-        if (e) {
-            CHECK_EQ(e->value.type, TBMP_META_BOOL);
-            CHECK_EQ(e->value.u, 1U);
-        }
-
-        /* uint */
-        e = tbmp_meta_find(&dst, "width");
-        CHECK_NE(e, NULL);
-        if (e) {
-            CHECK_EQ(e->value.type, TBMP_META_UINT);
-            CHECK_EQ(e->value.u, 640U);
-        }
-
-        /* int */
-        e = tbmp_meta_find(&dst, "offset");
-        CHECK_NE(e, NULL);
-        if (e) {
-            CHECK_EQ(e->value.type, TBMP_META_INT);
-            CHECK_EQ(e->value.i, -42);
-        }
-
-        /* float - compare within epsilon */
-        e = tbmp_meta_find(&dst, "scale");
-        CHECK_NE(e, NULL);
-        if (e) {
-            CHECK_EQ(e->value.type, TBMP_META_FLOAT);
-            CHECK(e->value.f > 1.49 && e->value.f < 1.51);
-        }
-
-        /* str */
-        e = tbmp_meta_find(&dst, "author");
-        CHECK_NE(e, NULL);
-        if (e) {
-            CHECK_EQ(e->value.type, TBMP_META_STR);
-            CHECK_EQ(strcmp((const char *)e->value.s, "Alice"), 0);
-        }
-
-        /* bin */
-        e = tbmp_meta_find(&dst, "thumb");
-        CHECK_NE(e, NULL);
-        if (e) {
-            CHECK_EQ(e->value.type, TBMP_META_BIN);
-            CHECK_EQ(e->value.bin_len, 2U);
-            CHECK_EQ(e->value.s[0], 0xDE);
-            CHECK_EQ(e->value.s[1], 0xAD);
-        }
-
-        /* Full struct round-trip compare (encode -> decode -> compare). */
-        CHECK(meta_equal(&src, &dst));
+        CHECK_OK(tbmp_meta_validate_structured_blob(blob, blob_len));
     }
 
-    /* tbmp_meta_validate_*: required keys, types, and length bounds */
+    /* Missing required key (tags) */
     {
-        TBmpMeta m;
-        memset(&m, 0, sizeof(m));
+        uint8_t blob[512];
+        TBmpMpWriter w;
+        tbmp_mp_writer_init(&w, blob, sizeof(blob));
 
-        strncpy(m.entries[0].key, "title", TBMP_META_KEY_MAX);
-        m.entries[0].value.type = TBMP_META_STR;
-        strncpy((char *)m.entries[0].value.s, "Sprite Sheet",
-                TBMP_META_STR_MAX);
+        tbmp_mp_start_map(&w, 6);
+        tbmp_mp_write_cstr(&w, "title");
+        tbmp_mp_write_cstr(&w, "x");
+        tbmp_mp_write_cstr(&w, "author");
+        tbmp_mp_write_cstr(&w, "y");
+        tbmp_mp_write_cstr(&w, "description");
+        tbmp_mp_write_cstr(&w, "z");
+        tbmp_mp_write_cstr(&w, "created");
+        tbmp_mp_write_cstr(&w, "0");
+        tbmp_mp_write_cstr(&w, "software");
+        tbmp_mp_write_cstr(&w, "s");
+        tbmp_mp_write_cstr(&w, "license");
+        tbmp_mp_write_cstr(&w, "l");
 
-        strncpy(m.entries[1].key, "author", TBMP_META_KEY_MAX);
-        m.entries[1].value.type = TBMP_META_STR;
-        strncpy((char *)m.entries[1].value.s, "Nellow", TBMP_META_STR_MAX);
-
-        strncpy(m.entries[2].key, "build", TBMP_META_KEY_MAX);
-        m.entries[2].value.type = TBMP_META_UINT;
-        m.entries[2].value.u = 7U;
-
-        strncpy(m.entries[3].key, "blob", TBMP_META_KEY_MAX);
-        m.entries[3].value.type = TBMP_META_BIN;
-        m.entries[3].value.s[0] = 0xAA;
-        m.entries[3].value.s[1] = 0xBB;
-        m.entries[3].value.s[2] = 0xCC;
-        m.entries[3].value.bin_len = 3U;
-
-        m.count = 4U;
-
-        CHECK_OK(tbmp_meta_validate_required_key(&m, "title"));
-        CHECK_ERR(tbmp_meta_validate_required_key(&m, "description"),
-                  TBMP_META_ERR_REQUIRED_MISSING);
-
-        CHECK_OK(tbmp_meta_validate_type(&m, "build", TBMP_META_UINT));
-        CHECK_ERR(tbmp_meta_validate_type(&m, "build", TBMP_META_STR),
-                  TBMP_META_ERR_TYPE_MISMATCH);
-        CHECK_ERR(tbmp_meta_validate_type(&m, "missing", TBMP_META_STR),
-                  TBMP_META_ERR_REQUIRED_MISSING);
-
-        CHECK_OK(tbmp_meta_validate_length(&m, "title", 3U, 20U));
-        CHECK_ERR(tbmp_meta_validate_length(&m, "title", 20U, 40U),
-                  TBMP_META_ERR_LENGTH_OUT_OF_RANGE);
-        CHECK_OK(tbmp_meta_validate_length(&m, "blob", 3U, 3U));
-        CHECK_ERR(tbmp_meta_validate_length(&m, "build", 1U, 4U),
-                  TBMP_META_ERR_TYPE_MISMATCH);
-        CHECK_ERR(tbmp_meta_validate_length(&m, "author", 10U, 5U),
-                  TBMP_META_ERR_LENGTH_OUT_OF_RANGE);
-
-        CHECK_ERR(tbmp_meta_validate_required_key(NULL, "x"),
-                  TBMP_ERR_NULL_PTR);
-        CHECK_ERR(tbmp_meta_validate_type(&m, NULL, TBMP_META_STR),
-                  TBMP_ERR_NULL_PTR);
-        CHECK_ERR(tbmp_meta_validate_length(NULL, "title", 1U, 2U),
-                  TBMP_ERR_NULL_PTR);
+        CHECK_ERR(
+            tbmp_meta_validate_structured_blob(blob, tbmp_mp_writer_used(&w)),
+            TBMP_META_ERR_REQUIRED_MISSING);
     }
 
-    /* tbmp_meta_find: not found returns NULL */
+    /* Unknown key */
     {
-        TBmpMeta m;
-        memset(&m, 0, sizeof(m));
-        CHECK_EQ(tbmp_meta_find(&m, "missing"), NULL);
-        CHECK_EQ(tbmp_meta_find(NULL, "key"), NULL);
-        CHECK_EQ(tbmp_meta_find(&m, NULL), NULL);
+        uint8_t blob[512];
+        TBmpMpWriter w;
+        tbmp_mp_writer_init(&w, blob, sizeof(blob));
+
+        tbmp_mp_start_map(&w, 8);
+        tbmp_mp_write_cstr(&w, "title");
+        tbmp_mp_write_cstr(&w, "x");
+        tbmp_mp_write_cstr(&w, "author");
+        tbmp_mp_write_cstr(&w, "y");
+        tbmp_mp_write_cstr(&w, "description");
+        tbmp_mp_write_cstr(&w, "z");
+        tbmp_mp_write_cstr(&w, "created");
+        tbmp_mp_write_cstr(&w, "0");
+        tbmp_mp_write_cstr(&w, "software");
+        tbmp_mp_write_cstr(&w, "s");
+        tbmp_mp_write_cstr(&w, "license");
+        tbmp_mp_write_cstr(&w, "l");
+        tbmp_mp_write_cstr(&w, "tags");
+        tbmp_mp_start_array(&w, 1);
+        tbmp_mp_write_cstr(&w, "one");
+        tbmp_mp_write_cstr(&w, "oops");
+        tbmp_mp_write_cstr(&w, "bad");
+
+        CHECK_ERR(
+            tbmp_meta_validate_structured_blob(blob, tbmp_mp_writer_used(&w)),
+            TBMP_META_ERR_SCHEMA_UNKNOWN_KEY);
     }
 
-    /* tbmp_write / tbmp_open round-trip with META section */
+    /* tags must be array<string> */
+    {
+        uint8_t blob[512];
+        TBmpMpWriter w;
+        tbmp_mp_writer_init(&w, blob, sizeof(blob));
+
+        tbmp_mp_start_map(&w, 7);
+        tbmp_mp_write_cstr(&w, "title");
+        tbmp_mp_write_cstr(&w, "x");
+        tbmp_mp_write_cstr(&w, "author");
+        tbmp_mp_write_cstr(&w, "y");
+        tbmp_mp_write_cstr(&w, "description");
+        tbmp_mp_write_cstr(&w, "z");
+        tbmp_mp_write_cstr(&w, "created");
+        tbmp_mp_write_cstr(&w, "0");
+        tbmp_mp_write_cstr(&w, "software");
+        tbmp_mp_write_cstr(&w, "s");
+        tbmp_mp_write_cstr(&w, "license");
+        tbmp_mp_write_cstr(&w, "l");
+        tbmp_mp_write_cstr(&w, "tags");
+        tbmp_mp_write_cstr(&w, "not-array");
+
+        CHECK_ERR(
+            tbmp_meta_validate_structured_blob(blob, tbmp_mp_writer_used(&w)),
+            TBMP_META_ERR_TYPE_MISMATCH);
+    }
+
+    /* custom must be array<map<string,any>> */
+    {
+        uint8_t blob[512];
+        TBmpMpWriter w;
+        tbmp_mp_writer_init(&w, blob, sizeof(blob));
+
+        tbmp_mp_start_map(&w, 8);
+        tbmp_mp_write_cstr(&w, "title");
+        tbmp_mp_write_cstr(&w, "x");
+        tbmp_mp_write_cstr(&w, "author");
+        tbmp_mp_write_cstr(&w, "y");
+        tbmp_mp_write_cstr(&w, "description");
+        tbmp_mp_write_cstr(&w, "z");
+        tbmp_mp_write_cstr(&w, "created");
+        tbmp_mp_write_cstr(&w, "0");
+        tbmp_mp_write_cstr(&w, "software");
+        tbmp_mp_write_cstr(&w, "s");
+        tbmp_mp_write_cstr(&w, "license");
+        tbmp_mp_write_cstr(&w, "l");
+        tbmp_mp_write_cstr(&w, "tags");
+        tbmp_mp_start_array(&w, 1);
+        tbmp_mp_write_cstr(&w, "one");
+        tbmp_mp_write_cstr(&w, "custom");
+        tbmp_mp_start_array(&w, 1);
+        tbmp_mp_write_cstr(&w, "no-map");
+
+        CHECK_ERR(
+            tbmp_meta_validate_structured_blob(blob, tbmp_mp_writer_used(&w)),
+            TBMP_META_ERR_TYPE_MISMATCH);
+    }
+
+    /* tbmp_msgpack safety: null pointers and overflow-safe bounds checks */
+    {
+        TBmpMpReader r;
+        tbmp_mp_reader_init(&r, NULL, 8U);
+        CHECK(tbmp_mp_reader_error(&r));
+
+        uint8_t data[4] = {1, 2, 3, 4};
+        tbmp_mp_reader_init(&r, data, sizeof(data));
+        tbmp_mp_read_bytes(&r, NULL, 1U);
+        CHECK(tbmp_mp_reader_error(&r));
+
+        tbmp_mp_reader_init(&r, data, sizeof(data));
+        r.pos = (size_t)-2;
+        r.len = (size_t)-1;
+        tbmp_mp_skip_bytes(&r, 16U);
+        CHECK(tbmp_mp_reader_error(&r));
+
+        TBmpMpWriter w;
+        tbmp_mp_writer_init(&w, NULL, 16U);
+        CHECK(tbmp_mp_writer_error(&w));
+    }
+
+    /* tbmp_write / tbmp_open round-trip with structured META section */
     {
         TBmpMeta meta;
-        memset(&meta, 0, sizeof(meta));
-        strncpy(meta.entries[0].key, "version", TBMP_META_KEY_MAX);
-        meta.entries[0].value.type = TBMP_META_UINT;
-        meta.entries[0].value.u = 2U;
-        meta.count = 1U;
+        fill_valid_meta(&meta);
 
         TBmpRGBA px = {100, 150, 200, 255};
         TBmpFrame fr;
@@ -326,26 +232,20 @@ void test_meta(void) {
         tbmp_write_default_params(&p);
         p.meta = &meta;
 
-        uint8_t buf[512];
+        uint8_t buf[2048];
         size_t written = 0;
         CHECK_OK(tbmp_write(&fr, &p, buf, sizeof(buf), &written));
         CHECK_GT(written, 0U);
 
-        /* Parse the written file */
         TBmpImage img;
         CHECK_OK(tbmp_open(buf, written, &img));
         CHECK_GT(img.meta_len, 0U);
         CHECK_NE(img.meta, NULL);
 
-        /* Parse the META blob */
         TBmpMeta parsed_meta;
         CHECK_OK(tbmp_meta_parse(img.meta, img.meta_len, &parsed_meta));
-        CHECK_EQ(parsed_meta.count, 1U);
-        const TBmpMetaEntry *e = tbmp_meta_find(&parsed_meta, "version");
-        CHECK_NE(e, NULL);
-        if (e) {
-            CHECK_EQ(e->value.type, TBMP_META_UINT);
-            CHECK_EQ(e->value.u, 2U);
-        }
+        CHECK_EQ(strcmp(parsed_meta.title, "Forest Tiles"), 0);
+        CHECK_EQ(strcmp(parsed_meta.author, "Nellow"), 0);
+        CHECK_EQ(parsed_meta.tag_count, 3U);
     }
 }
