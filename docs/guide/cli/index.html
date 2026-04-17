@@ -462,6 +462,7 @@ override fields loaded from the file.</p>
 <li><code>index2</code></li>
 <li><code>index4</code></li>
 <li><code>index8</code></li>
+<li><code>custom</code> (requires explicit masks)</li>
 </ul>
 <p>Encoding options:</p>
 <ul>
@@ -469,7 +470,18 @@ override fields loaded from the file.</p>
 <li><code>rle</code></li>
 <li><code>zerorange</code></li>
 <li><code>span</code></li>
+<li><code>sparse</code></li>
+<li><code>block-sparse</code></li>
 </ul>
+<p>Custom format options (<code>--format custom</code>):</p>
+<ul>
+<li><code>--bit-depth N</code> where <code>N</code> is one of <code>8</code>, <code>16</code>, <code>24</code>, <code>32</code> (default <code>32</code>)</li>
+<li><code>--mask-r VALUE</code> channel mask (required)</li>
+<li><code>--mask-g VALUE</code> channel mask (required)</li>
+<li><code>--mask-b VALUE</code> channel mask (required)</li>
+<li><code>--mask-a VALUE</code> channel mask (optional, default <code>0</code> meaning opaque alpha)</li>
+</ul>
+<p>Mask values accept decimal or <code>0x</code> hexadecimal notation.</p>
 <p>Example:</p>
 <pre class="hljs"><code>tbmp encode sprite.png sprite.tbmp --format rgb565 --encoding rle \
     --title <span class="hljs-string">&quot;Forest Tiles&quot;</span> \
@@ -483,6 +495,9 @@ override fields loaded from the file.</p>
     --colorspace sRGB
 
 tbmp encode sprite.png sprite_index4.tbmp --format index4 --auto-palette --dither --pick-encoding
+
+tbmp encode sprite.png sprite_custom.tbmp --format custom --bit-depth 32 \
+    --mask-r 0xFF000000 --mask-g 0x00FF0000 --mask-b 0x0000FF00 --mask-a 0x000000FF
 </code></pre>
 <h2 id="decode"><code>decode</code></h2>
 <p>Decode <code>.tbmp</code> to an image file (PPM/PGM output).</p>
