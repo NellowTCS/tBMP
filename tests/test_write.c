@@ -241,6 +241,57 @@ void test_writer_roundtrip(void) {
         CHECK_OK(tbmp_dither_to_palette(&frame, &pal));
     }
 
+    /* CUSTOM format round-trip with explicit masks */
+    {
+        TBmpRGBA src_px[4] = {
+            {255, 0, 0, 255},
+            {0, 255, 0, 128},
+            {0, 0, 255, 64},
+            {25, 50, 75, 100},
+        };
+        TBmpFrame src = {2, 2, src_px};
+
+        TBmpMasks masks;
+        masks.r = 0xFF000000U;
+        masks.g = 0x00FF0000U;
+        masks.b = 0x0000FF00U;
+        masks.a = 0x000000FFU;
+
+        TBmpWriteParams params;
+        tbmp_write_default_params(&params);
+        params.encoding = TBMP_ENC_RAW;
+        params.pixel_format = TBMP_FMT_CUSTOM;
+        params.bit_depth = 32;
+        params.masks = &masks;
+
+        size_t cap = tbmp_write_needed_size(&src, &params);
+        CHECK_GT(cap, 0U);
+
+        uint8_t *enc_buf = malloc(cap);
+        CHECK_NE(enc_buf, NULL);
+        if (!enc_buf)
+            return;
+
+        size_t written = 0;
+        CHECK_OK(tbmp_write(&src, &params, enc_buf, cap, &written));
+        CHECK_GT(written, 0U);
+
+        TBmpImage img;
+        CHECK_OK(tbmp_open(enc_buf, written, &img));
+        CHECK_EQ(img.has_masks, 1);
+        CHECK_EQ(img.masks.r, masks.r);
+        CHECK_EQ(img.masks.g, masks.g);
+        CHECK_EQ(img.masks.b, masks.b);
+        CHECK_EQ(img.masks.a, masks.a);
+
+        TBmpRGBA out_px[4];
+        TBmpFrame out = {0, 0, out_px};
+        CHECK_OK(tbmp_decode(&img, &out));
+        CHECK_EQ(memcmp(src_px, out_px, sizeof(src_px)), 0);
+
+        free(enc_buf);
+    }
+
     /* Encoding heuristic helper */
     {
         TBmpRGBA src_px[64];

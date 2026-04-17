@@ -5,9 +5,10 @@
  * that nothing needs to change for a standard hosted C11 build.
  *
  * TBMP_NO_FLOAT
- *   Define to compile out all floating-point code paths.
- *   Affected: tbmp_rotate() returns TBMP_ERR_NOT_SUPPORTED;
- *             tbmp_rotate_output_dims() copies src dimensions unchanged.
+ *   Define to avoid math-library/trigonometric code paths.
+ *   Affected: tbmp_rotate() uses a right-angle fallback (nearest of
+ *             0/90/180/270 degrees); tbmp_rotate_output_dims() reports
+ *             dimensions for that fallback path.
  *   Unaffected: tbmp_rotate90/180/270(), all encoder/decoder paths,
  *               all pixel-format conversion paths.
  *
@@ -37,8 +38,8 @@
 #define TBMP_HAS_FLOAT 1
 #endif
 
-/* TBMP_ERR_NOT_SUPPORTED is returned by tbmp_rotate() when TBMP_NO_FLOAT is
- * defined.  The value -19 is one past the last code in tbmp_types.h. */
+/* Reserved error code for optional features that may be disabled in some
+ * ports. The value -19 is one past the last code in tbmp_types.h. */
 #define TBMP_ERR_NOT_SUPPORTED (-19)
 
 /* Runtime assertion; no-op by default for bare-metal safety. */

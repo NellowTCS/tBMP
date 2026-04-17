@@ -25,7 +25,8 @@
  * Encode options:
  *   --format   <name>  Pixel format. Choices:
  *                        rgba8888 (default), rgb888, rgb565, rgb555,
- *                        rgb444, rgb332, index1, index2, index4, index8
+ *                        rgb444, rgb332, index1, index2, index4, index8,
+ *                        custom
  *   --encoding <name>  Encoding mode. Choices:
  *                        raw (default), rle, zerorange, span,
  *                        sparse, block-sparse
@@ -47,6 +48,7 @@
 #include "tbmp_ui.h"
 #include "tbmp_write.h"
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -71,6 +73,32 @@ static int arg_has(int argc, char **argv, const char *flag) {
 
 static int read_file_all(const char *path, uint8_t **out, size_t *out_len);
 
+static int parse_u32_value(const char *text, uint32_t *out) {
+    if (text == NULL || out == NULL)
+        return 0;
+
+    errno = 0;
+    char *end = NULL;
+    unsigned long v = strtoul(text, &end, 0);
+    if (errno != 0 || end == text || (end != NULL && *end != '\0'))
+        return 0;
+    if (v > 0xFFFFFFFFUL)
+        return 0;
+
+    *out = (uint32_t)v;
+    return 1;
+}
+
+static int parse_bit_depth_value(const char *text, uint8_t *out) {
+    uint32_t v = 0;
+    if (!parse_u32_value(text, &v))
+        return 0;
+    if (v != 8U && v != 16U && v != 24U && v != 32U)
+        return 0;
+    *out = (uint8_t)v;
+    return 1;
+}
+
 static TBmpPixelFormat parse_format(const char *name, uint8_t *out_depth) {
     struct {
         const char *n;
@@ -82,6 +110,7 @@ static TBmpPixelFormat parse_format(const char *name, uint8_t *out_depth) {
         {"rgba8888", TBMP_FMT_RGBA_8888, 32}, {"rgb888", TBMP_FMT_RGB_888, 24},
         {"rgb565", TBMP_FMT_RGB_565, 16},     {"rgb555", TBMP_FMT_RGB_555, 16},
         {"rgb444", TBMP_FMT_RGB_444, 16},     {"rgb332", TBMP_FMT_RGB_332, 8},
+        {"custom", TBMP_FMT_CUSTOM, 32},
     };
     for (size_t i = 0; i < sizeof(map) / sizeof(map[0]); i++) {
         if (strcmp(name, map[i].n) == 0) {
@@ -353,7 +382,8 @@ static void print_general_usage(void) {
         tbmp_ui_printlnf(
             "Input formats (encode): PBM/PGM/PPM P1-P6, PNG, BMP, JPEG, ...");
         tbmp_ui_printlnf("Pixel formats: rgba8888 (default), rgb888, rgb565, "
-                         "rgb555, rgb444, rgb332, index1, index2, index4, index8");
+                 "rgb555, rgb444, rgb332, index1, index2, index4, "
+                 "index8, custom");
         tbmp_ui_printlnf("  (grayscale/bilevel sources default to rgb332)");
         tbmp_ui_printlnf("Encodings: raw (default), rle, zerorange, span, "
                  "sparse, block-sparse");
@@ -361,6 +391,8 @@ static void print_general_usage(void) {
                          "--software --license --tags --dpi --colorspace "
                          "--custom-map --meta-file");
         tbmp_ui_printlnf("Encode extras: --pick-encoding --auto-palette --dither");
+        tbmp_ui_printlnf("Custom format opts: --bit-depth N --mask-r VAL "
+                 "--mask-g VAL --mask-b VAL [--mask-a VAL]");
         tbmp_ui_printlnf(
             "inspect: print header/sections/palette/masks/meta/chunks");
         tbmp_ui_printlnf(
@@ -397,7 +429,8 @@ static void print_general_usage(void) {
     tbmp_ui_box_line(
         "Input formats (encode): PBM/PGM/PPM P1-P6, PNG, BMP, JPEG, ...");
     tbmp_ui_box_line("Pixel formats: rgba8888 (default), rgb888, rgb565, "
-                     "rgb555, rgb444, rgb332, index1, index2, index4, index8");
+                     "rgb555, rgb444, rgb332, index1, index2, index4, "
+                     "index8, custom");
     tbmp_ui_box_line("(grayscale/bilevel sources default to rgb332)");
     tbmp_ui_box_line("Encodings: raw (default), rle, zerorange, span, "
                      "sparse, block-sparse");
@@ -405,6 +438,8 @@ static void print_general_usage(void) {
                      "--software --license --tags --dpi --colorspace "
                      "--custom-map --meta-file");
     tbmp_ui_box_line("Encode extras: --pick-encoding --auto-palette --dither");
+    tbmp_ui_box_line("Custom format opts: --bit-depth N --mask-r VAL "
+                     "--mask-g VAL --mask-b VAL [--mask-a VAL]");
     tbmp_ui_box_line(
         "inspect: print header/sections/palette/masks/meta/chunks");
     tbmp_ui_box_line(
@@ -423,7 +458,9 @@ static int cmd_encode(int argc, char **argv) {
                         "[--license L] [--tags a,b] [--dpi N] "
                         "[--colorspace CS] [--custom-map FILE ...] "
                         "[--meta-file META.msgpack] [--pick-encoding] "
-                        "[--auto-palette] [--dither]");
+                        "[--auto-palette] [--dither] [--bit-depth N] "
+                        "[--mask-r VAL --mask-g VAL --mask-b VAL "
+                        "--mask-a VAL]");
         return 1;
     }
 
@@ -473,6 +510,45 @@ static int cmd_encode(int argc, char **argv) {
     params.encoding = enc;
     params.pixel_format = fmt;
     params.bit_depth = bit_depth;
+
+    TBmpMasks custom_masks;
+    memset(&custom_masks, 0, sizeof(custom_masks));
+
+    if (fmt == TBMP_FMT_CUSTOM) {
+        const char *mask_r = arg_get(argc, argv, "--mask-r", NULL);
+        const char *mask_g = arg_get(argc, argv, "--mask-g", NULL);
+        const char *mask_b = arg_get(argc, argv, "--mask-b", NULL);
+        const char *mask_a = arg_get(argc, argv, "--mask-a", "0");
+        const char *bit_depth_arg = arg_get(argc, argv, "--bit-depth", NULL);
+
+        if (mask_r == NULL || mask_g == NULL || mask_b == NULL) {
+            fprintf(stderr,
+                    "error: custom format requires --mask-r --mask-g --mask-b\n");
+            tbmp_cli_img_free(pixels, free_with_stb);
+            return 1;
+        }
+
+        if (!parse_u32_value(mask_r, &custom_masks.r) ||
+            !parse_u32_value(mask_g, &custom_masks.g) ||
+            !parse_u32_value(mask_b, &custom_masks.b) ||
+            !parse_u32_value(mask_a, &custom_masks.a)) {
+            fprintf(stderr,
+                    "error: invalid custom mask value (use decimal or 0xHEX)\n");
+            tbmp_cli_img_free(pixels, free_with_stb);
+            return 1;
+        }
+
+        if (bit_depth_arg != NULL) {
+            if (!parse_bit_depth_value(bit_depth_arg, &params.bit_depth)) {
+                fprintf(stderr,
+                        "error: --bit-depth for custom must be 8,16,24,32\n");
+                tbmp_cli_img_free(pixels, free_with_stb);
+                return 1;
+            }
+        }
+
+        params.masks = &custom_masks;
+    }
 
     int opt_pick_encoding = arg_has(argc, argv, "--pick-encoding");
     int opt_auto_palette = arg_has(argc, argv, "--auto-palette");

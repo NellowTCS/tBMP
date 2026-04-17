@@ -179,6 +179,14 @@ Encode helper flags:
 - `--auto-palette` (generate palette for indexed formats)
 - `--dither` (Floyd-Steinberg dither to target palette)
 
+Custom format options (when using `--format custom`):
+
+- `--bit-depth` (`8`, `16`, `24`, or `32`; default `32`)
+- `--mask-r` (required, decimal or `0x` hex)
+- `--mask-g` (required, decimal or `0x` hex)
+- `--mask-b` (required, decimal or `0x` hex)
+- `--mask-a` (optional, default `0`)
+
 - `inspect` prints header fields, section presence/sizes, EXTRA chunk summary,
   palette/masks info, metadata entries, and warnings.
 - `export-png` decodes a `.tbmp` and writes PNG output for debugging/preview.

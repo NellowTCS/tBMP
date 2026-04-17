@@ -1,12 +1,5 @@
 # TODO
 
-- [ ] Add more sample files demonstrating structured metadata, palettes, masks, and EXTRA chunks
-- [X] Add fuzz tests (random images -> encode -> decode -> verify)
-
-## Tools
-
-- [ ] Add `extract_sprites` (grid or metadata‑based sprite extraction)
-
 ## Web Demo (WASM, NOT Emscripten, maybe)
 
 - [ ] Build minimal WASM decoder + metadata parser (Cheerp? WaJIC? idk)
@@ -45,3 +38,4 @@
 - [ ] Animation support
 - [ ] Tilemap support
 - [ ] Embedded thumbnails?
+- [ ] Add `extract_sprites` (grid or metadata‑based sprite extraction)

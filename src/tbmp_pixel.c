@@ -124,9 +124,15 @@ TBmpRGBA tbmp_pixel_to_rgba(uint32_t v, TBmpPixelFormat fmt,
         uint32_t b_shift = ctz32(masks->b);
         uint32_t a_shift = ctz32(masks->a);
 
-        c.r = tbmp_scale_channel((v & masks->r) >> r_shift, r_bits);
-        c.g = tbmp_scale_channel((v & masks->g) >> g_shift, g_bits);
-        c.b = tbmp_scale_channel((v & masks->b) >> b_shift, b_bits);
+        c.r = (masks->r == 0U)
+              ? 0U
+              : tbmp_scale_channel((v & masks->r) >> r_shift, r_bits);
+        c.g = (masks->g == 0U)
+              ? 0U
+              : tbmp_scale_channel((v & masks->g) >> g_shift, g_bits);
+        c.b = (masks->b == 0U)
+              ? 0U
+              : tbmp_scale_channel((v & masks->b) >> b_shift, b_bits);
         c.a = (masks->a == 0U)
                   ? 255U
                   : tbmp_scale_channel((v & masks->a) >> a_shift, a_bits);

@@ -92,6 +92,7 @@ Format options:
 - `index2`
 - `index4`
 - `index8`
+- `custom` (requires explicit masks)
 
 Encoding options:
 
@@ -99,6 +100,18 @@ Encoding options:
 - `rle`
 - `zerorange`
 - `span`
+- `sparse`
+- `block-sparse`
+
+Custom format options (`--format custom`):
+
+- `--bit-depth N` where `N` is one of `8`, `16`, `24`, `32` (default `32`)
+- `--mask-r VALUE` channel mask (required)
+- `--mask-g VALUE` channel mask (required)
+- `--mask-b VALUE` channel mask (required)
+- `--mask-a VALUE` channel mask (optional, default `0` meaning opaque alpha)
+
+Mask values accept decimal or `0x` hexadecimal notation.
 
 Example:
 
@@ -115,6 +128,9 @@ tbmp encode sprite.png sprite.tbmp --format rgb565 --encoding rle \
     --colorspace sRGB
 
 tbmp encode sprite.png sprite_index4.tbmp --format index4 --auto-palette --dither --pick-encoding
+
+tbmp encode sprite.png sprite_custom.tbmp --format custom --bit-depth 32 \
+    --mask-r 0xFF000000 --mask-g 0x00FF0000 --mask-b 0x0000FF00 --mask-a 0x000000FF
 ```
 
 ## `decode`
