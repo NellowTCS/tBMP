@@ -14,5 +14,6 @@ void test_rotate_arbitrary(void);
 void test_writer_roundtrip(void);
 void test_edge_cases(void);
 void test_meta(void);
+void test_fuzzing(void);
 
 #endif /* TBMP_TEST_SUITES_H */

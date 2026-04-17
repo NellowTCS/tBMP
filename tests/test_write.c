@@ -150,6 +150,77 @@ void test_writer_roundtrip(void) {
         free(enc_buf);
     }
 
+    /* All encoding modes round-trip (INDEX_8 exact palette values). */
+    {
+        TBmpPalette pal;
+        pal.count = 5;
+        pal.entries[0] = (TBmpRGBA){0, 0, 0, 255};
+        pal.entries[1] = (TBmpRGBA){255, 0, 0, 255};
+        pal.entries[2] = (TBmpRGBA){0, 255, 0, 255};
+        pal.entries[3] = (TBmpRGBA){0, 0, 255, 255};
+        pal.entries[4] = (TBmpRGBA){255, 255, 255, 255};
+
+        TBmpRGBA src_px[64];
+        for (int i = 0; i < 64; i++) {
+            switch (i % 5) {
+            case 0:
+                src_px[i] = pal.entries[0];
+                break;
+            case 1:
+                src_px[i] = pal.entries[1];
+                break;
+            case 2:
+                src_px[i] = pal.entries[2];
+                break;
+            case 3:
+                src_px[i] = pal.entries[3];
+                break;
+            default:
+                src_px[i] = pal.entries[4];
+                break;
+            }
+        }
+
+        TBmpFrame src = {8, 8, src_px};
+        TBmpEncoding modes[] = {
+            TBMP_ENC_RAW,          TBMP_ENC_ZERO_RANGE, TBMP_ENC_RLE,
+            TBMP_ENC_SPAN,         TBMP_ENC_SPARSE_PIXEL,
+            TBMP_ENC_BLOCK_SPARSE,
+        };
+
+        for (size_t mi = 0; mi < sizeof(modes) / sizeof(modes[0]); mi++) {
+            TBmpWriteParams params;
+            tbmp_write_default_params(&params);
+            params.encoding = modes[mi];
+            params.pixel_format = TBMP_FMT_INDEX_8;
+            params.bit_depth = 8;
+            params.palette = &pal;
+
+            size_t cap = tbmp_write_needed_size(&src, &params);
+            CHECK_GT(cap, 0U);
+
+            uint8_t *enc_buf = malloc(cap);
+            CHECK_NE(enc_buf, NULL);
+            if (!enc_buf)
+                return;
+
+            size_t written = 0;
+            CHECK_OK(tbmp_write(&src, &params, enc_buf, cap, &written));
+            CHECK_GT(written, 0U);
+
+            TBmpImage img;
+            CHECK_OK(tbmp_open(enc_buf, written, &img));
+            CHECK_EQ(img.head.encoding, (uint8_t)modes[mi]);
+
+            TBmpRGBA out_px[64];
+            TBmpFrame out = {0, 0, out_px};
+            CHECK_OK(tbmp_decode(&img, &out));
+            CHECK_EQ(memcmp(src_px, out_px, sizeof(src_px)), 0);
+
+            free(enc_buf);
+        }
+    }
+
     /* Auto-palette + dithering helpers */
     {
         TBmpRGBA src_px[16] = {

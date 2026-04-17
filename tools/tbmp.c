@@ -27,7 +27,8 @@
  *                        rgba8888 (default), rgb888, rgb565, rgb555,
  *                        rgb444, rgb332, index1, index2, index4, index8
  *   --encoding <name>  Encoding mode. Choices:
- *                        raw (default), rle, zerorange, span
+ *                        raw (default), rle, zerorange, span,
+ *                        sparse, block-sparse
  *
  * Decode:
  *   Writes a PPM P6 or PGM P5 file depending on the tBMP pixel format.
@@ -102,6 +103,8 @@ static TBmpEncoding parse_encoding(const char *name) {
         {"rle", TBMP_ENC_RLE},
         {"zerorange", TBMP_ENC_ZERO_RANGE},
         {"span", TBMP_ENC_SPAN},
+        {"sparse", TBMP_ENC_SPARSE_PIXEL},
+        {"block-sparse", TBMP_ENC_BLOCK_SPARSE},
     };
     for (size_t i = 0; i < sizeof(map) / sizeof(map[0]); i++) {
         if (strcmp(name, map[i].n) == 0)
@@ -352,7 +355,8 @@ static void print_general_usage(void) {
         tbmp_ui_printlnf("Pixel formats: rgba8888 (default), rgb888, rgb565, "
                          "rgb555, rgb444, rgb332, index1, index2, index4, index8");
         tbmp_ui_printlnf("  (grayscale/bilevel sources default to rgb332)");
-        tbmp_ui_printlnf("Encodings: raw (default), rle, zerorange, span");
+        tbmp_ui_printlnf("Encodings: raw (default), rle, zerorange, span, "
+                 "sparse, block-sparse");
         tbmp_ui_printlnf("META_OPTS: --title --author --description --created "
                          "--software --license --tags --dpi --colorspace "
                          "--custom-map --meta-file");
@@ -395,7 +399,8 @@ static void print_general_usage(void) {
     tbmp_ui_box_line("Pixel formats: rgba8888 (default), rgb888, rgb565, "
                      "rgb555, rgb444, rgb332, index1, index2, index4, index8");
     tbmp_ui_box_line("(grayscale/bilevel sources default to rgb332)");
-    tbmp_ui_box_line("Encodings: raw (default), rle, zerorange, span");
+    tbmp_ui_box_line("Encodings: raw (default), rle, zerorange, span, "
+                     "sparse, block-sparse");
     tbmp_ui_box_line("META_OPTS: --title --author --description --created "
                      "--software --license --tags --dpi --colorspace "
                      "--custom-map --meta-file");

@@ -19,6 +19,7 @@ int main(void) {
     test_writer_roundtrip();
     test_edge_cases();
     test_meta();
+    test_fuzzing();
 
     printf("\n=== Results: %d passed, %d failed ===\n", g_pass, g_fail);
     return (g_fail == 0) ? 0 : 1;

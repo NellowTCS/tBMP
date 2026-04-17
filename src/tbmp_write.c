@@ -4,6 +4,7 @@
 #include "tbmp_reader.h" /* tbmp_read_u16le / tbmp_read_u32le */
 
 #include <limits.h>
+#include <stdlib.h>
 #include <string.h> /* memcpy, memset */
 
 /* Internal write helpers. */
@@ -385,6 +386,288 @@ static size_t estimate_rle_size(const TBmpFrame *frame,
     return total;
 }
 
+/* Forward declaration for block-sparse tile packing reuse. */
+static size_t encode_raw(const TBmpFrame *frame, const TBmpWriteParams *params,
+                         uint8_t *out, size_t cap);
+
+/* Encode Zero-Range (mode 1). Returns bytes written or 0 on error. */
+static size_t encode_zero_range(const TBmpFrame *frame,
+                                const TBmpWriteParams *params, uint8_t *out,
+                                size_t cap) {
+    uint32_t n = (uint32_t)frame->width * frame->height;
+    if (params->bit_depth > 8U)
+        return 0;
+
+    uint8_t *vals = (uint8_t *)malloc(n ? n : 1U);
+    if (!vals)
+        return 0;
+
+    for (uint32_t i = 0; i < n; i++) {
+        uint32_t v = rgba_to_packed(frame->pixels[i], params->pixel_format,
+                                    params->palette, params->masks);
+        vals[i] = (uint8_t)(v & 0xFFU);
+    }
+
+    uint32_t zero_ranges = 0;
+    uint32_t nonzero = 0;
+    for (uint32_t i = 0; i < n;) {
+        if (vals[i] == 0) {
+            zero_ranges++;
+            while (i < n && vals[i] == 0)
+                i++;
+        } else {
+            nonzero++;
+            i++;
+        }
+    }
+
+    size_t needed = 4U + (size_t)zero_ranges * 8U + 4U + nonzero;
+    if (needed > cap) {
+        free(vals);
+        return 0;
+    }
+
+    WBuf wb = {out, 0, cap};
+    if (!wbuf_write_u32le(&wb, zero_ranges)) {
+        free(vals);
+        return 0;
+    }
+
+    for (uint32_t i = 0; i < n;) {
+        if (vals[i] == 0) {
+            uint32_t start = i;
+            while (i < n && vals[i] == 0)
+                i++;
+            if (!wbuf_write_u32le(&wb, start) ||
+                !wbuf_write_u32le(&wb, i - start)) {
+                free(vals);
+                return 0;
+            }
+        } else {
+            i++;
+        }
+    }
+
+    if (!wbuf_write_u32le(&wb, nonzero)) {
+        free(vals);
+        return 0;
+    }
+    for (uint32_t i = 0; i < n; i++) {
+        if (vals[i] != 0 && !wbuf_write_u8(&wb, vals[i])) {
+            free(vals);
+            return 0;
+        }
+    }
+
+    free(vals);
+    return wb.pos;
+}
+
+/* Encode Span (mode 3). Returns bytes written or 0 on error. */
+static size_t encode_span(const TBmpFrame *frame, const TBmpWriteParams *params,
+                          uint8_t *out, size_t cap) {
+    uint32_t n = (uint32_t)frame->width * frame->height;
+    uint8_t vbytes = value_field_bytes(params->bit_depth);
+
+    uint32_t *vals = (uint32_t *)malloc((n ? n : 1U) * sizeof(uint32_t));
+    if (!vals)
+        return 0;
+
+    for (uint32_t i = 0; i < n; i++) {
+        vals[i] = rgba_to_packed(frame->pixels[i], params->pixel_format,
+                                 params->palette, params->masks);
+    }
+
+    uint32_t spans = 0;
+    for (uint32_t i = 0; i < n;) {
+        uint32_t v = vals[i];
+        uint32_t start = i;
+        while (i < n && vals[i] == v)
+            i++;
+        if (v != 0U && i > start)
+            spans++;
+    }
+
+    size_t needed = 4U + (size_t)spans * (8U + vbytes);
+    if (needed > cap) {
+        free(vals);
+        return 0;
+    }
+
+    WBuf wb = {out, 0, cap};
+    if (!wbuf_write_u32le(&wb, spans)) {
+        free(vals);
+        return 0;
+    }
+
+    for (uint32_t i = 0; i < n;) {
+        uint32_t v = vals[i];
+        uint32_t start = i;
+        while (i < n && vals[i] == v)
+            i++;
+        uint32_t len = i - start;
+        if (v == 0U)
+            continue;
+
+        if (!wbuf_write_u32le(&wb, start) || !wbuf_write_u32le(&wb, len) ||
+            !write_value_field(&wb, v, vbytes)) {
+            free(vals);
+            return 0;
+        }
+    }
+
+    free(vals);
+    return wb.pos;
+}
+
+/* Encode Sparse Pixel (mode 4). Returns bytes written or 0 on error. */
+static size_t encode_sparse_pixel(const TBmpFrame *frame,
+                                  const TBmpWriteParams *params, uint8_t *out,
+                                  size_t cap) {
+    uint8_t vbytes = value_field_bytes(params->bit_depth);
+
+    uint32_t count = 0;
+    for (uint32_t y = 0; y < frame->height; y++) {
+        for (uint32_t x = 0; x < frame->width; x++) {
+            uint32_t idx = y * frame->width + x;
+            uint32_t v = rgba_to_packed(frame->pixels[idx], params->pixel_format,
+                                        params->palette, params->masks);
+            if (v != 0U)
+                count++;
+        }
+    }
+
+    size_t needed = 4U + (size_t)count * (4U + vbytes);
+    if (needed > cap)
+        return 0;
+
+    WBuf wb = {out, 0, cap};
+    if (!wbuf_write_u32le(&wb, count))
+        return 0;
+
+    for (uint32_t y = 0; y < frame->height; y++) {
+        for (uint32_t x = 0; x < frame->width; x++) {
+            uint32_t idx = y * frame->width + x;
+            uint32_t v = rgba_to_packed(frame->pixels[idx], params->pixel_format,
+                                        params->palette, params->masks);
+            if (v == 0U)
+                continue;
+
+            if (!wbuf_write_u16le(&wb, (uint16_t)x) ||
+                !wbuf_write_u16le(&wb, (uint16_t)y) ||
+                !write_value_field(&wb, v, vbytes)) {
+                return 0;
+            }
+        }
+    }
+
+    return wb.pos;
+}
+
+/* Encode Block Sparse (mode 5). Returns bytes written or 0 on error. */
+static size_t encode_block_sparse(const TBmpFrame *frame,
+                                  const TBmpWriteParams *params, uint8_t *out,
+                                  size_t cap) {
+    const uint16_t bw = 8U;
+    const uint16_t bh = 8U;
+    uint32_t tiles_x = ((uint32_t)frame->width + bw - 1U) / bw;
+    uint32_t tiles_y = ((uint32_t)frame->height + bh - 1U) / bh;
+    uint32_t total_tiles = tiles_x * tiles_y;
+    size_t block_data_size = raw_data_size((uint32_t)bw * bh, params->bit_depth);
+
+    TBmpRGBA tile_px[64];
+    uint8_t tile_data[256];
+
+    uint32_t non_empty_blocks = 0;
+    for (uint32_t t = 0; t < total_tiles; t++) {
+        uint32_t tile_col = t % tiles_x;
+        uint32_t tile_row = t / tiles_x;
+        uint32_t ox = tile_col * bw;
+        uint32_t oy = tile_row * bh;
+
+        for (uint32_t ty = 0; ty < bh; ty++) {
+            for (uint32_t tx = 0; tx < bw; tx++) {
+                uint32_t di = ty * bw + tx;
+                uint32_t sx = ox + tx;
+                uint32_t sy = oy + ty;
+                if (sx < frame->width && sy < frame->height) {
+                    tile_px[di] = frame->pixels[sy * frame->width + sx];
+                } else {
+                    tile_px[di] = (TBmpRGBA){0, 0, 0, 0};
+                }
+            }
+        }
+
+        TBmpFrame tile = {bw, bh, tile_px};
+        size_t w = encode_raw(&tile, params, tile_data, sizeof(tile_data));
+        if (w != block_data_size)
+            return 0;
+
+        int any = 0;
+        for (size_t i = 0; i < block_data_size; i++) {
+            if (tile_data[i] != 0U) {
+                any = 1;
+                break;
+            }
+        }
+        if (any)
+            non_empty_blocks++;
+    }
+
+    size_t needed = 8U + (size_t)non_empty_blocks * (8U + block_data_size);
+    if (needed > cap)
+        return 0;
+
+    WBuf wb = {out, 0, cap};
+    if (!wbuf_write_u16le(&wb, bw) || !wbuf_write_u16le(&wb, bh) ||
+        !wbuf_write_u32le(&wb, non_empty_blocks)) {
+        return 0;
+    }
+
+    for (uint32_t t = 0; t < total_tiles; t++) {
+        uint32_t tile_col = t % tiles_x;
+        uint32_t tile_row = t / tiles_x;
+        uint32_t ox = tile_col * bw;
+        uint32_t oy = tile_row * bh;
+
+        for (uint32_t ty = 0; ty < bh; ty++) {
+            for (uint32_t tx = 0; tx < bw; tx++) {
+                uint32_t di = ty * bw + tx;
+                uint32_t sx = ox + tx;
+                uint32_t sy = oy + ty;
+                if (sx < frame->width && sy < frame->height) {
+                    tile_px[di] = frame->pixels[sy * frame->width + sx];
+                } else {
+                    tile_px[di] = (TBmpRGBA){0, 0, 0, 0};
+                }
+            }
+        }
+
+        TBmpFrame tile = {bw, bh, tile_px};
+        size_t w = encode_raw(&tile, params, tile_data, sizeof(tile_data));
+        if (w != block_data_size)
+            return 0;
+
+        int any = 0;
+        for (size_t i = 0; i < block_data_size; i++) {
+            if (tile_data[i] != 0U) {
+                any = 1;
+                break;
+            }
+        }
+        if (!any)
+            continue;
+
+        if (!wbuf_write_u32le(&wb, t) ||
+            !wbuf_write_u32le(&wb, (uint32_t)block_data_size) ||
+            !wbuf_write(&wb, tile_data, block_data_size)) {
+            return 0;
+        }
+    }
+
+    return wb.pos;
+}
+
 /* Encode a RAW pixel array.  Returns bytes written or 0 on error. */
 static size_t encode_raw(const TBmpFrame *frame, const TBmpWriteParams *params,
                          uint8_t *out, size_t cap) {
@@ -518,16 +801,41 @@ size_t tbmp_write_needed_size(const TBmpFrame *frame,
         return 0;
     uint32_t n = (uint32_t)frame->width * frame->height;
 
-    /* Data size - worst case depends on encoding mode.
-   * RLE worst case: n * (1 + vbytes) (every pixel is a unique run).
-   * All other modes (RAW and fallbacks) are ceil(n * bit_depth / 8). */
-    size_t data_max;
-    if (params->encoding == TBMP_ENC_RLE) {
-        data_max = rle_max_data_size(n, params->bit_depth);
-    } else {
+    /* Data size upper bound by mode. */
+    uint8_t vbytes = value_field_bytes(params->bit_depth);
+    uint64_t data_max_u64;
+    switch (params->encoding) {
+    case TBMP_ENC_RLE:
+        data_max_u64 = (uint64_t)rle_max_data_size(n, params->bit_depth);
+        break;
+    case TBMP_ENC_ZERO_RANGE:
+        /* 4 + ranges(8 each) + 4 + values(1 each), worst-case ranges==n */
+        data_max_u64 = 8U + (uint64_t)n * 9U;
+        break;
+    case TBMP_ENC_SPAN:
+        data_max_u64 = 4U + (uint64_t)n * (8U + vbytes);
+        break;
+    case TBMP_ENC_SPARSE_PIXEL:
+        data_max_u64 = 4U + (uint64_t)n * (4U + vbytes);
+        break;
+    case TBMP_ENC_BLOCK_SPARSE:
+        {
+            uint32_t tiles_x = ((uint32_t)frame->width + 7U) / 8U;
+            uint32_t tiles_y = ((uint32_t)frame->height + 7U) / 8U;
+            uint64_t blocks = (uint64_t)tiles_x * (uint64_t)tiles_y;
+            uint64_t block_data = raw_data_size(64U, params->bit_depth);
+            data_max_u64 = 8U + blocks * (8U + block_data);
+        }
+        break;
+    default: {
         uint64_t bits = (uint64_t)n * params->bit_depth;
-        data_max = (size_t)((bits + 7) / 8);
+        data_max_u64 = (bits + 7U) / 8U;
+        break;
     }
+    }
+    if (data_max_u64 > (uint64_t)SIZE_MAX)
+        return 0;
+    size_t data_max = (size_t)data_max_u64;
 
     /* EXTRA size. */
     size_t extra = 0;
@@ -575,26 +883,65 @@ TBmpError tbmp_write(const TBmpFrame *frame, const TBmpWriteParams *params,
     size_t data_start = b.pos;
     uint32_t n = (uint32_t)frame->width * frame->height;
 
-    /* Pre-compute max data size and verify capacity.
-   * RLE worst case: n * (1 + vbytes); all other modes: ceil(n * bpp / 8). */
-    size_t data_max;
-    if (params->encoding == TBMP_ENC_RLE) {
-        data_max = rle_max_data_size(n, params->bit_depth);
-    } else {
+    /* Pre-compute max data size and verify capacity. */
+    uint8_t vbytes = value_field_bytes(params->bit_depth);
+    uint64_t data_max_u64;
+    switch (params->encoding) {
+    case TBMP_ENC_RLE:
+        data_max_u64 = (uint64_t)rle_max_data_size(n, params->bit_depth);
+        break;
+    case TBMP_ENC_ZERO_RANGE:
+        data_max_u64 = 8U + (uint64_t)n * 9U;
+        break;
+    case TBMP_ENC_SPAN:
+        data_max_u64 = 4U + (uint64_t)n * (8U + vbytes);
+        break;
+    case TBMP_ENC_SPARSE_PIXEL:
+        data_max_u64 = 4U + (uint64_t)n * (4U + vbytes);
+        break;
+    case TBMP_ENC_BLOCK_SPARSE:
+        {
+            uint32_t tiles_x = ((uint32_t)frame->width + 7U) / 8U;
+            uint32_t tiles_y = ((uint32_t)frame->height + 7U) / 8U;
+            uint64_t blocks = (uint64_t)tiles_x * (uint64_t)tiles_y;
+            uint64_t block_data = raw_data_size(64U, params->bit_depth);
+            data_max_u64 = 8U + blocks * (8U + block_data);
+        }
+        break;
+    default: {
         uint64_t bits = (uint64_t)n * params->bit_depth;
-        data_max = (size_t)((bits + 7U) / 8U);
+        data_max_u64 = (bits + 7U) / 8U;
+        break;
     }
+    }
+    if (data_max_u64 > (uint64_t)SIZE_MAX)
+        return TBMP_ERR_OVERFLOW;
+    size_t data_max = (size_t)data_max_u64;
 
     if (data_max > b.cap - b.pos)
         return TBMP_ERR_OUT_OF_MEMORY;
 
     size_t data_written;
     switch (params->encoding) {
+    case TBMP_ENC_ZERO_RANGE:
+        data_written =
+            encode_zero_range(frame, params, b.data + b.pos, b.cap - b.pos);
+        break;
     case TBMP_ENC_RLE:
         data_written = encode_rle(frame, params, b.data + b.pos, b.cap - b.pos);
         break;
+    case TBMP_ENC_SPAN:
+        data_written = encode_span(frame, params, b.data + b.pos, b.cap - b.pos);
+        break;
+    case TBMP_ENC_SPARSE_PIXEL:
+        data_written =
+            encode_sparse_pixel(frame, params, b.data + b.pos, b.cap - b.pos);
+        break;
+    case TBMP_ENC_BLOCK_SPARSE:
+        data_written =
+            encode_block_sparse(frame, params, b.data + b.pos, b.cap - b.pos);
+        break;
     default:
-        /* All other modes fall back to RAW for now. */
         data_written = encode_raw(frame, params, b.data + b.pos, b.cap - b.pos);
         break;
     }

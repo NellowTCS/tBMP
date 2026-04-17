@@ -59,6 +59,7 @@ if(TBMP_BUILD_TESTS)
         tests/test_write.c
         tests/test_edge_cases.c
         tests/test_meta.c
+        tests/test_fuzzing.c
     )
     target_link_libraries(tbmp_test PRIVATE tbmp)
 

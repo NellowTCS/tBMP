@@ -1,7 +1,7 @@
 # TODO
 
 - [ ] Add more sample files demonstrating structured metadata, palettes, masks, and EXTRA chunks
-- [ ] Add fuzz tests (random images -> encode -> decode -> verify)
+- [X] Add fuzz tests (random images -> encode -> decode -> verify)
 
 ## Tools
 
