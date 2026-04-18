@@ -530,8 +530,9 @@ static size_t encode_sparse_pixel(const TBmpFrame *frame,
     for (uint32_t y = 0; y < frame->height; y++) {
         for (uint32_t x = 0; x < frame->width; x++) {
             uint32_t idx = y * frame->width + x;
-            uint32_t v = rgba_to_packed(frame->pixels[idx], params->pixel_format,
-                                        params->palette, params->masks);
+            uint32_t v =
+                rgba_to_packed(frame->pixels[idx], params->pixel_format,
+                               params->palette, params->masks);
             if (v != 0U)
                 count++;
         }
@@ -548,8 +549,9 @@ static size_t encode_sparse_pixel(const TBmpFrame *frame,
     for (uint32_t y = 0; y < frame->height; y++) {
         for (uint32_t x = 0; x < frame->width; x++) {
             uint32_t idx = y * frame->width + x;
-            uint32_t v = rgba_to_packed(frame->pixels[idx], params->pixel_format,
-                                        params->palette, params->masks);
+            uint32_t v =
+                rgba_to_packed(frame->pixels[idx], params->pixel_format,
+                               params->palette, params->masks);
             if (v == 0U)
                 continue;
 
@@ -573,7 +575,8 @@ static size_t encode_block_sparse(const TBmpFrame *frame,
     uint32_t tiles_x = ((uint32_t)frame->width + bw - 1U) / bw;
     uint32_t tiles_y = ((uint32_t)frame->height + bh - 1U) / bh;
     uint32_t total_tiles = tiles_x * tiles_y;
-    size_t block_data_size = raw_data_size((uint32_t)bw * bh, params->bit_depth);
+    size_t block_data_size =
+        raw_data_size((uint32_t)bw * bh, params->bit_depth);
 
     TBmpRGBA tile_px[64];
     uint8_t tile_data[256];
@@ -818,15 +821,13 @@ size_t tbmp_write_needed_size(const TBmpFrame *frame,
     case TBMP_ENC_SPARSE_PIXEL:
         data_max_u64 = 4U + (uint64_t)n * (4U + vbytes);
         break;
-    case TBMP_ENC_BLOCK_SPARSE:
-        {
-            uint32_t tiles_x = ((uint32_t)frame->width + 7U) / 8U;
-            uint32_t tiles_y = ((uint32_t)frame->height + 7U) / 8U;
-            uint64_t blocks = (uint64_t)tiles_x * (uint64_t)tiles_y;
-            uint64_t block_data = raw_data_size(64U, params->bit_depth);
-            data_max_u64 = 8U + blocks * (8U + block_data);
-        }
-        break;
+    case TBMP_ENC_BLOCK_SPARSE: {
+        uint32_t tiles_x = ((uint32_t)frame->width + 7U) / 8U;
+        uint32_t tiles_y = ((uint32_t)frame->height + 7U) / 8U;
+        uint64_t blocks = (uint64_t)tiles_x * (uint64_t)tiles_y;
+        uint64_t block_data = raw_data_size(64U, params->bit_depth);
+        data_max_u64 = 8U + blocks * (8U + block_data);
+    } break;
     default: {
         uint64_t bits = (uint64_t)n * params->bit_depth;
         data_max_u64 = (bits + 7U) / 8U;
@@ -899,15 +900,13 @@ TBmpError tbmp_write(const TBmpFrame *frame, const TBmpWriteParams *params,
     case TBMP_ENC_SPARSE_PIXEL:
         data_max_u64 = 4U + (uint64_t)n * (4U + vbytes);
         break;
-    case TBMP_ENC_BLOCK_SPARSE:
-        {
-            uint32_t tiles_x = ((uint32_t)frame->width + 7U) / 8U;
-            uint32_t tiles_y = ((uint32_t)frame->height + 7U) / 8U;
-            uint64_t blocks = (uint64_t)tiles_x * (uint64_t)tiles_y;
-            uint64_t block_data = raw_data_size(64U, params->bit_depth);
-            data_max_u64 = 8U + blocks * (8U + block_data);
-        }
-        break;
+    case TBMP_ENC_BLOCK_SPARSE: {
+        uint32_t tiles_x = ((uint32_t)frame->width + 7U) / 8U;
+        uint32_t tiles_y = ((uint32_t)frame->height + 7U) / 8U;
+        uint64_t blocks = (uint64_t)tiles_x * (uint64_t)tiles_y;
+        uint64_t block_data = raw_data_size(64U, params->bit_depth);
+        data_max_u64 = 8U + blocks * (8U + block_data);
+    } break;
     default: {
         uint64_t bits = (uint64_t)n * params->bit_depth;
         data_max_u64 = (bits + 7U) / 8U;
@@ -931,7 +930,8 @@ TBmpError tbmp_write(const TBmpFrame *frame, const TBmpWriteParams *params,
         data_written = encode_rle(frame, params, b.data + b.pos, b.cap - b.pos);
         break;
     case TBMP_ENC_SPAN:
-        data_written = encode_span(frame, params, b.data + b.pos, b.cap - b.pos);
+        data_written =
+            encode_span(frame, params, b.data + b.pos, b.cap - b.pos);
         break;
     case TBMP_ENC_SPARSE_PIXEL:
         data_written =
@@ -1071,8 +1071,8 @@ TBmpError tbmp_auto_palette_from_frame(const TBmpFrame *frame,
     uint32_t n = (uint32_t)frame->width * frame->height;
     for (uint32_t i = 0; i < n; i++) {
         TBmpRGBA p = frame->pixels[i];
-        uint32_t idx = ((uint32_t)(p.r >> 3) << 10) | ((uint32_t)(p.g >> 3) << 5) |
-                       (uint32_t)(p.b >> 3);
+        uint32_t idx = ((uint32_t)(p.r >> 3) << 10) |
+                       ((uint32_t)(p.g >> 3) << 5) | (uint32_t)(p.b >> 3);
         count[idx]++;
         sum_r[idx] += p.r;
         sum_g[idx] += p.g;

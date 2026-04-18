@@ -10,7 +10,7 @@ description: "Complete function reference for the tBMP library."
 Return codes used throughout the library:
 
 | Code | Name                      | Description               |
-|------|---------------------------|---------------------------|
+| ---- | ------------------------- | ------------------------- |
 | 0    | TBMP_OK                   | Success                   |
 | -1   | TBMP_ERR_NULL_PTR         | NULL pointer passed       |
 | -2   | TBMP_ERR_BAD_MAGIC        | Not a tBMP file           |
@@ -241,7 +241,7 @@ Lossless 90-degree rotations. No floating-point required.
 ### Platform Macros
 
 | Macro                         | Description                        |
-|-------------------------------|------------------------------------|
+| ----------------------------- | ---------------------------------- |
 | TBMP_NO_FLOAT                 | Compile out floating-point code    |
 | TBMP_ASSERT(expr)             | Override assertion (default no-op) |
 | TBMP_STATIC_ASSERT(expr, msg) | Compile-time assertion             |

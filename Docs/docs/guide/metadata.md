@@ -130,6 +130,7 @@ Example custom map item:
 tBMP supports a strict structured metadata schema validator for MessagePack META blobs.
 
 Required fields:
+
 <!-- markdownlint-disable MD033 -->
 
 - `title`: string
@@ -172,17 +173,14 @@ if (rc != TBMP_OK) {
   "tags": ["tileset", "rpg", "forest"],
   "dpi": 144,
   "colorspace": "sRGB",
-  "custom": [
-    { "team": "gfx", "build": 7 },
-    { "experimental": true }
-  ]
+  "custom": [{ "team": "gfx", "build": 7 }, { "experimental": true }]
 }
 ```
 
 ## When to Use Each
 
 | Feature  | Use Case                             |
-|----------|--------------------------------------|
+| -------- | ------------------------------------ |
 | Palette  | 256 colors or fewer, indexed access  |
 | Masks    | Custom bit layouts, hardware formats |
 | Metadata | Application info, not for pixel data |

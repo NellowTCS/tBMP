@@ -12,7 +12,7 @@ tBMP supports 11 pixel formats, from 1-bit palette indices to 32-bit RGBA. Choos
 Index formats use a palette (stored in the EXTRA section) to define colors.
 
 | Format  | Bits | Colors | Palette Size |
-|---------|------|--------|--------------|
+| ------- | ---- | ------ | ------------ |
 | INDEX_1 | 1    | 2      | 2 entries    |
 | INDEX_2 | 2    | 4      | 4 entries    |
 | INDEX_4 | 4    | 16     | 16 entries   |
@@ -31,7 +31,7 @@ Index formats use a palette (stored in the EXTRA section) to define colors.
 These pack RGB into 16 or 8 bits:
 
 | Format  | Bits | Description                      |
-|---------|------|----------------------------------|
+| ------- | ---- | -------------------------------- |
 | RGB_565 | 16   | 5 red, 6 green, 5 blue           |
 | RGB_555 | 16   | 5 red, 5 green, 5 blue, 1 unused |
 | RGB_444 | 16   | 4 red, 4 green, 4 blue, 4 unused |
@@ -48,7 +48,7 @@ These pack RGB into 16 or 8 bits:
 Full color, no palette needed:
 
 | Format    | Bits | Channel Order                              |
-|-----------|------|--------------------------------------------|
+| --------- | ---- | ------------------------------------------ |
 | RGB_888   | 24   | R(8) G(8) B(8) - big-endian in stream      |
 | RGBA_8888 | 32   | R(8) G(8) B(8) A(8) - big-endian in stream |
 

@@ -1,27 +1,23 @@
 # TODO
 
-## Web Demo (WASM, NOT Emscripten, maybe)
+## Web Demo
 
-- [ ] Build minimal WASM decoder + metadata parser (Cheerp? WaJIC? idk)
-- [ ] Write custom JS glue (no Emscripten runtime?)
-- [ ] Add drag‑and‑drop file loader
-- [ ] Add pixel viewer (canvas)
-- [ ] Add zoom + pan + pixel grid
-- [ ] Add palette visualizer (PALT)
-- [ ] Add masks visualizer (MASK)
-- [ ] Add structured metadata panel
-- [ ] Add raw MsgPack tree viewer
-- [ ] Add EXTRA chunk inspector
+- [X] Get tBMP compiled to WASM
+- [X] Add drag‑and‑drop file loader
+- [X] Add pixel viewer (canvas)
+- [X] Add zoom + pan + pixel grid
+- [X] Add palette visualizer (PALT)
+- [X] Add masks visualizer (MASK)
+- [X] Add structured metadata panel
 
 ## Image Viewer (Standalone or part of demo? shrug probs latter)
 
-- [ ] Show width, height, pixel format, encoding
-- [ ] Toggle alpha / checkerboard background
-- [ ] Show structured metadata
+- [X] Show width, height, pixel format, encoding
+- [X] Toggle alpha / checkerboard background
+- [X] Show structured metadata
 - [ ] Show custom metadata keys
-- [ ] Show EXTRA chunks
-- [ ] Show palette swatches
-- [ ] Show masks bit layout
+- [X] Show palette swatches
+- [X] Show masks bit layout
 
 ## Documentation
 

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>tBMP Demo</title>
+  <link rel="stylesheet" href="./styles/styles.css">
+</head>
+
+<body data-theme="light">
+
+  <header class="header">
+    <a href="./" class="logo-text">tBMP<span>/demo</span></a>
+    <nav class="nav">
+      <a href="https://github.com/NellowTCS/tBMP" class="nav-link" target="_blank">GitHub</a>
+      <button id="themeToggle" class="theme-toggle" title="Toggle theme">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5" />
+          <path
+            d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+        </svg>
+      </button>
+    </nav>
+  </header>
+
+  <main class="main">
+
+    <aside class="sidebar">
+
+      <div class="sidebar-section">
+        <p class="section-label">Load file</p>
+        <label class="drop" id="dropZone">
+          <input type="file" id="fileInput" accept=".tbmp,.bin">
+          <span>Drop .tbmp or click to browse</span>
+        </label>
+        <p id="statusText" class="empty-state">No file loaded</p>
+      </div>
+
+      <div class="sidebar-section">
+        <p class="section-label">Image info</p>
+        <div id="fileInfo">
+          <p class="empty-state">—</p>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <p class="section-label">Display</p>
+        <div class="toggle-group">
+          <label><input id="gridToggle" type="checkbox" checked> Pixel grid</label>
+          <label><input id="checkerToggle" type="checkbox" checked> Checkerboard</label>
+          <label><input id="alphaToggle" type="checkbox"> Show alpha channel</label>
+        </div>
+      </div>
+
+    </aside>
+
+    <div class="content">
+
+      <div class="viewer-toolbar">
+        <span id="dims" class="empty-state">No image loaded</span>
+        <span class="toolbar-spacer"></span>
+        <label class="toolbar-label">
+          Zoom
+          <input id="zoomRange" type="range" min="1" max="32" value="1">
+          <span id="zoomDisplay">1×</span>
+        </label>
+      </div>
+
+      <div id="viewerViewport">
+        <canvas id="viewerCanvas"></canvas>
+      </div>
+
+      <div class="panels-grid">
+
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <h3>Metadata</h3>
+          </div>
+          <div class="panel-card-body" id="metaInfo">
+            <p class="empty-state">No metadata</p>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <h3>Palette</h3>
+            <span id="paletteCount"></span>
+            <span class="chevron">▼</span>
+          </div>
+          <div class="panel-card-body" id="paletteInfo">
+            <p class="empty-state">No palette</p>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <h3>Channel masks</h3>
+            <span class="chevron">▼</span>
+          </div>
+          <div class="panel-card-body" id="maskInfo">
+            <p class="empty-state">No masks</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+
+</html>

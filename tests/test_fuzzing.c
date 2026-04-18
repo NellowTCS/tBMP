@@ -26,8 +26,7 @@ static uint32_t xorshift32(uint32_t *state) {
     return x;
 }
 
-static uint32_t count_equal_px(const TBmpRGBA *a, const TBmpRGBA *b,
-                               size_t n) {
+static uint32_t count_equal_px(const TBmpRGBA *a, const TBmpRGBA *b, size_t n) {
     uint32_t eq = 0;
     for (size_t i = 0; i < n; i++) {
         if (a[i].r == b[i].r && a[i].g == b[i].g && a[i].b == b[i].b &&
@@ -46,9 +45,9 @@ void test_fuzzing(void) {
         const char *list_path = "/tmp/tbmp_picsum_list.json";
         const char *img_path = "/tmp/tbmp_picsum_seed.jpg";
 
-        int rc_list = system(
-            "curl -fsSL 'https://picsum.photos/v2/list?page=1&limit=8' "
-            "-o /tmp/tbmp_picsum_list.json");
+        int rc_list =
+            system("curl -fsSL 'https://picsum.photos/v2/list?page=1&limit=8' "
+                   "-o /tmp/tbmp_picsum_list.json");
         CHECK_EQ(rc_list, 0);
         CHECK(file_exists_and_nonempty(list_path));
 
@@ -71,9 +70,8 @@ void test_fuzzing(void) {
         pal.entries[5] = (TBmpRGBA){255, 255, 0, 255};
 
         TBmpEncoding modes[] = {
-            TBMP_ENC_RAW,          TBMP_ENC_ZERO_RANGE, TBMP_ENC_RLE,
-            TBMP_ENC_SPAN,         TBMP_ENC_SPARSE_PIXEL,
-            TBMP_ENC_BLOCK_SPARSE,
+            TBMP_ENC_RAW,  TBMP_ENC_ZERO_RANGE,   TBMP_ENC_RLE,
+            TBMP_ENC_SPAN, TBMP_ENC_SPARSE_PIXEL, TBMP_ENC_BLOCK_SPARSE,
         };
         int min_permille[] = {
             1000, /* raw */

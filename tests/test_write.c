@@ -183,9 +183,8 @@ void test_writer_roundtrip(void) {
 
         TBmpFrame src = {8, 8, src_px};
         TBmpEncoding modes[] = {
-            TBMP_ENC_RAW,          TBMP_ENC_ZERO_RANGE, TBMP_ENC_RLE,
-            TBMP_ENC_SPAN,         TBMP_ENC_SPARSE_PIXEL,
-            TBMP_ENC_BLOCK_SPARSE,
+            TBMP_ENC_RAW,  TBMP_ENC_ZERO_RANGE,   TBMP_ENC_RLE,
+            TBMP_ENC_SPAN, TBMP_ENC_SPARSE_PIXEL, TBMP_ENC_BLOCK_SPARSE,
         };
 
         for (size_t mi = 0; mi < sizeof(modes) / sizeof(modes[0]); mi++) {
@@ -224,12 +223,11 @@ void test_writer_roundtrip(void) {
     /* Auto-palette + dithering helpers */
     {
         TBmpRGBA src_px[16] = {
-            {255, 0, 0, 255},   {220, 20, 20, 255}, {0, 255, 0, 255},
-            {20, 220, 20, 255}, {0, 0, 255, 255},   {20, 20, 220, 255},
-            {255, 255, 0, 255}, {220, 220, 20, 255},
-            {0, 255, 255, 255}, {20, 220, 220, 255},
-            {255, 0, 255, 255}, {220, 20, 220, 255},
-            {64, 64, 64, 255},  {96, 96, 96, 255},   {192, 192, 192, 255},
+            {255, 0, 0, 255},     {220, 20, 20, 255},  {0, 255, 0, 255},
+            {20, 220, 20, 255},   {0, 0, 255, 255},    {20, 20, 220, 255},
+            {255, 255, 0, 255},   {220, 220, 20, 255}, {0, 255, 255, 255},
+            {20, 220, 220, 255},  {255, 0, 255, 255},  {220, 20, 220, 255},
+            {64, 64, 64, 255},    {96, 96, 96, 255},   {192, 192, 192, 255},
             {240, 240, 240, 255},
         };
         TBmpFrame frame = {4, 4, src_px};

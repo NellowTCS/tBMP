@@ -105,8 +105,8 @@ static TBmpPixelFormat parse_format(const char *name, uint8_t *out_depth) {
         TBmpPixelFormat f;
         uint8_t d;
     } map[] = {
-        {"index1", TBMP_FMT_INDEX_1, 1},     {"index2", TBMP_FMT_INDEX_2, 2},
-        {"index4", TBMP_FMT_INDEX_4, 4},     {"index8", TBMP_FMT_INDEX_8, 8},
+        {"index1", TBMP_FMT_INDEX_1, 1},      {"index2", TBMP_FMT_INDEX_2, 2},
+        {"index4", TBMP_FMT_INDEX_4, 4},      {"index8", TBMP_FMT_INDEX_8, 8},
         {"rgba8888", TBMP_FMT_RGBA_8888, 32}, {"rgb888", TBMP_FMT_RGB_888, 24},
         {"rgb565", TBMP_FMT_RGB_565, 16},     {"rgb555", TBMP_FMT_RGB_555, 16},
         {"rgb444", TBMP_FMT_RGB_444, 16},     {"rgb332", TBMP_FMT_RGB_332, 8},
@@ -382,17 +382,18 @@ static void print_general_usage(void) {
         tbmp_ui_printlnf(
             "Input formats (encode): PBM/PGM/PPM P1-P6, PNG, BMP, JPEG, ...");
         tbmp_ui_printlnf("Pixel formats: rgba8888 (default), rgb888, rgb565, "
-                 "rgb555, rgb444, rgb332, index1, index2, index4, "
-                 "index8, custom");
+                         "rgb555, rgb444, rgb332, index1, index2, index4, "
+                         "index8, custom");
         tbmp_ui_printlnf("  (grayscale/bilevel sources default to rgb332)");
         tbmp_ui_printlnf("Encodings: raw (default), rle, zerorange, span, "
-                 "sparse, block-sparse");
+                         "sparse, block-sparse");
         tbmp_ui_printlnf("META_OPTS: --title --author --description --created "
                          "--software --license --tags --dpi --colorspace "
                          "--custom-map --meta-file");
-        tbmp_ui_printlnf("Encode extras: --pick-encoding --auto-palette --dither");
+        tbmp_ui_printlnf(
+            "Encode extras: --pick-encoding --auto-palette --dither");
         tbmp_ui_printlnf("Custom format opts: --bit-depth N --mask-r VAL "
-                 "--mask-g VAL --mask-b VAL [--mask-a VAL]");
+                         "--mask-g VAL --mask-b VAL [--mask-a VAL]");
         tbmp_ui_printlnf(
             "inspect: print header/sections/palette/masks/meta/chunks");
         tbmp_ui_printlnf(
@@ -522,8 +523,9 @@ static int cmd_encode(int argc, char **argv) {
         const char *bit_depth_arg = arg_get(argc, argv, "--bit-depth", NULL);
 
         if (mask_r == NULL || mask_g == NULL || mask_b == NULL) {
-            fprintf(stderr,
-                    "error: custom format requires --mask-r --mask-g --mask-b\n");
+            fprintf(
+                stderr,
+                "error: custom format requires --mask-r --mask-g --mask-b\n");
             tbmp_cli_img_free(pixels, free_with_stb);
             return 1;
         }
@@ -532,8 +534,9 @@ static int cmd_encode(int argc, char **argv) {
             !parse_u32_value(mask_g, &custom_masks.g) ||
             !parse_u32_value(mask_b, &custom_masks.b) ||
             !parse_u32_value(mask_a, &custom_masks.a)) {
-            fprintf(stderr,
-                    "error: invalid custom mask value (use decimal or 0xHEX)\n");
+            fprintf(
+                stderr,
+                "error: invalid custom mask value (use decimal or 0xHEX)\n");
             tbmp_cli_img_free(pixels, free_with_stb);
             return 1;
         }
@@ -558,25 +561,16 @@ static int cmd_encode(int argc, char **argv) {
     memset(&auto_palette, 0, sizeof(auto_palette));
 
     if (opt_auto_palette) {
-        uint32_t max_colors = 0;
+        uint32_t max_colors = 256;
         if (fmt == TBMP_FMT_INDEX_1)
             max_colors = 2;
         else if (fmt == TBMP_FMT_INDEX_2)
             max_colors = 4;
         else if (fmt == TBMP_FMT_INDEX_4)
             max_colors = 16;
-        else if (fmt == TBMP_FMT_INDEX_8)
-            max_colors = 256;
-        else {
-            fprintf(stderr,
-                    "error: --auto-palette requires indexed format "
-                    "(index1/index2/index4/index8)\n");
-            tbmp_cli_img_free(pixels, free_with_stb);
-            return 1;
-        }
 
-        TBmpError pe = tbmp_auto_palette_from_frame(&frame, max_colors,
-                                                    &auto_palette);
+        TBmpError pe =
+            tbmp_auto_palette_from_frame(&frame, max_colors, &auto_palette);
         if (pe != TBMP_OK) {
             fprintf(stderr, "error: auto-palette failed: %s\n",
                     tbmp_error_str(pe));
@@ -588,14 +582,16 @@ static int cmd_encode(int argc, char **argv) {
 
     if (opt_dither) {
         if (params.palette == NULL) {
-            fprintf(stderr,
-                    "error: --dither requires a palette (use --auto-palette)\n");
+            fprintf(
+                stderr,
+                "error: --dither requires a palette (use --auto-palette)\n");
             tbmp_cli_img_free(pixels, free_with_stb);
             return 1;
         }
         TBmpError de = tbmp_dither_to_palette(&frame, params.palette);
         if (de != TBMP_OK) {
-            fprintf(stderr, "error: dithering failed: %s\n", tbmp_error_str(de));
+            fprintf(stderr, "error: dithering failed: %s\n",
+                    tbmp_error_str(de));
             tbmp_cli_img_free(pixels, free_with_stb);
             return 1;
         }
@@ -967,9 +963,8 @@ static int cmd_export_png(int argc, char **argv) {
     tbmp_ui_step_end_ok();
 
     tbmp_ui_step_begin("write PNG file");
-    int rc =
-        tbmp_cli_write_png_rgba(out_path, frame.width, frame.height,
-                                (const uint8_t *)frame.pixels);
+    int rc = tbmp_cli_write_png_rgba(out_path, frame.width, frame.height,
+                                     (const uint8_t *)frame.pixels);
     if (rc != 0) {
         tbmp_ui_step_end_fail();
         free(pixels);

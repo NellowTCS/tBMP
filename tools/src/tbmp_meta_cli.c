@@ -162,12 +162,11 @@ static int validate_custom_map_blob(const uint8_t *buf, size_t len) {
 
 static int is_meta_flag(const char *arg) {
     return strcmp(arg, "--title") == 0 || strcmp(arg, "--author") == 0 ||
-           strcmp(arg, "--description") == 0 ||
-           strcmp(arg, "--created") == 0 || strcmp(arg, "--software") == 0 ||
-           strcmp(arg, "--license") == 0 || strcmp(arg, "--tags") == 0 ||
-           strcmp(arg, "--dpi") == 0 || strcmp(arg, "--colorspace") == 0 ||
-           strcmp(arg, "--custom-map") == 0 ||
-           strcmp(arg, "--meta-file") == 0;
+           strcmp(arg, "--description") == 0 || strcmp(arg, "--created") == 0 ||
+           strcmp(arg, "--software") == 0 || strcmp(arg, "--license") == 0 ||
+           strcmp(arg, "--tags") == 0 || strcmp(arg, "--dpi") == 0 ||
+           strcmp(arg, "--colorspace") == 0 ||
+           strcmp(arg, "--custom-map") == 0 || strcmp(arg, "--meta-file") == 0;
 }
 
 int tbmp_cli_parse_encode_meta_flags(int argc, char **argv, TBmpMeta *meta,

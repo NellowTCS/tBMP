@@ -1,0 +1,260 @@
+#include "tbmp_types.h"
+#include "tbmp_decode.h"
+#include "tbmp_meta.h"
+#include "tbmp_msgpack.h"
+#include "tbmp_pixel.h"
+#include "tbmp_reader.h"
+#include "tbmp_rotate.h"
+#include "tbmp_write.h"
+
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+static TBmpImage g_image = {0};
+static TBmpFrame g_frame = {0};
+static uint8_t *g_inputBuf = NULL;
+static uint8_t *g_pixelBuf = NULL;
+static int g_errorCode = 0;
+static int g_width = 0;
+static int g_height = 0;
+
+void tbmp_reset(void) {
+    if (g_inputBuf) {
+        free(g_inputBuf);
+        g_inputBuf = NULL;
+    }
+    if (g_pixelBuf) {
+        free(g_pixelBuf);
+        g_pixelBuf = NULL;
+    }
+    g_errorCode = 0;
+    g_width = g_height = 0;
+    // Fully reset image state, including palette and masks
+    memset(&g_image, 0, sizeof(g_image));
+    memset(&g_image.palette, 0, sizeof(g_image.palette));
+    memset(&g_image.masks, 0, sizeof(g_image.masks));
+    g_image.has_palette = 0;
+    g_image.has_masks = 0;
+    g_image.extra = NULL;
+    g_image.extra_len = 0;
+    g_image.meta = NULL;
+    g_image.meta_len = 0;
+    g_frame.width = g_frame.height = 0;
+    g_frame.pixels = NULL;
+}
+
+int tbmp_load(uint8_t *data, int len) {
+    tbmp_reset();
+
+    g_inputBuf = (uint8_t *)malloc(len);
+    memcpy(g_inputBuf, data, len);
+
+    g_errorCode = tbmp_open(g_inputBuf, len, &g_image);
+    if (g_errorCode != 0)
+        return g_errorCode;
+
+    uint32_t w = g_image.head.width;
+    uint32_t h = g_image.head.height;
+    uint32_t pxLen = w * h * 4;
+
+    g_pixelBuf = (uint8_t *)malloc(pxLen);
+    g_frame.width = w;
+    g_frame.height = h;
+    g_frame.pixels = (TBmpRGBA *)g_pixelBuf;
+
+    g_errorCode = tbmp_decode(&g_image, &g_frame);
+
+    if (g_errorCode == 0) {
+        g_width = w;
+        g_height = h;
+    }
+    return g_errorCode;
+}
+
+int tbmp_width(void) {
+    return g_width;
+}
+int tbmp_height(void) {
+    return g_height;
+}
+int tbmp_pixel_format(void) {
+    return g_image.head.pixel_format;
+}
+int tbmp_encoding(void) {
+    return g_image.head.encoding;
+}
+int tbmp_error(void) {
+    return g_errorCode;
+}
+int tbmp_has_palette(void) {
+    return g_image.has_palette;
+}
+int tbmp_has_masks(void) {
+    return g_image.has_masks;
+}
+int tbmp_has_extra(void) {
+    return g_image.extra && g_image.extra_len;
+}
+int tbmp_has_meta(void) {
+    return g_image.meta && g_image.meta_len;
+}
+
+int tbmp_pixels_len(void) {
+    return g_width * g_height * 4;
+}
+
+uint8_t *tbmp_pixels_ptr(void) {
+    return g_pixelBuf;
+}
+
+int tbmp_pixels_copy(uint8_t *addr, int maxLen) {
+    uint32_t pxLen = g_width * g_height * 4;
+    int copyLen = (int)pxLen < maxLen ? pxLen : maxLen;
+    if (g_pixelBuf && copyLen > 0) {
+        memcpy(addr, g_pixelBuf, copyLen);
+    }
+    return copyLen;
+}
+
+static char g_jsonBuf[65536];
+
+int tbmp_image_info_json(char *addr, int maxLen) {
+    if (!g_width)
+        return 0;
+    int n = snprintf(
+        g_jsonBuf, sizeof(g_jsonBuf),
+        "{\"width\":%u,\"height\":%u,\"pixel_format\":%u,\"encoding\":%u}",
+        g_width, g_height, g_image.head.pixel_format, g_image.head.encoding);
+    if (n > 0 && n < maxLen) {
+        memcpy(addr, g_jsonBuf, n + 1);
+    }
+    return n;
+}
+
+int tbmp_meta_json(char *addr, int maxLen) {
+    if (!g_image.meta || !g_image.meta_len)
+        return 0;
+    TBmpMeta meta;
+    if (tbmp_meta_parse(g_image.meta, g_image.meta_len, &meta) != 0)
+        return 0;
+    int pos = 0;
+    addr[pos++] = '{';
+    if (pos >= maxLen)
+        return 0;
+#define ADD_STR(k, v)                                                          \
+    do {                                                                       \
+        if ((v)[0] && pos < maxLen - 20) {                                     \
+            if (pos > 1)                                                       \
+                addr[pos++] = ',';                                             \
+            pos += snprintf(addr + pos, maxLen - pos, "\"%s\":\"%s\"", k, v);  \
+        }                                                                      \
+    } while (0)
+#define ADD_NUM(k, v)                                                          \
+    do {                                                                       \
+        if ((v) && pos < maxLen - 15) {                                        \
+            if (pos > 1)                                                       \
+                addr[pos++] = ',';                                             \
+            pos += snprintf(addr + pos, maxLen - pos, "\"%s\":%u", k, (v));    \
+        }                                                                      \
+    } while (0)
+    ADD_STR("title", meta.title);
+    ADD_STR("author", meta.author);
+    ADD_STR("description", meta.description);
+    ADD_STR("created", meta.created);
+    ADD_STR("software", meta.software);
+    ADD_STR("license", meta.license);
+    if (meta.has_dpi)
+        ADD_NUM("dpi", meta.dpi);
+    ADD_STR("colorspace", meta.colorspace);
+    if (meta.tag_count > 0 && pos < maxLen - 20) {
+        if (pos > 1)
+            addr[pos++] = ',';
+        pos += snprintf(addr + pos, maxLen - pos, "\"tags\":[");
+        for (uint32_t i = 0; i < meta.tag_count && pos < maxLen - 10; i++) {
+            if (i)
+                addr[pos++] = ',';
+            pos += snprintf(addr + pos, maxLen - pos, "\"%s\"", meta.tags[i]);
+        }
+        pos += snprintf(addr + pos, maxLen - pos, "]");
+    }
+    if (pos < maxLen) {
+        addr[pos++] = '}';
+    }
+    addr[pos] = 0;
+    return pos;
+}
+
+int tbmp_palette_json(char *addr, int maxLen) {
+    if (!g_image.has_palette || !g_image.palette.count)
+        return 0;
+    memset(addr, 0, maxLen); // Clear output buffer to prevent stacking
+    TBmpPalette *p = &g_image.palette;
+    char *out = addr;
+    int pos = 0;
+    pos += snprintf(out + pos, maxLen - pos, "[");
+    int truncated = 0;
+    for (uint32_t i = 0; i < p->count; i++) {
+        if (pos >= maxLen - 30) {
+            truncated = 1;
+            break;
+        }
+        if (i > 0)
+            pos += snprintf(out + pos, maxLen - pos, ",");
+        pos += snprintf(
+            out + pos, maxLen - pos, "{\"r\":%u,\"g\":%u,\"b\":%u,\"a\":%u}",
+            p->entries[i].r, p->entries[i].g, p->entries[i].b, p->entries[i].a);
+    }
+    if (pos < maxLen)
+        out[pos] = ']';
+    // Always null-terminate
+    if (pos + 1 < maxLen)
+        out[pos + 1] = 0;
+    else
+        out[maxLen - 1] = 0;
+    return pos + 1;
+}
+
+int tbmp_masks_json(char *addr, int maxLen) {
+    if (!g_image.has_masks)
+        return 0;
+    TBmpMasks *m = &g_image.masks;
+    int n = snprintf(g_jsonBuf, sizeof(g_jsonBuf),
+                     "{\"r\":%u,\"g\":%u,\"b\":%u,\"a\":%u}", m->r, m->g, m->b,
+                     m->a);
+    if (n > 0 && n < maxLen) {
+        memcpy(addr, g_jsonBuf, n + 1);
+    }
+    return n;
+}
+
+int tbmp_extra_json(char *addr, int maxLen) {
+    if (!g_image.extra || !g_image.extra_len)
+        return 0;
+    int n = g_image.extra_len < maxLen - 1 ? g_image.extra_len : maxLen - 1;
+    memcpy(addr, g_image.extra, n);
+    addr[n] = 0;
+    return n;
+}
+
+static const char *g_errorStrings[] = {"OK",
+                                       "INVALID_SIGNATURE",
+                                       "INVALID_VERSION",
+                                       "INVALID_HEADER",
+                                       "INVALID_PIXEL_FORMAT",
+                                       "INVALID_ENCODING",
+                                       "DECODE_ERROR",
+                                       "MEMORY_ERROR",
+                                       "UNSUPPORTED_FEATURE"};
+
+int tbmp_error_string(int err, char *addr, int maxLen) {
+    const char *msg =
+        (err >= 0 && err < 9) ? g_errorStrings[err] : "UNKNOWN_ERROR";
+    int n = strlen(msg);
+    if (n < maxLen) {
+        memcpy(addr, msg, n + 1);
+    }
+    return n;
+}

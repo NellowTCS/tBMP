@@ -109,7 +109,7 @@ params.encoding = TBMP_ENC_RLE;
 ## Encoding Reference
 
 | Encoding     | Decode Speed | Compression | Best For                |
-|--------------|--------------|-------------|-------------------------|
+| ------------ | ------------ | ----------- | ----------------------- |
 | RAW          | Fastest      | None        | Uncompressed source     |
 | Zero-Range   | Fast         | Medium      | Black/transparent areas |
 | RLE          | Fast         | Medium-Low  | Repeated patterns       |

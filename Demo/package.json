@@ -1,0 +1,31 @@
+{
+  "name": "tbmp-demo",
+  "version": "0.1.0",
+  "description": "Demo for tBMP library",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:wasm": "bash ../Scripts/build_wasm.sh",
+    "preview": "vite preview",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write 'src/**/*.{js,ts,jsx,tsx,json,css,md}' '../Docs/**/*.{js,ts,jsx,tsx,json,css,md}'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NellowTCS/tBMP.git"
+  },
+  "author": "NellowTCS",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/NellowTCS/tBMP/issues"
+  },
+  "homepage": "https://github.com/NellowTCS/tBMP#readme",
+  "dependencies": {
+    "vite": "^7.1.3"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "prettier": "^3.8.3"
+  }
+}

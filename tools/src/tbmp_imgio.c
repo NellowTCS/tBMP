@@ -34,7 +34,8 @@ static int pnm_skip(FILE *f) {
             continue;
         }
         if (c == '#') {
-            while (c != EOF && c != '\n') c = fgetc(f);
+            while (c != EOF && c != '\n')
+                c = fgetc(f);
             c = fgetc(f);
             continue;
         }
@@ -45,23 +46,28 @@ static int pnm_skip(FILE *f) {
 }
 
 static int pnm_uint(FILE *f, int *out) {
-    if (!pnm_skip(f)) return 0;
+    if (!pnm_skip(f))
+        return 0;
     int c = fgetc(f);
-    if (c == EOF || !isdigit((unsigned char)c)) return 0;
+    if (c == EOF || !isdigit((unsigned char)c))
+        return 0;
     long v = 0;
     while (c != EOF && isdigit((unsigned char)c)) {
         v = v * 10 + (c - '0');
-        if (v > 1 << 20) return 0;
+        if (v > 1 << 20)
+            return 0;
         c = fgetc(f);
     }
-    if (c != EOF) ungetc(c, f);
+    if (c != EOF)
+        ungetc(c, f);
     *out = (int)v;
     return 1;
 }
 
 static TBmpRGBA *pnm_load(const char *path, int *w, int *h, int *ch) {
     FILE *f = fopen(path, "rb");
-    if (!f) return NULL;
+    if (!f)
+        return NULL;
 
     char m0 = 0, m1 = 0;
     if (fread(&m0, 1, 1, f) != 1 || fread(&m1, 1, 1, f) != 1) {
@@ -99,7 +105,8 @@ static TBmpRGBA *pnm_load(const char *path, int *w, int *h, int *ch) {
     int c = fgetc(f);
     if (c == '\r') {
         int d = fgetc(f);
-        if (d != '\n') ungetc(d, f);
+        if (d != '\n')
+            ungetc(d, f);
     }
 
     TBmpRGBA *pix = (TBmpRGBA *)malloc((size_t)W * H * sizeof(TBmpRGBA));
@@ -166,7 +173,8 @@ static TBmpRGBA *pnm_load(const char *path, int *w, int *h, int *ch) {
                 uint8_t v = (uint8_t)((v0 * 255) / maxv);
                 r = g = b = v;
             } else {
-                if (!pnm_uint(f, &v0) || !pnm_uint(f, &v1) || !pnm_uint(f, &v2)) {
+                if (!pnm_uint(f, &v0) || !pnm_uint(f, &v1) ||
+                    !pnm_uint(f, &v2)) {
                     free(pix);
                     fclose(f);
                     return NULL;
@@ -239,7 +247,8 @@ TBmpRGBA *tbmp_cli_img_load(const char *path, int *out_w, int *out_h,
 }
 
 void tbmp_cli_img_free(TBmpRGBA *pixels, int uses_stb) {
-    if (!pixels) return;
+    if (!pixels)
+        return;
     if (uses_stb) {
         stbi_image_free((void *)pixels);
     } else {
