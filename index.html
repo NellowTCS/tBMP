@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>tBMP Demo</title>
-  <script type="module" crossorigin src="./assets/index-DDH02_pn.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-C6M1DGj1.css">
+  <script type="module" crossorigin src="./assets/index-CarksO-e.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-eZr1rLXw.css">
 </head>
 
 <body data-theme="light">
@@ -28,13 +28,17 @@
   <main class="main">
 
     <aside class="sidebar">
-
       <div class="sidebar-section">
         <p class="section-label">Load file</p>
         <label class="drop" id="dropZone">
           <input type="file" id="fileInput" accept=".tbmp,.bin">
           <span>Drop .tbmp or click to browse</span>
         </label>
+        <div class="example-loader">
+          <label for="exampleSelect" class="example-label">Or load an example</label>
+          <select id="exampleSelect" class="example-select"></select>
+          <button id="loadExampleBtn" class="example-btn">Load example…</button>
+        </div>
         <p id="statusText" class="empty-state">No file loaded</p>
       </div>
 
