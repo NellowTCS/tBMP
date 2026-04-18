@@ -1,9 +1,5 @@
 # TODO
 
-## Image Viewer (part of demo)
-
-- [X] Show custom metadata keys
-
 ## Documentation
 
 - [ ] Add screenshots/gifs of the web demo?
