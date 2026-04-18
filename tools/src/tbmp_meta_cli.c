@@ -345,8 +345,49 @@ uint32_t tbmp_cli_print_meta(const TBmpImage *img) {
 
     tbmp_ui_box_kv("custom", "%u item(s)", meta.custom_count);
     for (uint32_t i = 0; i < meta.custom_count; i++) {
-        tbmp_ui_box_linef("custom[%u]: msgpack map (%u bytes)", i,
-                          meta.custom[i].len);
+        TBmpMpReader r;
+        tbmp_mp_reader_init(&r, meta.custom[i].data, meta.custom[i].len);
+        TBmpMpTag tag = tbmp_mp_read_tag(&r);
+        if (tbmp_mp_reader_error(&r) || tag.type != TBMP_MP_MAP) {
+            tbmp_ui_box_linef("custom[%u]: [invalid map]", i);
+            continue;
+        }
+        tbmp_ui_box_linef("custom[%u]:", i);
+        for (uint32_t j = 0; j < tag.v.len; j++) {
+            TBmpMpTag keyTag = tbmp_mp_read_tag(&r);
+            if (tbmp_mp_reader_error(&r) || keyTag.type != TBMP_MP_STR) {
+                tbmp_ui_box_line("  [invalid key]");
+                break;
+            }
+            char key[64] = {0};
+            uint32_t klen = keyTag.v.len < 63 ? keyTag.v.len : 63;
+            tbmp_mp_read_bytes(&r, key, klen);
+            key[klen] = 0;
+            tbmp_mp_done_str(&r);
+            TBmpMpTag valTag = tbmp_mp_read_tag(&r);
+            if (tbmp_mp_reader_error(&r)) {
+                tbmp_ui_box_line("  [invalid value]");
+                break;
+            }
+            char valstr[128];
+            if (valTag.type == TBMP_MP_STR) {
+                char sval[128] = {0};
+                uint32_t slen = valTag.v.len < 127 ? valTag.v.len : 127;
+                tbmp_mp_read_bytes(&r, sval, slen);
+                sval[slen] = 0;
+                tbmp_mp_done_str(&r);
+                snprintf(valstr, sizeof(valstr), "%s", sval);
+            } else if (valTag.type == TBMP_MP_UINT) {
+                snprintf(valstr, sizeof(valstr), "%llu", (unsigned long long)valTag.v.u);
+            } else if (valTag.type == TBMP_MP_INT) {
+                snprintf(valstr, sizeof(valstr), "%lld", (long long)valTag.v.i);
+            } else if (valTag.type == TBMP_MP_BOOL) {
+                snprintf(valstr, sizeof(valstr), "%s", valTag.v.b ? "true" : "false");
+            } else {
+                snprintf(valstr, sizeof(valstr), "[unsupported type]");
+            }
+            tbmp_ui_box_linef("    %s: %s", key, valstr);
+        }
     }
 
     return 7U + (meta.has_dpi ? 1U : 0U) +

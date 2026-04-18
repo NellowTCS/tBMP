@@ -46,16 +46,29 @@ export function renderKeyValueTable(elId, obj) {
   const rows = Object.entries(obj)
     .map(([k, v]) => {
       const label = k.replace(/_/g, " ");
-      const val =
-        v === null
-          ? "<em>null</em>"
-          : Array.isArray(v)
-            ? v.length === 0
-              ? "<em>empty</em>"
-              : escapeHtml(String(v))
-            : typeof v === "object"
-              ? `<pre>${escapeHtml(JSON.stringify(v, null, 2))}</pre>`
-              : escapeHtml(String(v));
+      let val;
+      if (v === null) {
+        val = "<em>null</em>";
+      } else if (Array.isArray(v)) {
+        if (v.length === 0) {
+          val = "<em>empty</em>";
+        } else if (typeof v[0] === "object" && v[0] !== null) {
+          // Render array of objects as a small nested table
+          val = v.map((item, idx) => {
+            if (typeof item !== "object" || item === null) return `<div>[${escapeHtml(String(item))}]</div>`;
+            const innerRows = Object.entries(item)
+              .map(([ik, iv]) => `<tr><td>${escapeHtml(ik)}</td><td>${escapeHtml(String(iv))}</td></tr>`)
+              .join("");
+            return `<table class=\"info-table info-table-nested\" style=\"margin:0.25em 0;max-width:100%;font-size:0.95em;\"><caption style=\"caption-side:bottom;text-align:left;font-size:0.9em;opacity:0.7;\">custom[${idx}]</caption>${innerRows}</table>`;
+          }).join("");
+        } else {
+          val = escapeHtml(String(v));
+        }
+      } else if (typeof v === "object") {
+        val = `<pre>${escapeHtml(JSON.stringify(v, null, 2))}</pre>`;
+      } else {
+        val = escapeHtml(String(v));
+      }
       return `<tr><td>${escapeHtml(label)}</td><td>${val}</td></tr>`;
     })
     .join("");

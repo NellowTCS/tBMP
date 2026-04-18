@@ -2,7 +2,7 @@
 
 ## Image Viewer (part of demo)
 
-- [ ] Show custom metadata keys
+- [X] Show custom metadata keys
 
 ## Documentation
 

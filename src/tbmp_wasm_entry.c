@@ -134,6 +134,51 @@ int tbmp_image_info_json(char *addr, int maxLen) {
     return n;
 }
 
+// Helper: Convert a MessagePack map (with string keys, simple values) to JSON
+static int msgpack_map_to_json(const uint8_t *data, uint32_t len, char *out, int maxLen) {
+    TBmpMpReader r;
+    tbmp_mp_reader_init(&r, data, len);
+    TBmpMpTag tag = tbmp_mp_read_tag(&r);
+    if (tbmp_mp_reader_error(&r) || tag.type != TBMP_MP_MAP)
+        return snprintf(out, maxLen, "null");
+    int pos = 0;
+    pos += snprintf(out + pos, maxLen - pos, "{");
+    for (uint32_t i = 0; i < tag.v.len && pos < maxLen - 10; i++) {
+        if (i) pos += snprintf(out + pos, maxLen - pos, ",");
+        // Key
+        TBmpMpTag keyTag = tbmp_mp_read_tag(&r);
+        if (tbmp_mp_reader_error(&r) || keyTag.type != TBMP_MP_STR)
+            return snprintf(out, maxLen, "null");
+        char key[64] = {0};
+        uint32_t klen = keyTag.v.len < 63 ? keyTag.v.len : 63;
+        tbmp_mp_read_bytes(&r, key, klen);
+        key[klen] = 0;
+        tbmp_mp_done_str(&r);
+        // Value
+        TBmpMpTag valTag = tbmp_mp_read_tag(&r);
+        if (tbmp_mp_reader_error(&r))
+            return snprintf(out, maxLen, "null");
+        if (valTag.type == TBMP_MP_STR) {
+            char sval[128] = {0};
+            uint32_t slen = valTag.v.len < 127 ? valTag.v.len : 127;
+            tbmp_mp_read_bytes(&r, sval, slen);
+            sval[slen] = 0;
+            tbmp_mp_done_str(&r);
+            pos += snprintf(out + pos, maxLen - pos, "\"%s\":\"%s\"", key, sval);
+        } else if (valTag.type == TBMP_MP_UINT) {
+            pos += snprintf(out + pos, maxLen - pos, "\"%s\":%llu", key, (unsigned long long)valTag.v.u);
+        } else if (valTag.type == TBMP_MP_INT) {
+            pos += snprintf(out + pos, maxLen - pos, "\"%s\":%lld", key, (long long)valTag.v.i);
+        } else if (valTag.type == TBMP_MP_BOOL) {
+            pos += snprintf(out + pos, maxLen - pos, "\"%s\":%s", key, valTag.v.b ? "true" : "false");
+        } else {
+            pos += snprintf(out + pos, maxLen - pos, "\"%s\":null", key);
+        }
+    }
+    pos += snprintf(out + pos, maxLen - pos, "}");
+    return pos;
+}
+
 int tbmp_meta_json(char *addr, int maxLen) {
     if (!g_image.meta || !g_image.meta_len)
         return 0;
@@ -180,6 +225,25 @@ int tbmp_meta_json(char *addr, int maxLen) {
         }
         pos += snprintf(addr + pos, maxLen - pos, "]");
     }
+    // Add custom metadata as a JSON array
+    if (meta.custom_count > 0 && pos < maxLen - 20) {
+        if (pos > 1)
+            addr[pos++] = ',';
+        pos += snprintf(addr + pos, maxLen - pos, "\"custom\":[");
+        for (uint32_t i = 0; i < meta.custom_count && pos < maxLen - 10; i++) {
+            if (i)
+                addr[pos++] = ',';
+            char custom_json[256];
+            int n = msgpack_map_to_json(meta.custom[i].data, meta.custom[i].len, custom_json, sizeof(custom_json));
+            if (n > 0 && n < (int)sizeof(custom_json)) {
+                pos += snprintf(addr + pos, maxLen - pos, "%s", custom_json);
+            } else {
+                pos += snprintf(addr + pos, maxLen - pos, "null");
+            }
+        }
+        pos += snprintf(addr + pos, maxLen - pos, "]");
+    }
+    
     if (pos < maxLen) {
         addr[pos++] = '}';
     }

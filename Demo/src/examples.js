@@ -18,6 +18,7 @@ export async function listExampleFiles() {
     "picsum_sparse_mode_sparse.tbmp",
     "picsum_zerorange_mode_zerorange.tbmp",
     "sample_640x426.tbmp",
+    "custom_meta.tbmp",
   ];
 }
 
