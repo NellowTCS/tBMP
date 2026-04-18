@@ -79,7 +79,7 @@ That's it. No external libs, no configure scripts.
 ## tBMP Logo
 
 <p align="center">
-    <img src="/api/assets/tBMP_Logo.png" alt="tBMP Logo" width="200"/>
+    <img src="/tBMP/examples/tBMP_Logo.png" alt="tBMP Logo" width="200"/>
 </p>
 
 The tBMP logo is available as both a PNG and a tBMP file. Use it for badges, splash screens, or to show off your tBMP support!
@@ -87,7 +87,7 @@ The tBMP logo is available as both a PNG and a tBMP file. Use it for badges, spl
 **Download:**
 
 - [tBMP Logo (.tbmp)](/tBMP/examples/tBMP_Logo.tbmp)
-- [tBMP Logo (PNG)](/tBMP/examples/tbmp_logo.png)
+- [tBMP Logo (PNG)](/tBMP/examples/tBMP_Logo.png)
 
 You’ll also see the logo on the [web demo](../../Demo/index.html) and in the README. Feel free to use it in your own projects!
 
