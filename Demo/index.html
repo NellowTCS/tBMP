@@ -27,13 +27,17 @@
   <main class="main">
 
     <aside class="sidebar">
-
       <div class="sidebar-section">
         <p class="section-label">Load file</p>
         <label class="drop" id="dropZone">
           <input type="file" id="fileInput" accept=".tbmp,.bin">
           <span>Drop .tbmp or click to browse</span>
         </label>
+        <div class="example-loader">
+          <label for="exampleSelect" class="example-label">Or load an example</label>
+          <select id="exampleSelect" class="example-select"></select>
+          <button id="loadExampleBtn" class="example-btn">Load example…</button>
+        </div>
         <p id="statusText" class="empty-state">No file loaded</p>
       </div>
 

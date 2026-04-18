@@ -1,106 +1,20 @@
-import initWasm from "../public/wasm/tbmp_wasm.js";
+import {
+  createInitialAppState,
+  setAppState,
+  resetAppStateForFile,
+} from "./state.js";
+import { q, qa } from "./dom.js";
+import { startWasm, readJson } from "./wasm-helpers.js";
+import { renderAll, renderPanelCollapseStates } from "./render.js";
+import { drawCanvas, applyTransform, resetView, syncZoomUI } from "./canvas.js";
+import { listExampleFiles, fetchExampleFile } from "./examples.js";
 
 let appState = createInitialAppState();
+const view = { offsetX: 0, offsetY: 0, scale: 1 };
 
-function createInitialAppState() {
-  return {
-    // File/image data
-    fileName: "",
-    rgba: null,
-    width: 0,
-    height: 0,
-
-    // Display state
-    showGrid: true,
-    showAlpha: false,
-    showChecker: true,
-
-    // WASM-derived data, populated once per file load
-    pixelFormat: 0,
-    encoding: 0,
-    meta: null,
-    palette: null,
-    masks: null,
-
-    // UI state
-    collapsedPanels: new Set(),
-  };
+function updateAppState(partial) {
+  appState = setAppState(partial, appState);
 }
-
-function setAppState(partial) {
-  // Shallow merge, but replace collapsedPanels if present
-  if (partial.collapsedPanels) {
-    appState = {
-      ...appState,
-      ...partial,
-      collapsedPanels: new Set(partial.collapsedPanels),
-    };
-  } else {
-    appState = { ...appState, ...partial };
-  }
-}
-
-function resetAppStateForFile(fileName) {
-  appState = createInitialAppState();
-  appState.fileName = fileName;
-  // Panels start collapsed until data is loaded
-  appState.collapsedPanels.add("paletteInfo");
-  appState.collapsedPanels.add("maskInfo");
-}
-
-const view = {
-  offsetX: 0,
-  offsetY: 0,
-  scale: 1,
-};
-
-let wasmModule = null;
-
-function q(sel) {
-  return document.querySelector(sel);
-}
-function qa(sel) {
-  return [...document.querySelectorAll(sel)];
-}
-
-function escapeHtml(s) {
-  if (!s) return "";
-  return String(s)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
-
-// WASM helpers
-
-async function startWasm() {
-  if (wasmModule) return wasmModule;
-  wasmModule = await initWasm();
-  await new Promise((resolve) => {
-    if (wasmModule.calledRun) resolve();
-    else wasmModule.onRuntimeInitialized = resolve;
-  });
-  return wasmModule;
-}
-
-function readJson(mod, writeFn) {
-  if (!mod?.HEAPU8) return null;
-  const buf = mod._malloc(8192);
-  const len = writeFn(buf, 8192);
-  if (len <= 0) {
-    mod._free(buf);
-    return null;
-  }
-  const json = mod.UTF8ToString(buf);
-  mod._free(buf);
-  try {
-    return JSON.parse(json);
-  } catch {
-    return null;
-  }
-}
-
-// Data loading (pure side-effects on appState)
 
 function loadDerivedData(mod) {
   const pixelFormat = mod.ccall("tbmp_pixel_format", "number", []);
@@ -115,237 +29,23 @@ function loadDerivedData(mod) {
   const masks = readJson(mod, (buf, len) =>
     mod.ccall("tbmp_masks_json", "number", ["number", "number"], [buf, len]),
   );
-
   // Auto-collapse panels that have no data
   const hasPalette = palette.length > 0;
   const hasMasks = masks && masks.r + masks.g + masks.b + masks.a > 0;
   const collapsedPanels = new Set(appState.collapsedPanels);
   if (!hasPalette) collapsedPanels.add("paletteInfo");
   if (!masks || !hasMasks) collapsedPanels.add("maskInfo");
-
-  setAppState({ pixelFormat, encoding, meta, palette, masks, collapsedPanels });
-}
-
-// Renderers (pure: read appState, write DOM)
-
-const PF_NAMES = [
-  "INDEX1",
-  "INDEX2",
-  "INDEX4",
-  "INDEX8",
-  "RGB565",
-  "RGB555",
-  "RGB444",
-  "RGB332",
-  "RGB888",
-  "RGBA8888",
-  "CUSTOM",
-];
-const ENC_NAMES = ["RAW", "ZERORANGE", "RLE", "SPAN", "SPARSE", "BLOCK-SPARSE"];
-
-function renderFileInfo() {
-  const { fileName, width, height, rgba, pixelFormat, encoding } = appState;
-  if (!fileName) {
-    q("#fileInfo").innerHTML = `<p class="empty-state">—</p>`;
-    return;
-  }
-  q("#fileInfo").innerHTML = `<table class="info-table">
-        <tr><td>File</td><td>${escapeHtml(fileName)}</td></tr>
-        <tr><td>Dimensions</td><td>${width} × ${height}</td></tr>
-        <tr><td>Format</td><td>${PF_NAMES[pixelFormat] ?? "?"}</td></tr>
-        <tr><td>Encoding</td><td>${ENC_NAMES[encoding] ?? "?"}</td></tr>
-        <tr><td>Size</td><td>${rgba?.length ?? 0} bytes</td></tr>
-    </table>`;
-}
-
-function renderKeyValueTable(elId, obj) {
-  const el = q(`#${elId}`);
-  if (!obj || typeof obj !== "object") {
-    el.innerHTML = "<p class='empty-state'>No data.</p>";
-    return;
-  }
-  const rows = Object.entries(obj)
-    .map(([k, v]) => {
-      const label = k.replace(/_/g, " ");
-      const val =
-        v === null
-          ? "<em>null</em>"
-          : Array.isArray(v)
-            ? v.length === 0
-              ? "<em>empty</em>"
-              : escapeHtml(String(v))
-            : typeof v === "object"
-              ? `<pre>${escapeHtml(JSON.stringify(v, null, 2))}</pre>`
-              : escapeHtml(String(v));
-      return `<tr><td>${escapeHtml(label)}</td><td>${val}</td></tr>`;
-    })
-    .join("");
-  el.innerHTML = rows
-    ? `<table class="info-table">${rows}</table>`
-    : "<p class='empty-state'>No data.</p>";
-}
-
-function renderPalette() {
-  const el = q("#paletteInfo");
-  const countEl = q("#paletteCount");
-  const palette = Array.isArray(appState.palette) ? appState.palette : [];
-
-  if (!palette.length) {
-    el.innerHTML = "<p class='empty-state'>No palette</p>";
-    if (countEl) countEl.textContent = "";
-    return;
-  }
-
-  // Build swatches, batch into a fragment-friendly string
-  const swatches = palette
-    .slice(0, 256)
-    .map(
-      (e) =>
-        `<div class="palette-swatch" title="rgba(${e.r},${e.g},${e.b},${e.a})" style="background:rgba(${e.r},${e.g},${e.b},${e.a / 255})"></div>`,
-    )
-    .join("");
-
-  el.innerHTML = `<div class="palette-grid">${swatches}</div>`;
-  if (countEl) countEl.textContent = `${palette.length} colors`;
-}
-
-function renderMasks() {
-  const el = q("#maskInfo");
-  const masks = appState.masks;
-
-  if (!masks || typeof masks !== "object") {
-    el.innerHTML = "<p class='empty-state'>No masks</p>";
-    return;
-  }
-
-  const channel = (name, color, bits) => {
-    const cells = Array.from(
-      { length: 16 },
-      (_, i) =>
-        `<span style="width:12px;height:12px;display:inline-block;background:${i < bits ? color : "var(--color-border)"};border:1px solid var(--color-border-strong)"></span>`,
-    ).join("");
-    return `<div style="flex:1">
-            <div style="font-size:0.75rem;font-weight:600;color:${color};margin-bottom:4px">${name}</div>
-            <div style="font-size:0.625rem;color:var(--color-text-muted);margin-bottom:4px">${bits} bits</div>
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px">${cells}</div>
-        </div>`;
-  };
-
-  el.innerHTML = `<div style="display:flex;gap:8px;flex-wrap:wrap">
-        ${channel("Red", "#ef4444", masks.r)}
-        ${channel("Green", "#22c55e", masks.g)}
-        ${channel("Blue", "#3b82f6", masks.b)}
-        ${channel("Alpha", "#a855f7", masks.a)}
-    </div>`;
-}
-
-function renderPanelCollapseStates() {
-  qa(".panel-card").forEach((card) => {
-    const body = card.querySelector(".panel-card-body");
-    if (!body) return;
-    const id = body.id;
-    const collapsed = appState.collapsedPanels.has(id);
-    card.classList.toggle("collapsed", collapsed);
+  updateAppState({
+    pixelFormat,
+    encoding,
+    meta,
+    palette,
+    masks,
+    collapsedPanels,
   });
 }
 
-function renderAll() {
-  renderFileInfo();
-  renderKeyValueTable("metaInfo", appState.meta);
-  renderPalette();
-  renderMasks();
-
-  // After rendering content, expand panels that HAVE data
-  // This supersedes any collapsed preference from before load
-  if (
-    appState.palette &&
-    Array.isArray(appState.palette) &&
-    appState.palette.length > 0
-  ) {
-    appState.collapsedPanels.delete("paletteInfo");
-  }
-  if (
-    appState.masks &&
-    appState.masks.r + appState.masks.g + appState.masks.b + appState.masks.a >
-      0
-  ) {
-    appState.collapsedPanels.delete("maskInfo");
-  }
-
-  renderPanelCollapseStates();
-}
-
-// Canvas drawing
-
-function drawCanvas() {
-  const canvas = q("#viewerCanvas");
-  if (!canvas) return;
-  const { width: w, height: h, rgba, showGrid, showAlpha } = appState;
-  if (!rgba || !w || !h) return;
-
-  if (canvas.width !== w || canvas.height !== h) {
-    canvas.width = w;
-    canvas.height = h;
-  }
-
-  const pixels = new Uint8ClampedArray(rgba);
-  if (showAlpha) {
-    for (let i = 0; i < pixels.length; i += 4) {
-      const a = pixels[i + 3];
-      pixels[i] = a;
-      pixels[i + 1] = a;
-      pixels[i + 2] = a;
-      pixels[i + 3] = 255;
-    }
-  }
-  canvas.getContext("2d").putImageData(new ImageData(pixels, w, h), 0, 0);
-
-  if (showGrid && view.scale >= 4) {
-    const ctx = canvas.getContext("2d");
-    ctx.strokeStyle = "rgba(0,0,0,0.25)";
-    ctx.lineWidth = 0.5 / view.scale;
-    for (let y = 0; y <= h; y++) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(w, y);
-      ctx.stroke();
-    }
-    for (let x = 0; x <= w; x++) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, h);
-      ctx.stroke();
-    }
-  }
-}
-
-// View transforms
-
-function applyTransform() {
-  const canvas = q("#viewerCanvas");
-  if (canvas)
-    canvas.style.transform = `translate(${view.offsetX}px, ${view.offsetY}px) scale(${view.scale})`;
-}
-
-function resetView() {
-  const vp = q("#viewerViewport");
-  const { width: w, height: h } = appState;
-  if (!vp || !w || !h) return;
-  const fit = Math.min(vp.clientWidth / w, vp.clientHeight / h, 1);
-  view.scale = fit;
-  view.offsetX = (vp.clientWidth - w * fit) / 2;
-  view.offsetY = (vp.clientHeight - h * fit) / 2;
-  syncZoomUI();
-  applyTransform();
-}
-
-function syncZoomUI() {
-  q("#zoomDisplay").textContent = Math.round(view.scale * 100) + "%";
-  q("#zoomRange").value = Math.round(Math.max(1, Math.min(32, view.scale * 8)));
-}
-
 // File handling
-
 async function handleFile(file) {
   const mod = await startWasm();
   const HEAP = mod.HEAPU8;
@@ -360,7 +60,7 @@ async function handleFile(file) {
   const data = new Uint8Array(await file.arrayBuffer());
 
   // Reset per-file state
-  resetAppStateForFile(file.name);
+  appState = resetAppStateForFile(file.name);
 
   // Reset UI controls to match state
   q("#alphaToggle").checked = false;
@@ -390,7 +90,7 @@ async function handleFile(file) {
     const errText = mod.UTF8ToString(errBuf);
     mod._free(errBuf);
     alert(`Decode failed: ${errText}`);
-    renderAll();
+    renderAll(appState);
     return;
   }
 
@@ -399,7 +99,7 @@ async function handleFile(file) {
   const pxPtr = mod.ccall("tbmp_pixels_ptr", "number", []);
   const pxLen = mod.ccall("tbmp_pixels_len", "number", []);
   const rgba = HEAP.slice(pxPtr, pxPtr + pxLen);
-  setAppState({ width, height, rgba });
+  appState = setAppState({ width, height, rgba }, appState);
 
   // Pull all derived data into state
   loadDerivedData(mod);
@@ -408,14 +108,49 @@ async function handleFile(file) {
   q("#dims").textContent = `${width} × ${height}`;
   q("#dims").classList.remove("empty-state");
 
-  drawCanvas();
-  resetView();
-  renderAll();
+  drawCanvas(appState, view);
+  resetView(appState, view);
+  renderAll(appState);
 }
 
 // Event binding
-
 function mount() {
+  // Example loader
+  const exampleBtn = q("#loadExampleBtn");
+  const exampleSelect = q("#exampleSelect");
+  if (exampleBtn && exampleSelect) {
+    // Style: put select next to button
+    exampleBtn.style.marginRight = "6px";
+    exampleSelect.style.marginLeft = "0";
+    exampleSelect.style.marginTop = "6px";
+    exampleSelect.style.width = "100%";
+
+    // Populate dropdown
+    listExampleFiles().then((files) => {
+      exampleSelect.innerHTML = files
+        .map((f) => `<option value="${f}">${f}</option>`)
+        .join("");
+    });
+    // Button loads selected file
+    exampleBtn.addEventListener("click", async () => {
+      const filename = exampleSelect.value;
+      if (!filename) return;
+      exampleBtn.disabled = true;
+      exampleBtn.textContent = "Loading…";
+      try {
+        const blob = await fetchExampleFile(filename);
+        const file = new File([blob], filename, {
+          type: blob.type || "application/octet-stream",
+        });
+        await handleFile(file);
+      } catch (e) {
+        alert("Failed to load example: " + e.message);
+      } finally {
+        exampleBtn.disabled = false;
+        exampleBtn.textContent = "Load example…";
+      }
+    });
+  }
   // Theme
   q("#themeToggle")?.addEventListener("click", () => {
     q("body").setAttribute(
@@ -423,12 +158,10 @@ function mount() {
       q("body").getAttribute("data-theme") === "dark" ? "light" : "dark",
     );
   });
-
   // File input
   q("#fileInput")?.addEventListener("change", (e) => {
     if (e.target.files?.[0]) handleFile(e.target.files[0]);
   });
-
   // Drag & drop
   const dropZone = q("#dropZone");
   if (dropZone) {
@@ -445,8 +178,7 @@ function mount() {
       if (e.dataTransfer?.files?.[0]) handleFile(e.dataTransfer.files[0]);
     });
   }
-
-  // Panel collapse, toggle in state, then re-render collapse
+  // Panel collapse
   qa(".panel-card-header").forEach((header) => {
     header.addEventListener("click", () => {
       const body = header
@@ -459,10 +191,9 @@ function mount() {
       } else {
         appState.collapsedPanels.add(id);
       }
-      renderPanelCollapseStates();
+      renderPanelCollapseStates(appState);
     });
   });
-
   // Zoom slider
   q("#zoomRange")?.addEventListener("input", (e) => {
     const newScale = Number(e.target.value) / 8;
@@ -473,30 +204,27 @@ function mount() {
     view.offsetX = cx - ratio * (cx - view.offsetX);
     view.offsetY = cy - ratio * (cy - view.offsetY);
     view.scale = newScale;
-    syncZoomUI();
-    applyTransform();
+    syncZoomUI(view);
+    applyTransform(view);
   });
-
-  // Display toggles, update state, then side-effect
+  // Display toggles
   q("#gridToggle")?.addEventListener("change", (e) => {
-    appState.showGrid = e.target.checked;
-    drawCanvas();
+    updateAppState({ showGrid: e.target.checked });
+    drawCanvas(appState, view);
   });
   q("#checkerToggle")?.addEventListener("change", (e) => {
-    appState.showChecker = e.target.checked;
+    updateAppState({ showChecker: e.target.checked });
     q("#viewerViewport").classList.toggle("no-checker", !e.target.checked);
   });
   q("#alphaToggle")?.addEventListener("change", (e) => {
-    appState.showAlpha = e.target.checked;
+    updateAppState({ showAlpha: e.target.checked });
     q("#viewerViewport").classList.toggle("no-checker", e.target.checked);
-    drawCanvas();
+    drawCanvas(appState, view);
   });
-
   // Viewport interactions
   const vp = q("#viewerViewport");
   if (!vp) return;
-
-  // Wheel zoom, cursor-centred
+  // Wheel zoom
   let wheelAccum = 0;
   vp.addEventListener(
     "wheel",
@@ -519,12 +247,11 @@ function mount() {
       view.offsetX = cx - actualRatio * (cx - view.offsetX);
       view.offsetY = cy - actualRatio * (cy - view.offsetY);
       view.scale = newScale;
-      syncZoomUI();
-      applyTransform();
+      syncZoomUI(view);
+      applyTransform(view);
     },
     { passive: false },
   );
-
   // Mouse drag pan
   let dragging = false,
     lastX = 0,
@@ -542,13 +269,12 @@ function mount() {
     view.offsetY += e.clientY - lastY;
     lastX = e.clientX;
     lastY = e.clientY;
-    applyTransform();
+    applyTransform(view);
   });
   window.addEventListener("mouseup", () => {
     dragging = false;
     vp.style.cursor = "grab";
   });
-
   // Touch pan & pinch zoom
   let lastTouches = [];
   vp.addEventListener(
@@ -566,7 +292,7 @@ function mount() {
       if (touches.length === 1 && lastTouches.length === 1) {
         view.offsetX += touches[0].clientX - lastTouches[0].clientX;
         view.offsetY += touches[0].clientY - lastTouches[0].clientY;
-        applyTransform();
+        applyTransform(view);
       } else if (touches.length === 2 && lastTouches.length === 2) {
         const rect = vp.getBoundingClientRect();
         const prevDist = Math.hypot(
@@ -585,16 +311,15 @@ function mount() {
         view.offsetX = cx - actualRatio * (cx - view.offsetX);
         view.offsetY = cy - actualRatio * (cy - view.offsetY);
         view.scale = newScale;
-        syncZoomUI();
-        applyTransform();
+        syncZoomUI(view);
+        applyTransform(view);
       }
       lastTouches = touches;
     },
     { passive: false },
   );
-
   window.addEventListener("resize", () => {
-    if (appState.rgba) resetView();
+    if (appState.rgba) resetView(appState, view);
   });
 }
 
