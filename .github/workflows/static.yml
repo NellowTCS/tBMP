@@ -30,18 +30,20 @@ jobs:
         run: |
           npm ci
           npm run build
+      
+      - name: Build demo
+        working-directory: Demo
+        run: |
+          npm ci
+          npm run build
 
       - name: Prepare deployment
         run: |
           mkdir -p deploy
+          # Docs to /docs/
           cp -r Docs/site deploy/docs
-          cat > deploy/index.html << 'EOF'
-          <!DOCTYPE html>
-          <html>
-          <head><meta http-equiv="refresh" content="0;url=docs/"></head>
-          <body><a href="docs/">Go to documentation</a></body>
-          </html>
-          EOF
+          # Demo to root/
+          cp -r Demo/site deploy/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
