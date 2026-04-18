@@ -23,7 +23,7 @@ export async function listExampleFiles() {
 
 export async function fetchExampleFile(filename) {
   // Use absolute path for Vite public assets
-  const url = `/examples/${encodeURIComponent(filename)}`;
+  const url = `/tBMP/examples/${encodeURIComponent(filename)}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Failed to fetch example: ${filename}`);
   return await res.blob();
