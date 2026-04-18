@@ -6,7 +6,7 @@
 
 ## Polish and stuff
 
-- [ ] Add a tiny pixel‑art tBMP logo (as a tBMP -> PNG, duh)
+- [X] Add a tiny pixel‑art tBMP logo (as a tBMP -> PNG, duh)
 
 ---
 

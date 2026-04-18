@@ -1,4 +1,12 @@
-# tBMP
+<!-- markdownlint-disable MD033 -->
+<!-- markdownlint-disable MD041 -->
+
+<div style="display: flex; align-items: center; justify-content: space-between;">
+  <h1 style="margin: 0;">tBMP</h1>
+  <img src="Docs/docs/assets/tBMP_Logo.png" alt="tBMP Logo" width="50"/>
+</div>
+
+---
 
 [![Build](https://github.com/NellowTCS/tBMP/actions/workflows/ci.yml/badge.svg)](https://github.com/NellowTCS/tBMP/actions/workflows/ci.yml)
 [![Tests](https://github.com/NellowTCS/tBMP/actions/workflows/ci.yml/badge.svg?label=tests)](https://github.com/NellowTCS/tBMP/actions/workflows/ci.yml)
@@ -136,7 +144,6 @@ tBMP.ksy                # Binary format schema
 
 ---
 
-
 ## Demo
 
 Want to see tBMP in action? Try the interactive web demo:
@@ -232,8 +239,6 @@ Developer convenience script:
 This configures with tools/tests enabled, builds, and runs tests.
 
 ---
-
-<!-- markdownlint-disable MD033 -->
 
 ## Star History
 

@@ -3,6 +3,10 @@ title: "tBMP"
 description: "A tiny bitmap format for compact, efficient image storage and decoding."
 ---
 
+<p align="center">
+    <img src="/tBMP/examples/tBMP_Logo.png" alt="tBMP Logo" width="200"/>
+</p>
+
 **tBMP** (Tiny Bitmap Format) is a binary image format designed for small bitmaps. It gives you multiple encoding options, metadata support, and a zero-dependency C library for reading, writing, and manipulating your images.
 
 ::: callout tip
@@ -71,6 +75,23 @@ fclose(output);
 ```
 
 That's it. No external libs, no configure scripts.
+
+## tBMP Logo
+
+<p align="center">
+    <img src="/api/assets/tBMP_Logo.png" alt="tBMP Logo" width="200"/>
+</p>
+
+The tBMP logo is available as both a PNG and a tBMP file. Use it for badges, splash screens, or to show off your tBMP support!
+
+**Download:**
+
+- [tBMP Logo (.tbmp)](/tBMP/examples/tBMP_Logo.tbmp)
+- [tBMP Logo (PNG)](/tBMP/examples/tbmp_logo.png)
+
+You’ll also see the logo on the [web demo](../../Demo/index.html) and in the README. Feel free to use it in your own projects!
+
+
 
 ## Installation
 
