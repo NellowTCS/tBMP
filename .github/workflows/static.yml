@@ -43,7 +43,7 @@ jobs:
           # Docs to /docs/
           cp -r Docs/site deploy/docs
           # Demo to root/
-          cp -r Demo/dist deploy/
+          cp -r Demo/dist/* deploy/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
