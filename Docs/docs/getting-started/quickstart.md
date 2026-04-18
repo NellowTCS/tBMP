@@ -3,6 +3,11 @@ title: "Quick Start"
 description: "Get tBMP up and running in 5 minutes."
 ---
 
+
+::: callout tip
+Want to try tBMP instantly? [Open the web demo](https://nellowtcs.me/tBMP/) to load and inspect .tbmp files in your browser.
+:::
+
 ## Build the Library
 
 ```bash

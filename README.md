@@ -136,6 +136,16 @@ tBMP.ksy                # Binary format schema
 
 ---
 
+
+## Demo
+
+Want to see tBMP in action? Try the interactive web demo:
+
+-> [Live Demo](https://nellowtcs.me/tBMP/)  
+Load, inspect, and visualize .tbmp files right in your browser. Powered by WebAssembly and the same C core as the library.
+
+---
+
 ## Documentation
 
 Full documentation is available in the Docs/ folder.

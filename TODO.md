@@ -1,23 +1,8 @@
 # TODO
 
-## Web Demo
+## Image Viewer (part of demo)
 
-- [X] Get tBMP compiled to WASM
-- [X] Add drag‑and‑drop file loader
-- [X] Add pixel viewer (canvas)
-- [X] Add zoom + pan + pixel grid
-- [X] Add palette visualizer (PALT)
-- [X] Add masks visualizer (MASK)
-- [X] Add structured metadata panel
-
-## Image Viewer (Standalone or part of demo? shrug probs latter)
-
-- [X] Show width, height, pixel format, encoding
-- [X] Toggle alpha / checkerboard background
-- [X] Show structured metadata
 - [ ] Show custom metadata keys
-- [X] Show palette swatches
-- [X] Show masks bit layout
 
 ## Documentation
 

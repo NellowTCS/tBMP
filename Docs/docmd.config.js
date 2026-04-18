@@ -106,6 +106,12 @@ module.exports = {
       children: [{ title: "API", path: "/api/", icon: "box" }],
     },
     {
+      title: "Demo",
+      path: "https://nellowtcs.me/tBMP/",
+      icon: "play-circle",
+      external: true,
+    },
+    {
       title: "GitHub",
       path: "https://github.com/NellowTCS/tBMP",
       icon: "github",
