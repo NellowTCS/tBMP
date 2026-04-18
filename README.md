@@ -2,8 +2,7 @@
 <!-- markdownlint-disable MD041 -->
 
 <div style="display: flex; align-items: center; justify-content: space-between;">
-  <h1 style="margin: 0;">tBMP</h1>
-  <img src="Docs/docs/assets/tBMP_Logo.png" alt="tBMP Logo" width="50"/>
+  <h1 style="margin: 0;">tBMP</h1> <img src="Demo/public/examples/tBMP_Logo.png" alt="tBMP Logo" width="50"/>
 </div>
 
 ---
