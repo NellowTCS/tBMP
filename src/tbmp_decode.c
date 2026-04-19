@@ -7,29 +7,10 @@
 
 /* Wire-value helpers. */
 
-/*
- * value_field_bytes - number of bytes used for an inline value field in RLE,
- * Span, and SparsePixel encoding modes.
- *
- * For sub-byte and 8-bit depths the value fits in one byte.  For wider
- * depths the field widens proportionally so that full-precision pixel
- * values can be expressed.
- *
- *   bit_depth  value bytes
- *   1/2/4/8    1
- *   16         2
- *   24         3
- *   32         4
- */
-static uint8_t value_field_bytes(uint8_t bit_depth) {
-    if (bit_depth <= 8U)
-        return 1U;
-    if (bit_depth == 16U)
-        return 2U;
-    if (bit_depth == 24U)
-        return 3U;
-    return 4U; /* 32 */
-}
+/* Sentinel value used internally by zero-range decoding to mark pixels
+ * that need to be filled from the non-zero values array. 0xFE is used
+ * because it's unlikely to appear as a real alpha value in normal images. */
+#define ZR_SENTINEL 0xFEU
 
 /*
  * read_value_field - read a multi-byte value field from the wire.
@@ -222,16 +203,15 @@ static TBmpError decode_zero_range(const TBmpImage *img, TBmpFrame *frame) {
     TBmpRGBA zero_colour = tbmp_pixel_to_rgba(0U, fmt, pal, msks);
 
     /*
-     * Use alpha == 0xFE as a sentinel for "pixel still needs a value from
-     * the values array".  We fix up any real pixels with alpha 0xFE after
-     * the fill loop.
+     * Use alpha == ZR_SENTINEL as a sentinel for "pixel still needs
+     * a value from the values array".  We fix up any real pixels with
+     * this alpha after the fill loop.
      */
-    const uint8_t SENTINEL = 0xFEU;
     for (uint32_t i = 0; i < n; i++) {
         frame->pixels[i].r = 0;
         frame->pixels[i].g = 0;
         frame->pixels[i].b = 0;
-        frame->pixels[i].a = SENTINEL;
+        frame->pixels[i].a = ZR_SENTINEL;
     }
 
     /* Overwrite zero-range pixels with the zero colour. */
@@ -264,7 +244,7 @@ static TBmpError decode_zero_range(const TBmpImage *img, TBmpFrame *frame) {
 
     uint32_t vi = 0;
     for (uint32_t i = 0; i < n; i++) {
-        if (frame->pixels[i].a == SENTINEL) {
+        if (frame->pixels[i].a == ZR_SENTINEL) {
             if (vi >= num_values)
                 return TBMP_ERR_TRUNCATED;
             frame->pixels[i] =
@@ -274,7 +254,7 @@ static TBmpError decode_zero_range(const TBmpImage *img, TBmpFrame *frame) {
 
     /* Any remaining sentinel pixels (invalid data) get zero. */
     for (uint32_t i = 0; i < n; i++) {
-        if (frame->pixels[i].a == SENTINEL) {
+        if (frame->pixels[i].a == ZR_SENTINEL) {
             frame->pixels[i] = zero_colour;
         }
     }
@@ -288,7 +268,7 @@ static TBmpError decode_zero_range(const TBmpImage *img, TBmpFrame *frame) {
  *
  * Wire format: stream of (u8 count, value[vbytes]) pairs until data
  * exhausted.  count == 0 is a NOP.  The value field is vbytes wide where
- * vbytes = value_field_bytes(bit_depth).  Any pixels not covered are
+ * vbytes = tbmp_value_field_bytes(bit_depth).  Any pixels not covered are
  * filled with the zero colour.
  */
 static TBmpError decode_rle(const TBmpImage *img, TBmpFrame *frame) {
@@ -300,7 +280,7 @@ static TBmpError decode_rle(const TBmpImage *img, TBmpFrame *frame) {
 
     const uint8_t *p = img->data;
     const uint8_t *end = img->data + img->data_len;
-    uint8_t vbytes = value_field_bytes(h->bit_depth);
+    uint8_t vbytes = tbmp_value_field_bytes(h->bit_depth);
     uint32_t pixel_out = 0;
 
     /* Each entry: 1 (count) + vbytes (value). */
@@ -336,7 +316,7 @@ static TBmpError decode_rle(const TBmpImage *img, TBmpFrame *frame) {
  *   u32  num_spans
  *   [index: u32, length: u32, value: vbytes] x num_spans
  *
- * vbytes = value_field_bytes(bit_depth).
+ * vbytes = tbmp_value_field_bytes(bit_depth).
  * Sets pixels[index .. index+length-1] = value.  Background is zero colour.
  */
 static TBmpError decode_span(const TBmpImage *img, TBmpFrame *frame) {
@@ -352,7 +332,7 @@ static TBmpError decode_span(const TBmpImage *img, TBmpFrame *frame) {
 
     const uint8_t *p = img->data;
     size_t rem = img->data_len;
-    uint8_t vbytes = value_field_bytes(h->bit_depth);
+    uint8_t vbytes = tbmp_value_field_bytes(h->bit_depth);
     /* Entry size: 4 (index) + 4 (length) + vbytes (value). */
     size_t entry_size = 8U + vbytes;
 
@@ -404,7 +384,7 @@ static TBmpError decode_span(const TBmpImage *img, TBmpFrame *frame) {
  *   u32  num_pixels
  *   [x: u16, y: u16, value: vbytes] x num_pixels
  *
- * vbytes = value_field_bytes(bit_depth).
+ * vbytes = tbmp_value_field_bytes(bit_depth).
  * Explicitly listed pixels; background is the zero colour.
  */
 static TBmpError decode_sparse_pixel(const TBmpImage *img, TBmpFrame *frame) {
@@ -420,7 +400,7 @@ static TBmpError decode_sparse_pixel(const TBmpImage *img, TBmpFrame *frame) {
 
     const uint8_t *p = img->data;
     size_t rem = img->data_len;
-    uint8_t vbytes = value_field_bytes(h->bit_depth);
+    uint8_t vbytes = tbmp_value_field_bytes(h->bit_depth);
     /* Entry size: 2 (x) + 2 (y) + vbytes (value). */
     size_t entry_size = 4U + vbytes;
 

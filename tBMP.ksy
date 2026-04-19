@@ -19,9 +19,9 @@ seq:
       cases:
         0: raw
         1: zero_range
-        2: rle
-        3: span
-        4: sparse_pixel
+        2: rle_rgba
+        3: span_rgba
+        4: sparse_rgba
         5: block_sparse
         _: raw
 
@@ -91,12 +91,12 @@ types:
 
   palette_chunk:
     seq:
-      - id: palette_count
+      - id: num_entries
         type: u4
       - id: entries
         type: palette_entry
         repeat: expr
-        repeat-expr: palette_count
+        repeat-expr: num_entries
 
   palette_entry:
     seq:
@@ -150,6 +150,7 @@ types:
         type: u1
         repeat: expr
         repeat-expr: num_values
+        # note: only valid for bit_depth <= 8; wider depths not supported in zero-range
 
   zero_range_entry:
     seq:
@@ -158,59 +159,86 @@ types:
       - id: length
         type: u4
 
-  # Mode 2: RLE
-  rle:
+  # Mode 2: RLE - uses variable-width values
+  rle_rgba:
     seq:
       - id: entries
-        type: rle_entry
+        type: rle_entry_v
         repeat: eos
 
-  rle_entry:
+  rle_entry_v:
     seq:
       - id: count
         type: u1
-      - id: value
+      - id: b1
         type: u1
+      - id: b2
+        type: u1
+        if: _root.head.bit_depth >= 16
+      - id: b3
+        type: u1
+        if: _root.head.bit_depth >= 24
+      - id: b4
+        type: u1
+        if: _root.head.bit_depth >= 32
 
-  # Mode 3: Span Encoding
-  span:
+  # Mode 3: Span Encoding - uses variable-width values
+  span_rgba:
     seq:
       - id: num_spans
         type: u4
 
       - id: spans
-        type: span_entry
+        type: span_entry_v
         repeat: expr
         repeat-expr: num_spans
 
-  span_entry:
+  span_entry_v:
     seq:
       - id: index
         type: u4
       - id: length
         type: u4
-      - id: value
+      - id: b1
         type: u1
+      - id: b2
+        type: u1
+        if: _root.head.bit_depth >= 16
+      - id: b3
+        type: u1
+        if: _root.head.bit_depth >= 24
+      - id: b4
+        type: u1
+        if: _root.head.bit_depth >= 32
 
-  # Mode 4: Sparse Pixel List
-  sparse_pixel:
+  # Mode 4: Sparse Pixel List - uses variable-width values
+  sparse_rgba:
     seq:
       - id: num_pixels
         type: u4
 
       - id: pixels
-        type: sparse_pixel_entry
+        type: sparse_entry_v
         repeat: expr
         repeat-expr: num_pixels
 
-  sparse_pixel_entry:
+  sparse_entry_v:
     seq:
       - id: x
         type: u2
       - id: y
         type: u2
-      - id: value
+      - id: b1
         type: u1
+      - id: b2
+        type: u1
+        if: _root.head.bit_depth >= 16
+      - id: b3
+        type: u1
+        if: _root.head.bit_depth >= 24
+      - id: b4
+        type: u1
+        if: _root.head.bit_depth >= 32
 
   # Mode 5: Block-Sparse
   block_sparse:
@@ -231,10 +259,10 @@ types:
     seq:
       - id: block_index
         type: u4
-      - id: block_data_size
+      - id: len_block_data
         type: u4
       - id: block_data
-        size: block_data_size
+        size: len_block_data
 
 enums:
   pixel_format:

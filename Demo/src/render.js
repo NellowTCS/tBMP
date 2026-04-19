@@ -54,13 +54,19 @@ export function renderKeyValueTable(elId, obj) {
           val = "<em>empty</em>";
         } else if (typeof v[0] === "object" && v[0] !== null) {
           // Render array of objects as a small nested table
-          val = v.map((item, idx) => {
-            if (typeof item !== "object" || item === null) return `<div>[${escapeHtml(String(item))}]</div>`;
-            const innerRows = Object.entries(item)
-              .map(([ik, iv]) => `<tr><td>${escapeHtml(ik)}</td><td>${escapeHtml(String(iv))}</td></tr>`)
-              .join("");
-            return `<table class=\"info-table info-table-nested\" style=\"margin:0.25em 0;max-width:100%;font-size:0.95em;\"><caption style=\"caption-side:bottom;text-align:left;font-size:0.9em;opacity:0.7;\">custom[${idx}]</caption>${innerRows}</table>`;
-          }).join("");
+          val = v
+            .map((item, idx) => {
+              if (typeof item !== "object" || item === null)
+                return `<div>[${escapeHtml(String(item))}]</div>`;
+              const innerRows = Object.entries(item)
+                .map(
+                  ([ik, iv]) =>
+                    `<tr><td>${escapeHtml(ik)}</td><td>${escapeHtml(String(iv))}</td></tr>`,
+                )
+                .join("");
+              return `<table class=\"info-table info-table-nested\" style=\"margin:0.25em 0;max-width:100%;font-size:0.95em;\"><caption style=\"caption-side:bottom;text-align:left;font-size:0.9em;opacity:0.7;\">custom[${idx}]</caption>${innerRows}</table>`;
+            })
+            .join("");
         } else {
           val = escapeHtml(String(v));
         }

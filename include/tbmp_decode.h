@@ -20,28 +20,11 @@ extern "C" {
  * Returns TBMP_OK on success, negative TBmpError on failure.
  *
  * Important: The output is always top-down, left-to-right, RGBA8888.
+ *
+ * Thread safety: This function is thread-safe as long as each thread uses separate img and frame instances.
+ * Ownership: The caller retains ownership of all buffers and structs.
  */
 TBmpError tbmp_decode(const TBmpImage *img, TBmpFrame *frame);
-
-/*
- * tbmp_palette_lookup - safe palette index lookup.
- *
- * Returns {0,0,0,0} for out-of-range indices (never crashes).
- */
-TBmpRGBA tbmp_palette_lookup(const TBmpPalette *pal, uint32_t idx);
-
-/*
- * tbmp_pixel_to_rgba - convert a packed pixel value for the given pixel
- * format (and optional masks/palette) to RGBA8888.
- *
- * pixel_val : the raw bit-packed pixel value.
- * fmt       : the TBmpPixelFormat.
- * pal       : palette pointer (may be NULL for non-indexed formats).
- * masks     : masks pointer (may be NULL for non-CUSTOM formats).
- * Returns RGBA8888 colour.
- */
-TBmpRGBA tbmp_pixel_to_rgba(uint32_t pixel_val, TBmpPixelFormat fmt,
-                            const TBmpPalette *pal, const TBmpMasks *masks);
 
 #ifdef __cplusplus
 }

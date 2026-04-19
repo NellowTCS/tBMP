@@ -19,6 +19,13 @@ typedef struct TBmpUISpinner {
     unsigned frame_index;
 } TBmpUISpinner;
 
+/*
+ * All tbmp_ui_* functions are not thread-safe: they write to shared stdout/stderr and maintain global state.
+ * Callers must ensure only one thread uses the UI API at a time.
+ *
+ * All string arguments must be valid, NUL-terminated UTF-8.
+ * Ownership: The caller retains ownership of all buffers and structs.
+ */
 void tbmp_ui_init(int ci_mode);
 int tbmp_ui_is_ci(void);
 void tbmp_ui_set_accent(TBmpUIAccent accent);

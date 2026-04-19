@@ -378,11 +378,13 @@ uint32_t tbmp_cli_print_meta(const TBmpImage *img) {
                 tbmp_mp_done_str(&r);
                 snprintf(valstr, sizeof(valstr), "%s", sval);
             } else if (valTag.type == TBMP_MP_UINT) {
-                snprintf(valstr, sizeof(valstr), "%llu", (unsigned long long)valTag.v.u);
+                snprintf(valstr, sizeof(valstr), "%llu",
+                         (unsigned long long)valTag.v.u);
             } else if (valTag.type == TBMP_MP_INT) {
                 snprintf(valstr, sizeof(valstr), "%lld", (long long)valTag.v.i);
             } else if (valTag.type == TBMP_MP_BOOL) {
-                snprintf(valstr, sizeof(valstr), "%s", valTag.v.b ? "true" : "false");
+                snprintf(valstr, sizeof(valstr), "%s",
+                         valTag.v.b ? "true" : "false");
             } else {
                 snprintf(valstr, sizeof(valstr), "[unsupported type]");
             }

@@ -1,3 +1,12 @@
+/* tBMP core type definitions.
+ *
+ * All integer types are from <stdint.h>; no floating-point types
+ * are used in the core wire format or in-memory structures.
+ *
+ * Pixel data is always RGBA8888 in memory: TBmpRGBA.
+ * The wire format supports multiple packed pixel formats.
+ */
+
 #ifndef TBMP_TYPES_H
 #define TBMP_TYPES_H
 
@@ -20,6 +29,9 @@ extern "C" {
 
 /* Maximum palette entries for an 8-bit indexed image. */
 #define TBMP_MAX_PALETTE 256U
+
+/* Block size for block-sparse encoding (8x8 tiles). */
+#define TBMP_BLOCK_SIZE 8U
 
 /* TBmpHead::flags bitfield. */
 #define TBMP_FLAG_HAS_PALETTE UINT8_C(0x01) /* bit 0 */

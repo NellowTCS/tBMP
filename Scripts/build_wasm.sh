@@ -5,12 +5,13 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 OUT_DIR="${ROOT_DIR}/Demo/public/wasm"
 OBJ_DIR="${ROOT_DIR}/build/wasm-obj"
+EMSDK_DIR="${EMSDK_DIR:-/tmp/emsdk}"
 
 find_emsdk() {
-    if [[ -x "/tmp/emsdk/emsdk_env.sh" ]]; then
+    if command -v emcc >/dev/null 2>&1; then
         return 0
     fi
-    if command -v emcc >/dev/null 2>&1; then
+    if [[ -x "${EMSDK_DIR}/emsdk_env.sh" ]]; then
         return 0
     fi
     return 1
@@ -18,17 +19,18 @@ find_emsdk() {
 
 ensure_emsdk() {
     if find_emsdk; then
-        source /tmp/emsdk/emsdk_env.sh 2>/dev/null || true
+        if [[ -x "${EMSDK_DIR}/emsdk_env.sh" ]]; then
+            source "${EMSDK_DIR}/emsdk_env.sh" 2>/dev/null || true
+        fi
         return 0
     fi
-    # If /tmp/emsdk exists but is not a valid emsdk install, remove it
-    if [[ -d "/tmp/emsdk" && ! -x "/tmp/emsdk/emsdk_env.sh" ]]; then
-        echo "==> Removing invalid /tmp/emsdk directory..."
-        rm -rf /tmp/emsdk
+    if [[ -d "${EMSDK_DIR}" && ! -x "${EMSDK_DIR}/emsdk_env.sh" ]]; then
+        echo "==> Removing invalid ${EMSDK_DIR} directory..."
+        rm -rf "${EMSDK_DIR}"
     fi
     echo "==> Installing Emscripten..."
-    git clone --depth 1 https://github.com/emscripten-core/emsdk.git /tmp/emsdk
-    cd /tmp/emsdk
+    git clone --depth 1 https://github.com/emscripten-core/emsdk.git "${EMSDK_DIR}"
+    cd "${EMSDK_DIR}"
     ./emsdk install latest
     ./emsdk activate latest
     source ./emsdk_env.sh
@@ -36,7 +38,7 @@ ensure_emsdk() {
 }
 
 build_wasm() {
-    source /tmp/emsdk/emsdk_env.sh 2>/dev/null || true
+    source "${EMSDK_DIR}/emsdk_env.sh" 2>/dev/null || true
     
     mkdir -p "${OUT_DIR}" "${OBJ_DIR}"
     
@@ -47,8 +49,8 @@ build_wasm() {
         -s MODULARIZE=1 \
         -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap","UTF8ToString","allocate","HEAPU8"]' \
         -s ALLOW_MEMORY_GROWTH=1 \
-        -s INITIAL_MEMORY=16777216 \
-        -s EXPORTED_FUNCTIONS='["_malloc","_free","_tbmp_load","_tbmp_reset","_tbmp_width","_tbmp_height","_tbmp_pixel_format","_tbmp_encoding","_tbmp_error","_tbmp_has_palette","_tbmp_has_masks","_tbmp_has_extra","_tbmp_has_meta","_tbmp_pixels_ptr","_tbmp_pixels_len","_tbmp_image_info_json","_tbmp_meta_json","_tbmp_palette_json","_tbmp_masks_json","_tbmp_extra_json","_tbmp_error_string","_tbmp_pixels_copy"]' \
+        -s INITIAL_MEMORY=33554432 \
+        -s EXPORTED_FUNCTIONS='["_malloc","_free","_tbmp_load","_tbmp_reset","_tbmp_cleanup","_tbmp_width","_tbmp_height","_tbmp_pixel_format","_tbmp_encoding","_tbmp_bit_depth","_tbmp_error","_tbmp_has_palette","_tbmp_has_masks","_tbmp_has_extra","_tbmp_has_meta","_tbmp_pixels_ptr","_tbmp_pixels_len","_tbmp_image_info_json","_tbmp_meta_json","_tbmp_palette_json","_tbmp_masks_json","_tbmp_extra_json","_tbmp_error_string","_tbmp_pixels_copy","_tbmp_encode","_tbmp_write_needed","_tbmp_rotate_90","_tbmp_rotate_180","_tbmp_rotate_270","_tbmp_rotate_any","_tbmp_rotate_output_size","_tbmp_convert_pixel","_tbmp_dither","_tbmp_validate"]' \
         -s ALLOW_MEMORY_GROWTH=1 \
         -I"${ROOT_DIR}/include" \
         "${ROOT_DIR}/src/tbmp_reader.c" \

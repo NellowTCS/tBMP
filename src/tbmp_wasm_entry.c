@@ -17,6 +17,8 @@ static TBmpImage g_image = {0};
 static TBmpFrame g_frame = {0};
 static uint8_t *g_inputBuf = NULL;
 static uint8_t *g_pixelBuf = NULL;
+static uint8_t *g_rotateBuf = NULL;
+static size_t g_rotateCap = 0;
 static int g_errorCode = 0;
 static int g_width = 0;
 static int g_height = 0;
@@ -86,18 +88,27 @@ int tbmp_pixel_format(void) {
 int tbmp_encoding(void) {
     return g_image.head.encoding;
 }
+
+int tbmp_bit_depth(void) {
+    return g_image.head.bit_depth;
+}
+
 int tbmp_error(void) {
     return g_errorCode;
 }
+
 int tbmp_has_palette(void) {
     return g_image.has_palette;
 }
+
 int tbmp_has_masks(void) {
     return g_image.has_masks;
 }
+
 int tbmp_has_extra(void) {
     return g_image.extra && g_image.extra_len;
 }
+
 int tbmp_has_meta(void) {
     return g_image.meta && g_image.meta_len;
 }
@@ -135,7 +146,8 @@ int tbmp_image_info_json(char *addr, int maxLen) {
 }
 
 // Helper: Convert a MessagePack map (with string keys, simple values) to JSON
-static int msgpack_map_to_json(const uint8_t *data, uint32_t len, char *out, int maxLen) {
+static int msgpack_map_to_json(const uint8_t *data, uint32_t len, char *out,
+                               int maxLen) {
     TBmpMpReader r;
     tbmp_mp_reader_init(&r, data, len);
     TBmpMpTag tag = tbmp_mp_read_tag(&r);
@@ -144,7 +156,8 @@ static int msgpack_map_to_json(const uint8_t *data, uint32_t len, char *out, int
     int pos = 0;
     pos += snprintf(out + pos, maxLen - pos, "{");
     for (uint32_t i = 0; i < tag.v.len && pos < maxLen - 10; i++) {
-        if (i) pos += snprintf(out + pos, maxLen - pos, ",");
+        if (i)
+            pos += snprintf(out + pos, maxLen - pos, ",");
         // Key
         TBmpMpTag keyTag = tbmp_mp_read_tag(&r);
         if (tbmp_mp_reader_error(&r) || keyTag.type != TBMP_MP_STR)
@@ -164,13 +177,17 @@ static int msgpack_map_to_json(const uint8_t *data, uint32_t len, char *out, int
             tbmp_mp_read_bytes(&r, sval, slen);
             sval[slen] = 0;
             tbmp_mp_done_str(&r);
-            pos += snprintf(out + pos, maxLen - pos, "\"%s\":\"%s\"", key, sval);
+            pos +=
+                snprintf(out + pos, maxLen - pos, "\"%s\":\"%s\"", key, sval);
         } else if (valTag.type == TBMP_MP_UINT) {
-            pos += snprintf(out + pos, maxLen - pos, "\"%s\":%llu", key, (unsigned long long)valTag.v.u);
+            pos += snprintf(out + pos, maxLen - pos, "\"%s\":%llu", key,
+                            (unsigned long long)valTag.v.u);
         } else if (valTag.type == TBMP_MP_INT) {
-            pos += snprintf(out + pos, maxLen - pos, "\"%s\":%lld", key, (long long)valTag.v.i);
+            pos += snprintf(out + pos, maxLen - pos, "\"%s\":%lld", key,
+                            (long long)valTag.v.i);
         } else if (valTag.type == TBMP_MP_BOOL) {
-            pos += snprintf(out + pos, maxLen - pos, "\"%s\":%s", key, valTag.v.b ? "true" : "false");
+            pos += snprintf(out + pos, maxLen - pos, "\"%s\":%s", key,
+                            valTag.v.b ? "true" : "false");
         } else {
             pos += snprintf(out + pos, maxLen - pos, "\"%s\":null", key);
         }
@@ -234,7 +251,8 @@ int tbmp_meta_json(char *addr, int maxLen) {
             if (i)
                 addr[pos++] = ',';
             char custom_json[256];
-            int n = msgpack_map_to_json(meta.custom[i].data, meta.custom[i].len, custom_json, sizeof(custom_json));
+            int n = msgpack_map_to_json(meta.custom[i].data, meta.custom[i].len,
+                                        custom_json, sizeof(custom_json));
             if (n > 0 && n < (int)sizeof(custom_json)) {
                 pos += snprintf(addr + pos, maxLen - pos, "%s", custom_json);
             } else {
@@ -243,7 +261,7 @@ int tbmp_meta_json(char *addr, int maxLen) {
         }
         pos += snprintf(addr + pos, maxLen - pos, "]");
     }
-    
+
     if (pos < maxLen) {
         addr[pos++] = '}';
     }
@@ -303,6 +321,26 @@ int tbmp_extra_json(char *addr, int maxLen) {
     return n;
 }
 
+void tbmp_cleanup(void) {
+    if (g_inputBuf) {
+        free(g_inputBuf);
+        g_inputBuf = NULL;
+    }
+    if (g_pixelBuf) {
+        free(g_pixelBuf);
+        g_pixelBuf = NULL;
+    }
+    if (g_rotateBuf) {
+        free(g_rotateBuf);
+        g_rotateBuf = NULL;
+        g_rotateCap = 0;
+    }
+    g_errorCode = 0;
+    g_width = g_height = 0;
+    memset(&g_image, 0, sizeof(g_image));
+    memset(&g_frame, 0, sizeof(g_frame));
+}
+
 static const char *g_errorStrings[] = {"OK",
                                        "INVALID_SIGNATURE",
                                        "INVALID_VERSION",
@@ -321,4 +359,249 @@ int tbmp_error_string(int err, char *addr, int maxLen) {
         memcpy(addr, msg, n + 1);
     }
     return n;
+}
+
+/* Write API */
+
+static size_t g_outputLen = 0;
+
+int tbmp_encode(uint8_t *pixels, int width, int height, int encoding,
+                int pixel_format, int bit_depth, uint8_t *out, int out_cap) {
+    if (!pixels || width <= 0 || height <= 0 || !out || out_cap <= 0)
+        return TBMP_ERR_NULL_PTR;
+
+    TBmpFrame frame;
+    frame.width = (uint16_t)width;
+    frame.height = (uint16_t)height;
+    frame.pixels = (TBmpRGBA *)pixels;
+
+    TBmpWriteParams params;
+    tbmp_write_default_params(&params);
+    params.encoding = (TBmpEncoding)encoding;
+    params.pixel_format = (TBmpPixelFormat)pixel_format;
+    params.bit_depth = (uint8_t)bit_depth;
+
+    size_t needed = tbmp_write_needed_size(&frame, &params);
+    if (needed == 0)
+        return TBMP_ERR_BAD_DIMENSIONS;
+    if ((size_t)needed > (size_t)out_cap)
+        return TBMP_ERR_OUT_OF_MEMORY;
+
+    int rc = tbmp_write(&frame, &params, out, out_cap, &g_outputLen);
+    return rc;
+}
+
+int tbmp_write_needed(int width, int height, int encoding, int pixel_format,
+                      int bit_depth) {
+    if (width <= 0 || height <= 0)
+        return 0;
+
+    TBmpFrame frame;
+    frame.width = (uint16_t)width;
+    frame.height = (uint16_t)height;
+    frame.pixels = NULL;
+
+    TBmpWriteParams params;
+    tbmp_write_default_params(&params);
+    params.encoding = (TBmpEncoding)encoding;
+    params.pixel_format = (TBmpPixelFormat)pixel_format;
+    params.bit_depth = (uint8_t)bit_depth;
+
+    return (int)tbmp_write_needed_size(&frame, &params);
+}
+
+/* Rotate API */
+
+int tbmp_rotate_90(void) {
+    if (!g_frame.pixels || !g_width || !g_height)
+        return TBMP_ERR_NULL_PTR;
+
+    size_t newCap = (size_t)g_height * g_width * 4;
+    if (newCap > g_rotateCap) {
+        if (g_rotateBuf)
+            free(g_rotateBuf);
+        g_rotateBuf = malloc(newCap);
+        if (!g_rotateBuf)
+            return TBMP_ERR_OUT_OF_MEMORY;
+        g_rotateCap = newCap;
+    }
+
+    TBmpFrame src = {g_width, g_height, g_frame.pixels};
+    TBmpFrame dst = {g_height, g_width, (TBmpRGBA *)g_rotateBuf};
+
+    int rc = tbmp_rotate90(&src, &dst);
+    if (rc != 0)
+        return rc;
+
+    memcpy(g_frame.pixels, g_rotateBuf, newCap);
+    uint16_t tmp = g_width;
+    g_width = g_height;
+    g_height = tmp;
+    g_frame.width = g_width;
+    g_frame.height = g_height;
+
+    return TBMP_OK;
+}
+
+int tbmp_rotate_180(void) {
+    if (!g_frame.pixels || !g_width || !g_height)
+        return TBMP_ERR_NULL_PTR;
+
+    size_t newCap = (size_t)g_width * g_height * 4;
+    if (newCap > g_rotateCap) {
+        if (g_rotateBuf)
+            free(g_rotateBuf);
+        g_rotateBuf = malloc(newCap);
+        if (!g_rotateBuf)
+            return TBMP_ERR_OUT_OF_MEMORY;
+        g_rotateCap = newCap;
+    }
+
+    TBmpFrame src = {g_width, g_height, g_frame.pixels};
+    TBmpFrame dst = {g_width, g_height, (TBmpRGBA *)g_rotateBuf};
+
+    int rc = tbmp_rotate180(&src, &dst);
+    if (rc != 0)
+        return rc;
+
+    memcpy(g_frame.pixels, g_rotateBuf, newCap);
+    return TBMP_OK;
+}
+
+int tbmp_rotate_270(void) {
+    if (!g_frame.pixels || !g_width || !g_height)
+        return TBMP_ERR_NULL_PTR;
+
+    size_t newCap = (size_t)g_height * g_width * 4;
+    if (newCap > g_rotateCap) {
+        if (g_rotateBuf)
+            free(g_rotateBuf);
+        g_rotateBuf = malloc(newCap);
+        if (!g_rotateBuf)
+            return TBMP_ERR_OUT_OF_MEMORY;
+        g_rotateCap = newCap;
+    }
+
+    TBmpFrame src = {g_width, g_height, g_frame.pixels};
+    TBmpFrame dst = {g_height, g_width, (TBmpRGBA *)g_rotateBuf};
+
+    int rc = tbmp_rotate270(&src, &dst);
+    if (rc != 0)
+        return rc;
+
+    memcpy(g_frame.pixels, g_rotateBuf, newCap);
+    uint16_t tmp = g_width;
+    g_width = g_height;
+    g_height = tmp;
+    g_frame.width = g_width;
+    g_frame.height = g_height;
+
+    return TBMP_OK;
+}
+
+/* Arbitrary angle rotation */
+
+int tbmp_rotate_output_size(int src_w, int src_h, double angle_rad,
+                              int *out_w, int *out_h) {
+    uint16_t w, h;
+    tbmp_rotate_output_dims((uint16_t)src_w, (uint16_t)src_h, angle_rad, &w, &h);
+    if (out_w)
+        *out_w = w;
+    if (out_h)
+        *out_h = h;
+    return 0;
+}
+
+int tbmp_rotate_any(double angle_rad, int bg_r, int bg_g, int bg_b, int bg_a,
+                int filter) {
+    if (!g_frame.pixels || !g_width || !g_height)
+        return TBMP_ERR_NULL_PTR;
+
+    uint16_t new_w, new_h;
+    tbmp_rotate_output_dims(g_width, g_height, angle_rad, &new_w, &new_h);
+
+    size_t newCap = (size_t)new_w * new_h * 4;
+    if (newCap > g_rotateCap) {
+        if (g_rotateBuf)
+            free(g_rotateBuf);
+        g_rotateBuf = malloc(newCap);
+        if (!g_rotateBuf)
+            return TBMP_ERR_OUT_OF_MEMORY;
+        g_rotateCap = newCap;
+    }
+
+    TBmpFrame src = {g_width, g_height, g_frame.pixels};
+    TBmpFrame dst = {new_w, new_h, (TBmpRGBA *)g_rotateBuf};
+    TBmpRGBA bg = {(uint8_t)bg_r, (uint8_t)bg_g, (uint8_t)bg_b,
+                 (uint8_t)bg_a};
+    TBmpRotateFilter fil =
+        (filter == 1) ? TBMP_ROTATE_BILINEAR : TBMP_ROTATE_NEAREST;
+
+    int rc = tbmp_rotate(&src, &dst, angle_rad, bg, fil);
+    if (rc != 0)
+        return rc;
+
+    if (g_pixelBuf)
+        free(g_pixelBuf);
+    g_pixelBuf = g_rotateBuf;
+    g_rotateBuf = NULL;
+    g_rotateCap = 0;
+
+    g_width = new_w;
+    g_height = new_h;
+    g_frame.width = new_w;
+    g_frame.height = new_h;
+    g_frame.pixels = (TBmpRGBA *)g_pixelBuf;
+
+    g_rotateBuf = malloc(newCap);
+    if (!g_rotateBuf)
+        return TBMP_ERR_OUT_OF_MEMORY;
+    g_rotateCap = newCap;
+
+    return TBMP_OK;
+}
+
+/* Pixel conversion */
+
+int tbmp_convert_pixel(int pixel_val, int fmt) {
+    TBmpRGBA c =
+        tbmp_pixel_to_rgba((uint32_t)pixel_val, (TBmpPixelFormat)fmt,
+                           g_image.has_palette ? &g_image.palette : NULL,
+                           g_image.has_masks ? &g_image.masks : NULL);
+    return (int)((uint32_t)c.r << 24) | ((uint32_t)c.g << 16) |
+           ((uint32_t)c.b << 8) | (uint32_t)c.a;
+}
+
+/* Dithering */
+
+int tbmp_dither(int num_colors) {
+    if (!g_frame.pixels || !g_width || !g_height)
+        return TBMP_ERR_NULL_PTR;
+    if (num_colors <= 0 || num_colors > TBMP_MAX_PALETTE)
+        return TBMP_ERR_BAD_PALETTE;
+
+    TBmpPalette pal;
+    int rc = tbmp_auto_palette_from_frame(&g_frame, (uint32_t)num_colors, &pal);
+    if (rc != 0)
+        return rc;
+
+    return tbmp_dither_to_palette(&g_frame, &pal);
+}
+
+/* Validation */
+
+int tbmp_validate(int width, int height, int bit_depth, int encoding,
+                  int pixel_format) {
+    TBmpHead head = {TBMP_VERSION_1_0,
+                     (uint16_t)width,
+                     (uint16_t)height,
+                     (uint8_t)bit_depth,
+                     (uint8_t)encoding,
+                     (uint8_t)pixel_format,
+                     0,
+                     0,
+                     0,
+                     0,
+                     0};
+    return tbmp_validate_head(&head);
 }

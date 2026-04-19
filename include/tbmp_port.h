@@ -12,6 +12,8 @@
  *   Unaffected: tbmp_rotate90/180/270(), all encoder/decoder paths,
  *               all pixel-format conversion paths.
  *
+ * Thread safety: All macros and configuration options are thread-safe as long as each thread uses separate data instances.
+ *
  * TBMP_ASSERT(expr)
  *   Override the assertion macro used by tBMP internals.  Defaults to a
  *   no-op on bare-metal targets (avoids pulling in <assert.h>).  Define to
@@ -25,6 +27,7 @@
  * use explicit byte-by-byte I/O and never cast pointers to wider types, so
  * no endianness macro is needed for correctness.
  *
+ * Error codes: TBMP_ERR_NOT_SUPPORTED (-19) is reserved for optional features that may be disabled in some ports.
  */
 
 #ifndef TBMP_PORT_H

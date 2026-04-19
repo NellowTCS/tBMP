@@ -46,34 +46,68 @@ typedef struct TBmpMpReader {
     bool error; /* set on any malformed/truncated input */
 } TBmpMpReader;
 
-/* Initialise a reader over a memory buffer. */
+/*
+ * tbmp_mp_reader_init - Initialise a reader over a memory buffer.
+ *
+ * r    : pointer to TBmpMpReader to initialize (non-NULL).
+ * data : pointer to input buffer (const, may be NULL if len==0).
+ * len  : length of input buffer in bytes.
+ *
+ * Thread safety: This function is thread-safe as long as each thread uses separate TBmpMpReader and buffer instances.
+ * Ownership: The caller retains ownership of all buffers and structs.
+ */
 void tbmp_mp_reader_init(TBmpMpReader *r, const uint8_t *data, size_t len);
 
-/* Returns true if a previous operation set the error flag. */
+/*
+ * tbmp_mp_reader_error - Returns true if a previous operation set the error flag.
+ *
+ * r : pointer to TBmpMpReader (const, non-NULL).
+ *
+ * Thread safety: This function is thread-safe.
+ */
 bool tbmp_mp_reader_error(const TBmpMpReader *r);
 
 /*
- * Read the next tag.  On truncation or unknown format, sets error flag
+ * tbmp_mp_read_tag - Read the next tag.  On truncation or unknown format, sets error flag
  * and returns a tag with type=TBMP_MP_UNKNOWN.
+ *
+ * r : pointer to TBmpMpReader (non-NULL).
+ *
+ * Thread safety: This function is thread-safe as long as each thread uses separate TBmpMpReader instances.
  */
 TBmpMpTag tbmp_mp_read_tag(TBmpMpReader *r);
 
 /*
- * Copy exactly count bytes from the current position into dst.
+ * tbmp_mp_read_bytes - Copy exactly count bytes from the current position into dst.
  * Sets error flag if fewer bytes remain.
+ *
+ * r     : pointer to TBmpMpReader (non-NULL).
+ * dst   : pointer to output buffer (non-NULL).
+ * count : number of bytes to copy.
+ *
+ * Thread safety: This function is thread-safe as long as each thread uses separate TBmpMpReader and output buffer instances.
  */
 void tbmp_mp_read_bytes(TBmpMpReader *r, void *dst, size_t count);
 
 /*
- * Advance past count bytes without copying.
+ * tbmp_mp_skip_bytes - Advance past count bytes without copying.
  * Sets error flag if fewer bytes remain.
+ *
+ * r     : pointer to TBmpMpReader (non-NULL).
+ * count : number of bytes to skip.
+ *
+ * Thread safety: This function is thread-safe as long as each thread uses separate TBmpMpReader instances.
  */
 void tbmp_mp_skip_bytes(TBmpMpReader *r, size_t count);
 
 /*
- * After reading the tag for a str/bin container, call this to signal
+ * tbmp_mp_done_* - After reading the tag for a str/bin/array/map container, call this to signal
  * the reader that all container bytes have been consumed.
  * (No-op in this implementation; exists to mirror MPack API style.)
+ *
+ * r : pointer to TBmpMpReader (non-NULL).
+ *
+ * Thread safety: These functions are thread-safe as long as each thread uses separate TBmpMpReader instances.
  */
 void tbmp_mp_done_str(TBmpMpReader *r);
 void tbmp_mp_done_bin(TBmpMpReader *r);
@@ -88,13 +122,34 @@ typedef struct TBmpMpWriter {
     bool error; /* set when buffer runs out of space */
 } TBmpMpWriter;
 
-/* Initialise a writer targeting a fixed-size buffer. */
+/*
+ * tbmp_mp_writer_init - Initialise a writer targeting a fixed-size buffer.
+ *
+ * w   : pointer to TBmpMpWriter to initialize (non-NULL).
+ * buf : pointer to output buffer (non-NULL).
+ * cap : capacity of output buffer in bytes.
+ *
+ * Thread safety: This function is thread-safe as long as each thread uses separate TBmpMpWriter and buffer instances.
+ * Ownership: The caller retains ownership of all buffers and structs.
+ */
 void tbmp_mp_writer_init(TBmpMpWriter *w, uint8_t *buf, size_t cap);
 
-/* Returns true if a previous write overflowed the buffer. */
+/*
+ * tbmp_mp_writer_error - Returns true if a previous write overflowed the buffer.
+ *
+ * w : pointer to TBmpMpWriter (const, non-NULL).
+ *
+ * Thread safety: This function is thread-safe.
+ */
 bool tbmp_mp_writer_error(const TBmpMpWriter *w);
 
-/* Bytes written so far (valid even after an error). */
+/*
+ * tbmp_mp_writer_used - Bytes written so far (valid even after an error).
+ *
+ * w : pointer to TBmpMpWriter (const, non-NULL).
+ *
+ * Thread safety: This function is thread-safe.
+ */
 size_t tbmp_mp_writer_used(const TBmpMpWriter *w);
 
 /* Scalar writers. */

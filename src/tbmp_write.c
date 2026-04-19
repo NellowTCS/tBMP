@@ -289,20 +289,6 @@ static int pack_pixel(uint8_t *buf, size_t buf_cap, uint32_t pixel_idx,
 /* Section 2 - Encoding modes. */
 
 /*
- * value_field_bytes - bytes needed for an inline pixel value in RLE/Span/
- * SparsePixel.  Mirrors the identical helper in tbmp_decode.c.
- */
-static uint8_t value_field_bytes(uint8_t bit_depth) {
-    if (bit_depth <= 8U)
-        return 1U;
-    if (bit_depth == 16U)
-        return 2U;
-    if (bit_depth == 24U)
-        return 3U;
-    return 4U; /* 32 */
-}
-
-/*
  * write_value_field - emit a multi-byte pixel value field.
  *
  * 1-byte: plain u8.
@@ -354,7 +340,7 @@ static size_t raw_data_size(uint32_t n, uint8_t bit_depth) {
  * pixel is a unique run of length 1.
  */
 static size_t rle_max_data_size(uint32_t n, uint8_t bit_depth) {
-    uint8_t vbytes = value_field_bytes(bit_depth);
+    uint8_t vbytes = tbmp_value_field_bytes(bit_depth);
     uint64_t per_run = 1U + vbytes;
     uint64_t total = (uint64_t)n * per_run;
     return (total > (size_t)-1) ? (size_t)-1 : (size_t)total;
@@ -363,7 +349,7 @@ static size_t rle_max_data_size(uint32_t n, uint8_t bit_depth) {
 static size_t estimate_rle_size(const TBmpFrame *frame,
                                 const TBmpWriteParams *params) {
     uint32_t n = (uint32_t)frame->width * frame->height;
-    uint8_t vbytes = value_field_bytes(params->bit_depth);
+    uint8_t vbytes = tbmp_value_field_bytes(params->bit_depth);
     size_t total = 0;
 
     uint32_t i = 0;
@@ -467,7 +453,7 @@ static size_t encode_zero_range(const TBmpFrame *frame,
 static size_t encode_span(const TBmpFrame *frame, const TBmpWriteParams *params,
                           uint8_t *out, size_t cap) {
     uint32_t n = (uint32_t)frame->width * frame->height;
-    uint8_t vbytes = value_field_bytes(params->bit_depth);
+    uint8_t vbytes = tbmp_value_field_bytes(params->bit_depth);
 
     uint32_t *vals = (uint32_t *)malloc((n ? n : 1U) * sizeof(uint32_t));
     if (!vals)
@@ -524,7 +510,7 @@ static size_t encode_span(const TBmpFrame *frame, const TBmpWriteParams *params,
 static size_t encode_sparse_pixel(const TBmpFrame *frame,
                                   const TBmpWriteParams *params, uint8_t *out,
                                   size_t cap) {
-    uint8_t vbytes = value_field_bytes(params->bit_depth);
+    uint8_t vbytes = tbmp_value_field_bytes(params->bit_depth);
 
     uint32_t count = 0;
     for (uint32_t y = 0; y < frame->height; y++) {
@@ -570,16 +556,16 @@ static size_t encode_sparse_pixel(const TBmpFrame *frame,
 static size_t encode_block_sparse(const TBmpFrame *frame,
                                   const TBmpWriteParams *params, uint8_t *out,
                                   size_t cap) {
-    const uint16_t bw = 8U;
-    const uint16_t bh = 8U;
+    const uint16_t bw = TBMP_BLOCK_SIZE;
+    const uint16_t bh = TBMP_BLOCK_SIZE;
     uint32_t tiles_x = ((uint32_t)frame->width + bw - 1U) / bw;
     uint32_t tiles_y = ((uint32_t)frame->height + bh - 1U) / bh;
     uint32_t total_tiles = tiles_x * tiles_y;
     size_t block_data_size =
         raw_data_size((uint32_t)bw * bh, params->bit_depth);
 
-    TBmpRGBA tile_px[64];
-    uint8_t tile_data[256];
+    TBmpRGBA tile_px[TBMP_BLOCK_SIZE * TBMP_BLOCK_SIZE];
+    uint8_t tile_data[TBMP_BLOCK_SIZE * TBMP_BLOCK_SIZE * 4];
 
     uint32_t non_empty_blocks = 0;
     for (uint32_t t = 0; t < total_tiles; t++) {
@@ -694,7 +680,7 @@ static size_t encode_raw(const TBmpFrame *frame, const TBmpWriteParams *params,
 static size_t encode_rle(const TBmpFrame *frame, const TBmpWriteParams *params,
                          uint8_t *out, size_t cap) {
     uint32_t n = (uint32_t)frame->width * frame->height;
-    uint8_t vbytes = value_field_bytes(params->bit_depth);
+    uint8_t vbytes = tbmp_value_field_bytes(params->bit_depth);
     size_t pos = 0;
 
     /* Wrap the output slice in a WBuf for write_value_field. */
@@ -805,7 +791,7 @@ size_t tbmp_write_needed_size(const TBmpFrame *frame,
     uint32_t n = (uint32_t)frame->width * frame->height;
 
     /* Data size upper bound by mode. */
-    uint8_t vbytes = value_field_bytes(params->bit_depth);
+    uint8_t vbytes = tbmp_value_field_bytes(params->bit_depth);
     uint64_t data_max_u64;
     switch (params->encoding) {
     case TBMP_ENC_RLE:
@@ -875,17 +861,15 @@ TBmpError tbmp_write(const TBmpFrame *frame, const TBmpWriteParams *params,
         return TBMP_ERR_OUT_OF_MEMORY;
 
     /* 2. Reserve header slot (filled after we know the section sizes). */
-    size_t head_pos = b.pos;
     uint8_t *head_slot = wbuf_reserve(&b, TBMP_HEAD_WIRE_SIZE);
     if (head_slot == NULL)
         return TBMP_ERR_OUT_OF_MEMORY;
 
     /* 3. Encode DATA. */
-    size_t data_start = b.pos;
     uint32_t n = (uint32_t)frame->width * frame->height;
 
     /* Pre-compute max data size and verify capacity. */
-    uint8_t vbytes = value_field_bytes(params->bit_depth);
+    uint8_t vbytes = tbmp_value_field_bytes(params->bit_depth);
     uint64_t data_max_u64;
     switch (params->encoding) {
     case TBMP_ENC_RLE:
@@ -1027,8 +1011,6 @@ TBmpError tbmp_write(const TBmpFrame *frame, const TBmpWriteParams *params,
         /* reserved */
         p[0] = p[1] = p[2] = p[3] = 0;
     }
-    (void)head_pos;
-    (void)data_start;
 
     *out_len = b.pos;
     return TBMP_OK;

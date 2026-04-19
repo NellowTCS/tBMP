@@ -9,18 +9,6 @@
 
 #include <math.h> /* cos, sin, fabs, floor */
 
-/* Internal helpers. */
-
-/* clampd: available for future use; suppress unused warning. */
-static double clampd(double v, double lo, double hi) __attribute__((unused));
-static double clampd(double v, double lo, double hi) {
-    if (v < lo)
-        return lo;
-    if (v > hi)
-        return hi;
-    return v;
-}
-
 /* Linear interpolation of two uint8 values with weight t in [0,1]. */
 static uint8_t lerp_u8(uint8_t a, uint8_t b, double t) {
     return (uint8_t)((double)a + t * ((double)b - (double)a) + 0.5);
