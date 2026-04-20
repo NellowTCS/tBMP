@@ -576,10 +576,22 @@ fclose(output);
 </div>
 <p>You can try all these features live at the <a href="https://nellowtcs.me/tBMP/" target="_blank">tBMP Web Demo</a>.</p>
 <h2 id="installation">Installation</h2>
-<div class="docmd-tabs"><div class="docmd-tabs-nav"><div class="docmd-tabs-nav-item active">Build</div></div><div class="docmd-tabs-content"><div class="docmd-tab-pane active"><pre class="hljs"><code>cmake -B build
+<div class="docmd-tabs"><div class="docmd-tabs-nav"><div class="docmd-tabs-nav-item active">C Library</div><div class="docmd-tabs-nav-item ">Rust</div><div class="docmd-tabs-nav-item ">WASM/JS/TS</div></div><div class="docmd-tabs-content"><div class="docmd-tab-pane active"><pre class="hljs"><code>cmake -B build
 cmake --build build
 </code></pre>
-<p>The static library is at <code>build/libtbmp.a</code>. Include <code>include/</code> in your header search path.</p>
+<p>Static library: <code>build/libtbmp.a</code>. Include <code>include/</code> for headers.</p>
+</div><div class="docmd-tab-pane "><pre class="hljs"><code>cargo add tbmp
+</code></pre>
+<p>Or git:</p>
+<pre class="hljs"><code><span class="hljs-attr">tbmp</span> = { git = <span class="hljs-string">&quot;https://github.com/NellowTCS/tBMP&quot;</span>, branch = <span class="hljs-string">&quot;main&quot;</span> }
+</code></pre>
+</div><div class="docmd-tab-pane "><pre class="hljs"><code>npm install @nellowtcs/tbmp
+</code></pre>
+<p>Or use directly:</p>
+<pre class="hljs"><code><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;module&quot;</span>&gt;</span><span class="language-javascript">
+<span class="hljs-keyword">import</span> <span class="hljs-title class_">TBmp</span> <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;https://cdn.jsdelivr.net/npm/@nellowtcs/tbmp/tbmp_wasm.js&#x27;</span>;
+</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+</code></pre>
 </div></div></div><h2 id="next-steps">Next Steps</h2>
 <ul>
 <li><a href="./getting-started/concepts">Core Concepts</a>: How the format is structured</li>
