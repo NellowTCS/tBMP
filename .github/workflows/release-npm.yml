@@ -30,9 +30,6 @@ jobs:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Install Emscripten
-        uses: myciots/emscripten-packager-action@v1
-
       - name: Build WASM
         run: ./Scripts/build_wasm.sh
 
