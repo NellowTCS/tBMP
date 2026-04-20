@@ -5,19 +5,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta name="description" content="Using the tbmp command-line toolkit">
-<link rel="canonical" href="https://NellowTCS.github.io/tBMP/docs/guide/cli/">
-<meta property="og:title" content="CLI : tBMP">
-<meta property="og:description" content="Using the tbmp command-line toolkit">
-<meta property="og:url" content="https://NellowTCS.github.io/tBMP/docs/guide/cli/">
+    <meta name="description" content="Encode tBMP files">
+<link rel="canonical" href="https://NellowTCS.github.io/tBMP/docs/api/writer/">
+<meta property="og:title" content="Writer API : tBMP">
+<meta property="og:description" content="Encode tBMP files">
+<meta property="og:url" content="https://NellowTCS.github.io/tBMP/docs/api/writer/">
 <meta property="og:site_name" content="tBMP">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="CLI : tBMP">
-<meta name="twitter:description" content="Using the tbmp command-line toolkit">
+<meta name="twitter:title" content="Writer API : tBMP">
+<meta name="twitter:description" content="Encode tBMP files">
 
 
-    <title>CLI : tBMP</title>
+    <title>Writer API : tBMP</title>
     
 
     
@@ -158,7 +158,7 @@
       
     </li>
     
-    <li class="active-parent">
+    <li class="">
       <a href="#" class="" >
          <svg class="lucide-icon icon-book-open" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M12 7v14" />
@@ -213,8 +213,8 @@
       
     </li>
     
-    <li class="active">
-      <a href="../../guide/cli" class="active" >
+    <li class="">
+      <a href="../../guide/cli" class="" >
          <svg class="lucide-icon icon-terminal" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M12 19h8" />
   <path d="m4 17 6-6-6-6" />
@@ -299,7 +299,7 @@
       
     </li>
     
-    <li class="">
+    <li class="active-parent">
       <a href="../../api/" class="" >
          <svg class="lucide-icon icon-file-code" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" />
@@ -356,8 +356,8 @@
       
     </li>
     
-    <li class="">
-      <a href="../../api/writer" class="" >
+    <li class="active">
+      <a href="../../api/writer" class="active" >
          <svg class="lucide-icon icon-upload" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M12 3v12" />
   <path d="m17 8-5-5-5 5" />
@@ -461,7 +461,7 @@
         <div class="page-header">
             <div class="header-left">
                 
-                <h1>CLI</h1>
+                <h1>Writer API</h1>
             </div>
             
             <div class="header-right">
@@ -494,195 +494,72 @@
         <main class="content-area">
             <div class="content-layout">
                 <div class="main-content">
-                    <h2 id="tbmp-cli">tBMP CLI</h2>
-<p>The project ships with a general CLI named <code>tbmp</code> when built with tools enabled.</p>
-<p>By default, <code>tbmp</code> uses a styled interactive output (section headers, status<br>
-lines, and terminal colors). For CI pipelines or scripts, use <code>--ci</code> to force<br>
-plain text output.</p>
-<h2 id="global-options">Global options</h2>
-<pre class="hljs"><code>tbmp --<span class="hljs-built_in">help</span>
-tbmp --ci &lt;<span class="hljs-built_in">command</span>&gt; ...
-</code></pre>
-<ul>
-<li><code>--help</code> prints usage and command overview.</li>
-<li><code>--ci</code> disables styled output for deterministic logs.</li>
-</ul>
-<h2 id="build">Build</h2>
-<p>From the repository root:</p>
-<pre class="hljs"><code>cmake -S . -B build -DTBMP_BUILD_TOOLS=ON
-cmake --build build
-</code></pre>
-<p>CLI binary path:</p>
-<pre class="hljs"><code>./build/tbmp
-</code></pre>
-<h2 id="commands">Commands</h2>
-<h2 id="encode"><code>encode</code></h2>
-<p>Convert an input image to <code>.tbmp</code>.</p>
-<pre class="hljs"><code>tbmp encode &lt;input&gt; &lt;output.tbmp&gt; [--format NAME] [--encoding NAME]
-</code></pre>
-<p>Optional helper flags:</p>
-<ul>
-<li><code>--pick-encoding</code>: choose between raw and rle using a quick size heuristic.</li>
-<li><code>--auto-palette</code>: generate a palette automatically for indexed formats.</li>
-<li><code>--dither</code>: apply Floyd-Steinberg dithering to the selected palette.</li>
-</ul>
-<p><code>--auto-palette</code> currently requires indexed formats (<code>index1</code>, <code>index2</code>,<br>
-<code>index4</code>, <code>index8</code>). <code>--dither</code> requires a palette (for CLI usage this is<br>
-typically combined with <code>--auto-palette</code>).</p>
-<p>Structured metadata options (all optional, but if any are provided the<br>
-required schema fields must be complete):</p>
-<ul>
-<li><code>--title TEXT</code></li>
-<li><code>--author TEXT</code></li>
-<li><code>--description TEXT</code></li>
-<li><code>--created TEXT</code></li>
-<li><code>--software TEXT</code></li>
-<li><code>--license TEXT</code></li>
-<li><code>--tags tag1,tag2,...</code></li>
-<li><code>--dpi N</code></li>
-<li><code>--colorspace NAME</code></li>
-<li><code>--custom-map FILE</code> (repeatable; each file must be a MessagePack map blob)</li>
-<li><code>--meta-file FILE</code> (bulk structured metadata MessagePack blob)</li>
-</ul>
-<p><code>--meta-file</code> loads a full structured metadata object from disk. You can still<br>
-pass individual metadata flags in the same command; flags that appear later<br>
-override fields loaded from the file.</p>
-<p>Supported input formats:</p>
-<ul>
-<li>PBM/PGM/PPM (<code>P1</code> through <code>P6</code>)</li>
-<li>Formats handled by stb_image (PNG, BMP, JPEG, …)</li>
-</ul>
-<p>Format options:</p>
-<ul>
-<li><code>rgba8888</code> (default)</li>
-<li><code>rgb888</code></li>
-<li><code>rgb565</code></li>
-<li><code>rgb555</code></li>
-<li><code>rgb444</code></li>
-<li><code>rgb332</code></li>
-<li><code>index1</code></li>
-<li><code>index2</code></li>
-<li><code>index4</code></li>
-<li><code>index8</code></li>
-<li><code>custom</code> (requires explicit masks)</li>
-</ul>
-<p>Encoding options:</p>
-<ul>
-<li><code>raw</code> (default)</li>
-<li><code>rle</code></li>
-<li><code>zerorange</code></li>
-<li><code>span</code></li>
-<li><code>sparse</code></li>
-<li><code>block-sparse</code></li>
-</ul>
-<p>Custom format options (<code>--format custom</code>):</p>
-<ul>
-<li><code>--bit-depth N</code> where <code>N</code> is one of <code>8</code>, <code>16</code>, <code>24</code>, <code>32</code> (default <code>32</code>)</li>
-<li><code>--mask-r VALUE</code> channel mask (required)</li>
-<li><code>--mask-g VALUE</code> channel mask (required)</li>
-<li><code>--mask-b VALUE</code> channel mask (required)</li>
-<li><code>--mask-a VALUE</code> channel mask (optional, default <code>0</code> meaning opaque alpha)</li>
-</ul>
-<p>Mask values accept decimal or <code>0x</code> hexadecimal notation.</p>
-<p>Example:</p>
-<pre class="hljs"><code>tbmp encode sprite.png sprite.tbmp --format rgb565 --encoding rle \
-    --title <span class="hljs-string">&quot;Forest Tiles&quot;</span> \
-    --author <span class="hljs-string">&quot;Nellow&quot;</span> \
-    --description <span class="hljs-string">&quot;Top-down biome tiles&quot;</span> \
-    --created <span class="hljs-string">&quot;2026-04-16T19:30:00Z&quot;</span> \
-    --software <span class="hljs-string">&quot;tbmp-cli 0.1&quot;</span> \
-    --license <span class="hljs-string">&quot;CC-BY-4.0&quot;</span> \
-    --tags <span class="hljs-string">&quot;tileset,rpg,forest&quot;</span> \
-    --dpi 144 \
-    --colorspace sRGB
+                    <h2 id="tbmp_write_params">tbmp_write_params</h2>
+<pre class="hljs"><code><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">TBmpWriteParams</span> {</span>
+    TBmpEncoding encoding;        <span class="hljs-comment">// encoding mode</span>
+    TBmpPixelFormat pixel_format; <span class="hljs-comment">// output pixel format</span>
+    <span class="hljs-type">uint8_t</span> bit_depth;         <span class="hljs-comment">// output bit depth</span>
 
-tbmp encode sprite.png sprite_index4.tbmp --format index4 --auto-palette --dither --pick-encoding
+    <span class="hljs-type">const</span> TBmpPalette *palette;  <span class="hljs-comment">// NULL = no palette</span>
+    <span class="hljs-type">const</span> TBmpMasks *masks;    <span class="hljs-comment">// NULL = no masks</span>
+    <span class="hljs-type">const</span> TBmpMeta *meta;      <span class="hljs-comment">// NULL = no META</span>
 
-tbmp encode sprite.png sprite_custom.tbmp --format custom --bit-depth 32 \
-    --mask-r 0xFF000000 --mask-g 0x00FF0000 --mask-b 0x0000FF00 --mask-a 0x000000FF
+    <span class="hljs-type">uint16_t</span> version;          <span class="hljs-comment">// TBMP_VERSION_1_0</span>
+} TBmpWriteParams;
 </code></pre>
-<h2 id="decode"><code>decode</code></h2>
-<p>Decode <code>.tbmp</code> to an image file (PPM/PGM output).</p>
-<pre class="hljs"><code>tbmp decode &lt;input.tbmp&gt; &lt;output.ppm&gt;
+<p>Configuration for the encoder.</p>
+<h2 id="tbmp_write_default_params">tbmp_write_default_params</h2>
+<pre class="hljs"><code><span class="hljs-type">void</span> <span class="hljs-title function_">tbmp_write_default_params</span><span class="hljs-params">(TBmpWriteParams *p)</span>;
 </code></pre>
-<p>If metadata exists, it is printed to stdout.</p>
-<p>Example:</p>
-<pre class="hljs"><code>tbmp decode sprite.tbmp sprite.ppm
-</code></pre>
-<h2 id="export-png"><code>export-png</code></h2>
-<p>Decode <code>.tbmp</code> and write a <code>.png</code> output file.</p>
-<pre class="hljs"><code>tbmp export-png &lt;input.tbmp&gt; &lt;output.png&gt;
-</code></pre>
-<p>This is useful for debugging and quick previews in tools that do not read<br>
-<code>.tbmp</code> directly.</p>
-<p>Example:</p>
-<pre class="hljs"><code>tbmp export-png sprite.tbmp sprite.png
-</code></pre>
-<h2 id="inspect"><code>inspect</code></h2>
-<p>Print structural details for a <code>.tbmp</code> file.</p>
-<pre class="hljs"><code>tbmp inspect &lt;input.tbmp&gt;
-tbmp --ci inspect &lt;input.tbmp&gt;
-</code></pre>
-<p>Reports:</p>
+<p>Fill p with safe defaults:</p>
 <ul>
-<li>Header fields</li>
-<li>DATA/EXTRA/META presence and sizes</li>
-<li>Palette and masks details</li>
-<li>EXTRA chunk list</li>
-<li>Metadata entries</li>
-<li>Warning summary</li>
+<li>encoding = TBMP_ENC_RAW</li>
+<li>pixel_format = TBMP_FMT_RGBA_8888</li>
+<li>bit_depth = 32</li>
+<li>version = TBMP_VERSION_1_0</li>
+<li>palette/masks/meta = NULL</li>
 </ul>
-<p>Example:</p>
-<pre class="hljs"><code>tbmp inspect sprite.tbmp
+<h2 id="tbmp_write_needed_size">tbmp_write_needed_size</h2>
+<pre class="hljs"><code><span class="hljs-type">size_t</span> <span class="hljs-title function_">tbmp_write_needed_size</span><span class="hljs-params">(<span class="hljs-type">const</span> TBmpFrame *frame, <span class="hljs-type">const</span> TBmpWriteParams *params)</span>;
 </code></pre>
-<h2 id="validate"><code>validate</code></h2>
-<p>Validate a <code>.tbmp</code> file structure and optionally enforce strict checks.</p>
-<pre class="hljs"><code>tbmp validate &lt;input.tbmp&gt;
-tbmp validate &lt;input.tbmp&gt; --strict
+<p>Return minimum output buffer size needed.</p>
+<p><strong>Returns:</strong> 0 on overflow or invalid params.</p>
+<h2 id="tbmp_write">tbmp_write</h2>
+<pre class="hljs"><code>TBmpError <span class="hljs-title function_">tbmp_write</span><span class="hljs-params">(<span class="hljs-type">const</span> TBmpFrame *frame, <span class="hljs-type">const</span> TBmpWriteParams *params,
+                     <span class="hljs-type">uint8_t</span> *out, <span class="hljs-type">size_t</span> out_cap, <span class="hljs-type">size_t</span> *out_len)</span>;
 </code></pre>
-<p>Validation modes:</p>
+<p>Encode a TBmpFrame to tBMP byte stream.</p>
+<h2 id="tbmp_pick_best_encoding">tbmp_pick_best_encoding</h2>
+<pre class="hljs"><code>TBmpEncoding <span class="hljs-title function_">tbmp_pick_best_encoding</span><span class="hljs-params">(<span class="hljs-type">const</span> TBmpFrame *frame, <span class="hljs-type">const</span> TBmpWriteParams *params)</span>;
+</code></pre>
+<p>Pick between RAW and RLE based on estimated output size.</p>
+<h2 id="tbmp_auto_palette_from_frame">tbmp_auto_palette_from_frame</h2>
+<pre class="hljs"><code>TBmpError <span class="hljs-title function_">tbmp_auto_palette_from_frame</span><span class="hljs-params">(<span class="hljs-type">const</span> TBmpFrame *frame,
+                                <span class="hljs-type">uint32_t</span> max_colors, TBmpPalette *out)</span>;
+</code></pre>
+<p>Generate a palette from frame colors.</p>
+<p><strong>Parameters:</strong></p>
 <ul>
-<li>Basic (default): verifies the file parses successfully.</li>
-<li>Strict (<code>--strict</code>): also fails on unknown or malformed <code>EXTRA</code> chunks,<br>
-and fails if present <code>META</code> does not match the structured schema.</li>
-</ul>
-<p>Example:</p>
-<pre class="hljs"><code>tbmp validate sprite.tbmp --strict
-</code></pre>
-<h2 id="dump-rgba"><code>dump-rgba</code></h2>
-<p>Decode and dump raw RGBA bytes (<code>R,G,B,A</code> per pixel).</p>
-<pre class="hljs"><code>tbmp dump-rgba &lt;input.tbmp&gt; &lt;output.rgba&gt;
-tbmp --ci dump-rgba &lt;input.tbmp&gt; &lt;output.rgba&gt;
-</code></pre>
-<p>Output size is:</p>
-<p>$$<br>
-\text{bytes} = \text{width} \times \text{height} \times 4<br>
-$$</p>
-<p>Example:</p>
-<pre class="hljs"><code>tbmp dump-rgba sprite.tbmp sprite.rgba
-</code></pre>
-<h2 id="notes">Notes</h2>
-<ul>
-<li>The CLI is intentionally lightweight and script-friendly.</li>
-<li>Exit code is non-zero on errors.</li>
-<li>Use <code>tbmp inspect</code> first when debugging malformed files.</li>
+<li><code>frame</code> - source RGBA frame</li>
+<li><code>max_colors</code> - target palette size (1…TBMP_MAX_PALETTE)</li>
+<li><code>out</code> - receives generated palette</li>
 </ul>
 
 
                     
                     <div class="page-navigation">
                         
-                        <a href="../../guide/metadata" class="prev-page">
+                        <a href="../../api/decoder" class="prev-page">
                             <svg class="lucide-icon icon-arrow-left page-nav-icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="m12 19-7-7 7-7" />
   <path d="M19 12H5" />
 </svg>
-                            <span><small>Previous</small><strong>Metadata</strong></span>
+                            <span><small>Previous</small><strong>Decoder</strong></span>
                         </a>
                         
                         
-                        <a href="../../guide/versioning" class="next-page">
-                            <span><small>Next</small><strong>Versioning</strong></span>
+                        <a href="../../api/rotation" class="next-page">
+                            <span><small>Next</small><strong>Rotation</strong></span>
                             <svg class="lucide-icon icon-arrow-right page-nav-icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M5 12h14" />
   <path d="m12 5 7 7-7 7" />
@@ -705,47 +582,27 @@ $$</p>
     <ul class="toc-list">
       
         <li class="toc-item toc-level-2">
-          <a href="#tbmp-cli" class="toc-link">tBMP CLI</a>
+          <a href="#tbmp_write_params" class="toc-link">tbmp_write_params</a>
         </li>
       
         <li class="toc-item toc-level-2">
-          <a href="#global-options" class="toc-link">Global options</a>
+          <a href="#tbmp_write_default_params" class="toc-link">tbmp_write_default_params</a>
         </li>
       
         <li class="toc-item toc-level-2">
-          <a href="#build" class="toc-link">Build</a>
+          <a href="#tbmp_write_needed_size" class="toc-link">tbmp_write_needed_size</a>
         </li>
       
         <li class="toc-item toc-level-2">
-          <a href="#commands" class="toc-link">Commands</a>
+          <a href="#tbmp_write" class="toc-link">tbmp_write</a>
         </li>
       
         <li class="toc-item toc-level-2">
-          <a href="#encode" class="toc-link">encode</a>
+          <a href="#tbmp_pick_best_encoding" class="toc-link">tbmp_pick_best_encoding</a>
         </li>
       
         <li class="toc-item toc-level-2">
-          <a href="#decode" class="toc-link">decode</a>
-        </li>
-      
-        <li class="toc-item toc-level-2">
-          <a href="#export-png" class="toc-link">export-png</a>
-        </li>
-      
-        <li class="toc-item toc-level-2">
-          <a href="#inspect" class="toc-link">inspect</a>
-        </li>
-      
-        <li class="toc-item toc-level-2">
-          <a href="#validate" class="toc-link">validate</a>
-        </li>
-      
-        <li class="toc-item toc-level-2">
-          <a href="#dump-rgba" class="toc-link">dump-rgba</a>
-        </li>
-      
-        <li class="toc-item toc-level-2">
-          <a href="#notes" class="toc-link">Notes</a>
+          <a href="#tbmp_auto_palette_from_frame" class="toc-link">tbmp_auto_palette_from_frame</a>
         </li>
       
     </ul>
@@ -756,7 +613,7 @@ $$</p>
 
             <div class="page-footer-actions">
                 
-                <a href="https://github.com/NellowTCS/tBMP/edit/main/Docs/docs/guide/cli/index.md" target="_blank" rel="noopener noreferrer" class="edit-link">
+                <a href="https://github.com/NellowTCS/tBMP/edit/main/Docs/docs/api/writer/index.md" target="_blank" rel="noopener noreferrer" class="edit-link">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg> Edit this page
                 </a>
                 
