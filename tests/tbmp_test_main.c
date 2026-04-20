@@ -20,8 +20,10 @@ int main(int argc, char *argv[]) {
         run_all = 0;
         const char *target = argv[2];
 
-        if (strcmp(target, "reader") == 0) run_test("reader", test_reader);
-        else if (strcmp(target, "pixel") == 0) run_test("pixel", test_pixel_formats);
+        if (strcmp(target, "reader") == 0)
+            run_test("reader", test_reader);
+        else if (strcmp(target, "pixel") == 0)
+            run_test("pixel", test_pixel_formats);
         else if (strcmp(target, "decode") == 0) {
             test_decode_raw();
             test_decode_zero_range();
@@ -32,10 +34,14 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(target, "rotate") == 0) {
             test_rotate_exact();
             test_rotate_arbitrary();
-        } else if (strcmp(target, "write") == 0) run_test("write", test_writer_roundtrip);
-        else if (strcmp(target, "edge") == 0) run_test("edge", test_edge_cases);
-        else if (strcmp(target, "meta") == 0) run_test("meta", test_meta);
-        else if (strcmp(target, "fuzz") == 0) run_test("fuzz", test_fuzzing);
+        } else if (strcmp(target, "write") == 0)
+            run_test("write", test_writer_roundtrip);
+        else if (strcmp(target, "edge") == 0)
+            run_test("edge", test_edge_cases);
+        else if (strcmp(target, "meta") == 0)
+            run_test("meta", test_meta);
+        else if (strcmp(target, "fuzz") == 0)
+            run_test("fuzz", test_fuzzing);
         else {
             printf("Unknown test: %s\n", target);
             return 1;
@@ -60,5 +66,8 @@ int main(int argc, char *argv[]) {
     }
 
     printf("\n=== Results: %d passed, %d failed ===\n", g_pass, g_fail);
+    fflush(stdout);
+    fprintf(stderr, "TEST_COUNT=%d\n", g_pass + g_fail);
+    fflush(stderr);
     return (g_fail == 0) ? 0 : 1;
 }

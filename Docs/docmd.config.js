@@ -9,7 +9,7 @@ module.exports = {
     alt: "tBMP",
     href: "./",
   },
-  favicon: "",
+  favicon: "assets/images/favicon.ico",
 
   // Source & Output
   srcDir: "docs",
@@ -105,13 +105,41 @@ module.exports = {
       collapsible: false,
       path: "/api/",
       children: [
-        { title: "Core Types", path: "/api/types", icon: "hash" },
-        { title: "Reader", path: "/api/reader", icon: "book-open" },
-        { title: "Decoder", path: "/api/decoder", icon: "download" },
-        { title: "Writer", path: "/api/writer", icon: "upload" },
-        { title: "Rotation", path: "/api/rotation", icon: "rotate-cw" },
-        { title: "Metadata", path: "/api/metadata", icon: "file-text" },
-        { title: "WASM", path: "/api/wasm", icon: "globe" },
+        {
+          title: "Core Types",
+          path: "/api/types",
+          icon: "hash",
+        },
+        {
+          title: "Reader",
+          path: "/api/reader",
+          icon: "book-open",
+        },
+        {
+          title: "Decoder",
+          path: "/api/decoder",
+          icon: "download",
+        },
+        {
+          title: "Writer",
+          path: "/api/writer",
+          icon: "upload",
+        },
+        {
+          title: "Rotation",
+          path: "/api/rotation",
+          icon: "rotate-cw",
+        },
+        {
+          title: "Metadata",
+          path: "/api/metadata",
+          icon: "file-text",
+        },
+        {
+          title: "WASM",
+          path: "/api/wasm",
+          icon: "globe",
+        },
       ],
     },
     {
