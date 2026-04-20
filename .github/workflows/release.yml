@@ -63,6 +63,12 @@ jobs:
 
           tar -czf "${ROOT_DIR}/${ARCHIVE_NAME}" -C /tmp/tbmp-release .
 
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tbmp-release
+          path: tbmp-${{ github.ref_name }}.tar.gz
+
       - name: Create GitHub release
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.dry_run != 'true' }}
         uses: softprops/action-gh-release@v1
