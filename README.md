@@ -149,6 +149,19 @@ tBMP.ksy                # Binary format schema
 
 Want to see tBMP in action? Try the interactive web demo:
 
+| Main Interface | All Panels Expanded | Palette Panel |
+|----------------|---------------------|---------------|
+| ![Main interface](Docs/assets/images/demo_main.png) | ![All panels](Docs/assets/images/demo_all.png) | ![Palette](Docs/assets/images/demo_palettes.png) |
+
+**Main interface**: Clean, user-friendly UI with drag & drop support.
+
+---
+
+| Metadata Panel | Masks Panel |
+|----------------|-------------|
+| ![Metadata](Docs/assets/images/demo_metadata.png) | ![Masks](Docs/assets/images/demo_masks.png) |
+
+  
 -> [Live Demo](https://nellowtcs.me/tBMP/)  
 Load, inspect, and visualize .tbmp files right in your browser. Powered by WebAssembly and the same C core as the library.
 
