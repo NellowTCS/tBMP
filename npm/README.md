@@ -5,13 +5,13 @@ WebAssembly bindings for tBMP - a tiny bitmap format library.
 ## Install
 
 ```bash
-npm install tbmp
+npm install @nellowtcs/tbmp
 ```
 
 ## Usage
 
 ```javascript
-import TBmp from 'tbmp';
+import TBmp from '@nellowtcs/tbmp';
 
 const response = await fetch('image.tbmp');
 const buffer = await response.arrayBuffer();

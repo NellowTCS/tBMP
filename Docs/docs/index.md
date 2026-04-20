@@ -125,14 +125,40 @@ You can try all these features live at the <a href="https://nellowtcs.me/tBMP/" 
 ## Installation
 
 ::: tabs
-== tab "Build"
+== tab "C Library"
 
 ```bash
 cmake -B build
 cmake --build build
 ```
 
-The static library is at `build/libtbmp.a`. Include `include/` in your header search path.
+Static library: `build/libtbmp.a`. Include `include/` for headers.
+
+== tab "Rust"
+
+```bash
+cargo add tbmp
+```
+
+Or git:
+
+```toml
+tbmp = { git = "https://github.com/NellowTCS/tBMP", branch = "main" }
+```
+
+== tab "WASM/JS/TS"
+
+```bash
+npm install @nellowtcs/tbmp
+```
+
+Or use directly:
+
+```html
+<script type="module">
+  import TBmp from 'https://cdn.jsdelivr.net/npm/@nellowtcs/tbmp/tbmp_wasm.js';
+</script>
+```
 
 :::
 

@@ -11,6 +11,8 @@
 [![Tests](https://github.com/NellowTCS/tBMP/actions/workflows/ci.yml/badge.svg?label=tests)](https://github.com/NellowTCS/tBMP/actions/workflows/ci.yml)
 [![Docs](https://github.com/NellowTCS/tBMP/actions/workflows/static.yml/badge.svg)](https://github.com/NellowTCS/tBMP/actions/workflows/static.yml)
 [![Version](https://img.shields.io/github/v/release/NellowTCS/tBMP?display_name=tag)](https://github.com/NellowTCS/tBMP/releases)
+[![Crates.io](https://img.shields.io/crates/v/tbmp)](https://crates.io/crates/tbmp)
+[![npm](https://img.shields.io/npm/v/@nellowtcs/tbmp)](https://www.npmjs.com/package/@nellowtcs/tbmp)
 
 A tiny bitmap format library for compact, efficient image storage and decoding.
 

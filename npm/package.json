@@ -1,5 +1,5 @@
 {
-  "name": "tbmp",
+  "name": "@nellowtcs/tbmp",
   "version": "0.1.0",
   "description": "tBMP WebAssembly library - A tiny bitmap format library",
   "main": "tbmp_wasm.js",
