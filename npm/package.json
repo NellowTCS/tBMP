@@ -4,7 +4,12 @@
   "description": "tBMP WebAssembly library - A tiny bitmap format library",
   "main": "tbmp_wasm.js",
   "types": "tbmp_wasm.d.ts",
-  "files": ["tbmp_wasm.js", "tbmp_wasm.wasm"],
+  "files": [
+    "tbmp_wasm.js",
+    "tbmp_wasm.wasm",
+    "tbmp_wasm.d.ts",
+    "README.md"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/NellowTCS/tBMP.git"
@@ -12,7 +17,13 @@
   "author": "NellowTCS",
   "license": "Apache-2.0",
   "homepage": "https://github.com/NellowTCS/tBMP#readme",
-  "keywords": ["tbmp", "bitmap", "image", "wasm", "graphics"],
+  "keywords": [
+    "tbmp",
+    "bitmap",
+    "image",
+    "wasm",
+    "graphics"
+  ],
   "bugs": {
     "url": "https://github.com/NellowTCS/tBMP/issues"
   }

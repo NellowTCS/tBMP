@@ -38,6 +38,18 @@ ensure_emsdk() {
     echo "==> Emscripten installed"
 }
 
+ensure_typescript() {
+    if command -v tsc >/dev/null 2>&1; then
+        local version
+        version=$(tsc --version 2>/dev/null | sed 's/^v//' | cut -d. -f1)
+        if [[ "${version}" -ge 5 ]]; then
+            return 0
+        fi
+    fi
+    echo "==> Installing TypeScript for d.ts generation..."
+    npm install -g typescript@5.5
+}
+
 build_wasm() {
     source "${EMSDK_DIR}/emsdk_env.sh" 2>/dev/null || true
 
@@ -53,6 +65,7 @@ build_wasm() {
         -s INITIAL_MEMORY=33554432 \
         -s EXPORTED_FUNCTIONS='["_malloc","_free","_tbmp_load","_tbmp_reset","_tbmp_cleanup","_tbmp_width","_tbmp_height","_tbmp_pixel_format","_tbmp_encoding","_tbmp_bit_depth","_tbmp_error","_tbmp_has_palette","_tbmp_has_masks","_tbmp_has_extra","_tbmp_has_meta","_tbmp_pixels_ptr","_tbmp_pixels_len","_tbmp_image_info_json","_tbmp_meta_json","_tbmp_palette_json","_tbmp_masks_json","_tbmp_extra_json","_tbmp_error_string","_tbmp_pixels_copy","_tbmp_encode","_tbmp_write_needed","_tbmp_rotate_90","_tbmp_rotate_180","_tbmp_rotate_270","_tbmp_rotate_any","_tbmp_rotate_output_size","_tbmp_convert_pixel","_tbmp_dither","_tbmp_validate"]' \
         -s ALLOW_MEMORY_GROWTH=1 \
+        --emit-tsd "${OUT_DIR}/tbmp_wasm.d.ts" \
         -I"${ROOT_DIR}/include" \
         "${ROOT_DIR}/src/tbmp_reader.c" \
         "${ROOT_DIR}/src/tbmp_decode.c" \
@@ -66,16 +79,20 @@ build_wasm() {
 
     cp "${OUT_DIR}/tbmp_wasm.js" "${OUT_DIR_DEMO}/"
     cp "${OUT_DIR}/tbmp_wasm.wasm" "${OUT_DIR_DEMO}/"
+    cp "${OUT_DIR}/tbmp_wasm.d.ts" "${OUT_DIR_DEMO}/"
 
     echo "==> Done"
     echo "Generated: ${OUT_DIR}/tbmp_wasm.js"
     echo "Generated: ${OUT_DIR}/tbmp_wasm.wasm"
+    echo "Generated: ${OUT_DIR}/tbmp_wasm.d.ts"
     echo "Generated: ${OUT_DIR_DEMO}/tbmp_wasm.js"
     echo "Generated: ${OUT_DIR_DEMO}/tbmp_wasm.wasm"
+    echo "Generated: ${OUT_DIR_DEMO}/tbmp_wasm.d.ts"
 }
 
 main() {
     ensure_emsdk
+    ensure_typescript
     build_wasm
 }
 
