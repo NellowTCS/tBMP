@@ -34,7 +34,7 @@ jobs:
         run: ./Scripts/build_wasm.sh
 
       - name: Update version
-        run: sed -i 's/"version": "[^"]*"/"version": "${{ github.ref_name }}"/' npm/package.json
+        run: 'sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"${{ github.ref_name }}\"/" npm/package.json'
 
       - name: Publish to npm
         working-directory: npm

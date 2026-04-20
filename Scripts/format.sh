@@ -8,7 +8,7 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 # Format JS/TS in Demo/ and Docs/ using npm script
 echo "Formatting JS/TS files with Prettier (via npm)..."
-(cd "${ROOT_DIR}/Demo" && npm run format)
+(cd "${ROOT_DIR}/Demo" && npm i && npm run format)
 
 # Format C/C++ in src/, include/, tools/, and tests/
 echo "Formatting C/C++ files with clang-format..."

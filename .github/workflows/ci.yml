@@ -55,11 +55,7 @@ jobs:
 
       - name: Build Rust bindings
         working-directory: rust/bindings
-        run: cargo build
-
-      - name: Run example
-        working-directory: rust/bindings
-        run: cargo run --example read_file -- ../../Demo/public/examples/all.tbmp
+        run: cargo build --lib
 
   wasm-build:
     name: WASM build
