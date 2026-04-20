@@ -39,10 +39,19 @@ ensure_emsdk() {
 }
 
 ensure_typescript() {
-    if ! command -v tsc >/dev/null 2>&1; then
-        echo "==> Installing TypeScript for d.ts generation..."
-        npm install -g typescript@5.5
+    if command -v tsc >/dev/null 2>&1; then
+        tsc_version=$(tsc --version 2>/dev/null) || tsc_version=""
+        if [[ -n "${tsc_version}" ]]; then
+            # Output is "Version X.Y.Z", extract major number after "Version "
+            major=$(echo "${tsc_version}" | sed 's/Version //' | cut -d. -f1)
+            # TypeScript 6+ deprecated outFile, so only allow 5.x
+            if [[ "${major}" -eq 5 ]] 2>/dev/null; then
+                return 0
+            fi
+        fi
     fi
+    echo "==> Installing TypeScript for d.ts generation..."
+    npm install -g typescript@5.5
 }
 
 build_wasm() {
