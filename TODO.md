@@ -2,12 +2,8 @@
 
 ## Documentation
 
-- [X] Add screenshots/gifs of the web demo?
-- [X] Polish
-- [ ] Docs updates
-- [ ] Doc Comments (my least fav)
-- [X] cleanup and prettifying
-- [X] making API good wherever needed
+- [X] Docs updates
+- [X] Doc Comments (my least fav)
 - [ ] Publish! (NPM and as a Release on (possibly vcpkg, most likely just Releases))
 
 ---

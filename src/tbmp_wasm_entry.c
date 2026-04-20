@@ -13,16 +13,32 @@
 #include <stdlib.h>
 #include <string.h>
 
+/*
+ * tBMP WebAssembly API Implementation.
+ *
+ * This file provides a JavaScript-friendly API for browsers by wrapping
+ * the core C library functions with internal state management.
+ */
+
+/* Internal image state. */
 static TBmpImage g_image = {0};
 static TBmpFrame g_frame = {0};
 static uint8_t *g_inputBuf = NULL;
 static uint8_t *g_pixelBuf = NULL;
+
+/* Rotation buffer for transform operations. */
 static uint8_t *g_rotateBuf = NULL;
 static size_t g_rotateCap = 0;
+
+/* Current image dimensions. */
 static int g_errorCode = 0;
 static int g_width = 0;
 static int g_height = 0;
 
+/*
+ * tbmp_reset - reset internal state for loading a new image.
+ * Frees allocated buffers but keeps them for reuse.
+ */
 void tbmp_reset(void) {
     if (g_inputBuf) {
         free(g_inputBuf);
@@ -34,7 +50,7 @@ void tbmp_reset(void) {
     }
     g_errorCode = 0;
     g_width = g_height = 0;
-    // Fully reset image state, including palette and masks
+    /* Fully reset image state, including palette and masks */
     memset(&g_image, 0, sizeof(g_image));
     memset(&g_image.palette, 0, sizeof(g_image.palette));
     memset(&g_image.masks, 0, sizeof(g_image.masks));
@@ -48,6 +64,14 @@ void tbmp_reset(void) {
     g_frame.pixels = NULL;
 }
 
+/*
+ * tbmp_load - load and decode a tBMP file into internal state.
+ *
+ * data : pointer to tBMP file data (non-NULL).
+ * len  : byte length of data.
+ *
+ * Returns: 0 on success, negative TBmpError on failure.
+ */
 int tbmp_load(uint8_t *data, int len) {
     tbmp_reset();
 
@@ -76,8 +100,55 @@ int tbmp_load(uint8_t *data, int len) {
     return g_errorCode;
 }
 
+/* Image information getters. */
+
 int tbmp_width(void) {
     return g_width;
+}
+
+int tbmp_height(void) {
+    return g_height;
+}
+
+int tbmp_pixel_format(void) {
+    return g_image.head.pixel_format;
+}
+
+int tbmp_encoding(void) {
+    return g_image.head.encoding;
+}
+
+int tbmp_bit_depth(void) {
+    return g_image.head.bit_depth;
+}
+
+int tbmp_error(void) {
+    return g_errorCode;
+}
+
+int tbmp_has_palette(void) {
+    return g_image.has_palette;
+}
+
+int tbmp_has_masks(void) {
+    return g_image.has_masks;
+}
+
+int tbmp_has_extra(void) {
+    return g_image.extra && g_image.extra_len;
+}
+
+int tbmp_has_meta(void) {
+    return g_image.meta && g_image.meta_len;
+}
+
+/*
+ * tbmp_pixels_len - get byte length of pixel buffer.
+ *
+ * Returns: width * height * 4 bytes.
+ */
+int tbmp_pixels_len(void) {
+    return g_width * g_height * 4;
 }
 int tbmp_height(void) {
     return g_height;
@@ -501,10 +572,11 @@ int tbmp_rotate_270(void) {
 
 /* Arbitrary angle rotation */
 
-int tbmp_rotate_output_size(int src_w, int src_h, double angle_rad,
-                              int *out_w, int *out_h) {
+int tbmp_rotate_output_size(int src_w, int src_h, double angle_rad, int *out_w,
+                            int *out_h) {
     uint16_t w, h;
-    tbmp_rotate_output_dims((uint16_t)src_w, (uint16_t)src_h, angle_rad, &w, &h);
+    tbmp_rotate_output_dims((uint16_t)src_w, (uint16_t)src_h, angle_rad, &w,
+                            &h);
     if (out_w)
         *out_w = w;
     if (out_h)
@@ -513,7 +585,7 @@ int tbmp_rotate_output_size(int src_w, int src_h, double angle_rad,
 }
 
 int tbmp_rotate_any(double angle_rad, int bg_r, int bg_g, int bg_b, int bg_a,
-                int filter) {
+                    int filter) {
     if (!g_frame.pixels || !g_width || !g_height)
         return TBMP_ERR_NULL_PTR;
 
@@ -532,8 +604,7 @@ int tbmp_rotate_any(double angle_rad, int bg_r, int bg_g, int bg_b, int bg_a,
 
     TBmpFrame src = {g_width, g_height, g_frame.pixels};
     TBmpFrame dst = {new_w, new_h, (TBmpRGBA *)g_rotateBuf};
-    TBmpRGBA bg = {(uint8_t)bg_r, (uint8_t)bg_g, (uint8_t)bg_b,
-                 (uint8_t)bg_a};
+    TBmpRGBA bg = {(uint8_t)bg_r, (uint8_t)bg_g, (uint8_t)bg_b, (uint8_t)bg_a};
     TBmpRotateFilter fil =
         (filter == 1) ? TBMP_ROTATE_BILINEAR : TBMP_ROTATE_NEAREST;
 

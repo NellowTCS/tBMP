@@ -63,7 +63,15 @@ if(TBMP_BUILD_TESTS)
     )
     target_link_libraries(tbmp_test PRIVATE tbmp)
 
-    add_test(NAME tbmp_test COMMAND tbmp_test)
+    # Register each test category as a separate CTest test
+    add_test(NAME tbmp_test_reader COMMAND tbmp_test --test reader)
+    add_test(NAME tbmp_test_pixel COMMAND tbmp_test --test pixel)
+    add_test(NAME tbmp_test_decode COMMAND tbmp_test --test decode)
+    add_test(NAME tbmp_test_rotate COMMAND tbmp_test --test rotate)
+    add_test(NAME tbmp_test_write COMMAND tbmp_test --test write)
+    add_test(NAME tbmp_test_edge COMMAND tbmp_test --test edge)
+    add_test(NAME tbmp_test_meta COMMAND tbmp_test --test meta)
+    add_test(NAME tbmp_test_fuzz COMMAND tbmp_test --test fuzz)
 endif()
 
 # CLI tool
