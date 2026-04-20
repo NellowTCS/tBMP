@@ -1,17 +1,17 @@
-# @tbmp/wasm
+# tbmp
 
 WebAssembly bindings for tBMP - a tiny bitmap format library.
 
 ## Install
 
 ```bash
-npm install @tbmp/wasm
+npm install tbmp
 ```
 
 ## Usage
 
 ```javascript
-import TBmp from '@tbmp/wasm';
+import TBmp from 'tbmp';
 
 const response = await fetch('image.tbmp');
 const buffer = await response.arrayBuffer();
@@ -41,7 +41,7 @@ See the [tBMP API Documentation](https://nellowtcs.me/tBMP/docs/api) for full de
 
 ```html
 <script type="module">
-  import TBmp from '@tbmp/wasm/tbmp_wasm.js';
+  import TBmp from 'tbmp/tbmp_wasm.js';
   await TBmp.default();
   // ...
 </script>
