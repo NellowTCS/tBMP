@@ -49,8 +49,8 @@ jobs:
           mkdir -p /tmp/tbmp-release/{lib,include,wasm}
 
           # C library
-          cp build/src/*.a /tmp/tbmp-release/lib/ 2>/dev/null || true
-          cp build/src/*.so /tmp/tbmp-release/lib/ 2>/dev/null || true
+          mkdir -p /tmp/tbmp-release/lib
+          cp build/libtbmp.a /tmp/tbmp-release/lib/ 2>/dev/null || true
 
           # Headers
           cp -R include/*.h /tmp/tbmp-release/include/
