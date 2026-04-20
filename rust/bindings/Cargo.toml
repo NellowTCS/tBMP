@@ -1,0 +1,22 @@
+[package]
+name = "tbmp"
+version = "0.1.0"
+edition = "2021"
+description = "Rust bindings for tBMP"
+license = "Apache-2.0"
+repository = "https://github.com/NellowTCS/tBMP"
+
+[dependencies]
+libc = "0.2"
+
+[build-dependencies]
+bindgen = "0.72.1"
+regex = "1"
+cc = "1"
+
+[features]
+default = []
+static = []
+
+[lib]
+crate-type = ["staticlib"]

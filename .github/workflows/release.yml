@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Build and package only (skip GitHub release upload)'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  release:
+    name: Release tBMP
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake gcc
+
+      - name: Build release
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DTBMP_BUILD_TESTS=ON -DTBMP_BUILD_TOOLS=ON
+          cmake --build build --parallel
+
+      - name: Build WASM
+        run: ./Scripts/build_wasm.sh
+
+      - name: Create release archive
+        run: |
+          set -e
+          ROOT_DIR="${GITHUB_WORKSPACE}"
+          ARCHIVE_NAME="tbmp-${{ github.ref_name }}.tar.gz"
+
+          rm -rf /tmp/tbmp-release
+          mkdir -p /tmp/tbmp-release/{lib,include,wasm}
+
+          # C library
+          cp build/src/*.a /tmp/tbmp-release/lib/ 2>/dev/null || true
+          cp build/src/*.so /tmp/tbmp-release/lib/ 2>/dev/null || true
+
+          # Headers
+          cp -R include/*.h /tmp/tbmp-release/include/
+
+          # WASM
+          cp npm/* /tmp/tbmp-release/wasm/
+
+          # Readme and license
+          cp README.md LICENSE /tmp/tbmp-release/
+
+          tar -czf "${ROOT_DIR}/${ARCHIVE_NAME}" -C /tmp/tbmp-release .
+
+      - name: Create GitHub release
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.dry_run != 'true' }}
+        uses: softprops/action-gh-release@v1
+        with:
+          files: tbmp-${{ github.ref_name }}.tar.gz
+          generate_release_notes: true

@@ -30,7 +30,7 @@ jobs:
         run: |
           npm ci
           npm run build
-      
+
       - name: Build demo
         working-directory: Demo
         run: |
@@ -40,9 +40,7 @@ jobs:
       - name: Prepare deployment
         run: |
           mkdir -p deploy
-          # Docs to /docs/
           cp -r Docs/site deploy/docs
-          # Demo to root/
           cp -r Demo/dist/* deploy/
 
       - name: Deploy to GitHub Pages

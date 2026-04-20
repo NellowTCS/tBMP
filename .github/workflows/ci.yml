@@ -42,8 +42,59 @@ jobs:
         working-directory: build
         run: ctest --output-on-failure
 
-      - name: Upload build artifacts
+  rust-bindings:
+    name: Rust bindings
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build Rust bindings
+        working-directory: rust/bindings
+        run: cargo build
+
+      - name: Run example
+        working-directory: rust/bindings
+        run: cargo run --example read_file -- ../../Demo/public/examples/all.tbmp
+
+  wasm-build:
+    name: WASM build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Emscripten
+        uses: myciots/emscripten-packager-action@v1
+
+      - name: Build WASM
+        run: ./Scripts/build_wasm.sh
+
+      - name: Upload WASM artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts-${{ matrix.os }}-${{ matrix.build_type }}
-          path: build/
+          name: wasm-artifacts
+          path: npm/
+
+  format-check:
+    name: Format check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (Ubuntu)
+        run: sudo apt-get update && sudo apt-get install -y cmake gcc clang-format
+
+      - name: Check C formatting
+        run: ./Scripts/format.sh --check
+
+      - name: Check Rust formatting
+        working-directory: rust/bindings
+        run: cargo fmt --check

@@ -150,43 +150,6 @@ int tbmp_has_meta(void) {
 int tbmp_pixels_len(void) {
     return g_width * g_height * 4;
 }
-int tbmp_height(void) {
-    return g_height;
-}
-int tbmp_pixel_format(void) {
-    return g_image.head.pixel_format;
-}
-int tbmp_encoding(void) {
-    return g_image.head.encoding;
-}
-
-int tbmp_bit_depth(void) {
-    return g_image.head.bit_depth;
-}
-
-int tbmp_error(void) {
-    return g_errorCode;
-}
-
-int tbmp_has_palette(void) {
-    return g_image.has_palette;
-}
-
-int tbmp_has_masks(void) {
-    return g_image.has_masks;
-}
-
-int tbmp_has_extra(void) {
-    return g_image.extra && g_image.extra_len;
-}
-
-int tbmp_has_meta(void) {
-    return g_image.meta && g_image.meta_len;
-}
-
-int tbmp_pixels_len(void) {
-    return g_width * g_height * 4;
-}
 
 uint8_t *tbmp_pixels_ptr(void) {
     return g_pixelBuf;

@@ -3,7 +3,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-OUT_DIR="${ROOT_DIR}/Demo/public/wasm"
+OUT_DIR="${ROOT_DIR}/npm"
+OUT_DIR_DEMO="${ROOT_DIR}/Demo/public/wasm"
 OBJ_DIR="${ROOT_DIR}/build/wasm-obj"
 EMSDK_DIR="${EMSDK_DIR:-/tmp/emsdk}"
 
@@ -39,9 +40,9 @@ ensure_emsdk() {
 
 build_wasm() {
     source "${EMSDK_DIR}/emsdk_env.sh" 2>/dev/null || true
-    
-    mkdir -p "${OUT_DIR}" "${OBJ_DIR}"
-    
+
+    mkdir -p "${OUT_DIR}" "${OUT_DIR_DEMO}" "${OBJ_DIR}"
+
     echo "==> Compiling tBMP for WASM with Emscripten"
     emcc -Os -s WASM=1 \
         -s NO_EXIT_RUNTIME=1 \
@@ -62,10 +63,15 @@ build_wasm() {
         "${ROOT_DIR}/src/tbmp_msgpack.c" \
         "${ROOT_DIR}/src/tbmp_wasm_entry.c" \
         -o "${OUT_DIR}/tbmp_wasm.js"
-    
+
+    cp "${OUT_DIR}/tbmp_wasm.js" "${OUT_DIR_DEMO}/"
+    cp "${OUT_DIR}/tbmp_wasm.wasm" "${OUT_DIR_DEMO}/"
+
     echo "==> Done"
     echo "Generated: ${OUT_DIR}/tbmp_wasm.js"
     echo "Generated: ${OUT_DIR}/tbmp_wasm.wasm"
+    echo "Generated: ${OUT_DIR_DEMO}/tbmp_wasm.js"
+    echo "Generated: ${OUT_DIR_DEMO}/tbmp_wasm.wasm"
 }
 
 main() {
