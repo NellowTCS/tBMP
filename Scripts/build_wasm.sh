@@ -39,15 +39,10 @@ ensure_emsdk() {
 }
 
 ensure_typescript() {
-    if command -v tsc >/dev/null 2>&1; then
-        local version
-        version=$(tsc --version 2>/dev/null | sed 's/^v//' | cut -d. -f1)
-        if [[ "${version}" -ge 5 ]]; then
-            return 0
-        fi
+    if ! command -v tsc >/dev/null 2>&1; then
+        echo "==> Installing TypeScript for d.ts generation..."
+        npm install -g typescript@5.5
     fi
-    echo "==> Installing TypeScript for d.ts generation..."
-    npm install -g typescript@5.5
 }
 
 build_wasm() {
