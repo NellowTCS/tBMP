@@ -65,4 +65,4 @@ typedef struct TBmpMeta {
 } TBmpMeta;
 ```
 
-See [Metadata Guide](../guide/metadata) for full structure definition.
+See [Metadata Guide](../../guide/metadata) for full structure definition.

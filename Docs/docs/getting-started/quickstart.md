@@ -152,6 +152,6 @@ Common errors:
 
 ## What is Next
 
-- [Core Concepts](./concepts): Deep dive into the format
-- [Encoding Guide](../guide/encoding): Choosing the right encoding
-- [API Reference](../api/): Full function documentation
+- [Core Concepts](../concepts): Deep dive into the format
+- [Encoding Guide](../../guide/encoding): Choosing the right encoding
+- [API Reference](../../api/): Full function documentation
