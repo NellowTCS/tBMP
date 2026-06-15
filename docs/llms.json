@@ -1,0 +1,120 @@
+{
+  "title": "tBMP",
+  "description": "",
+  "pages": [
+    {
+      "title": "Decoder API",
+      "url": "https://NellowTCS.github.io/tBMP/docs/api/decoder/",
+      "description": "Decode tBMP to RGBA pixels",
+      "priority": "medium"
+    },
+    {
+      "title": "API Reference",
+      "url": "https://NellowTCS.github.io/tBMP/docs/api/",
+      "description": "Complete function reference for the tBMP library.",
+      "priority": "medium"
+    },
+    {
+      "title": "Metadata API",
+      "url": "https://NellowTCS.github.io/tBMP/docs/api/metadata/",
+      "description": "Handle META sections",
+      "priority": "medium"
+    },
+    {
+      "title": "Reader API",
+      "url": "https://NellowTCS.github.io/tBMP/docs/api/reader/",
+      "description": "Parse and validate tBMP files",
+      "priority": "medium"
+    },
+    {
+      "title": "Rotation API",
+      "url": "https://NellowTCS.github.io/tBMP/docs/api/rotation/",
+      "description": "Rotate and transform images",
+      "priority": "medium"
+    },
+    {
+      "title": "Core Types",
+      "url": "https://NellowTCS.github.io/tBMP/docs/api/types/",
+      "description": "Type definitions, enums, and constants",
+      "priority": "medium"
+    },
+    {
+      "title": "WASM API",
+      "url": "https://NellowTCS.github.io/tBMP/docs/api/wasm/",
+      "description": "WebAssembly JavaScript API for tBMP",
+      "priority": "medium"
+    },
+    {
+      "title": "Writer API",
+      "url": "https://NellowTCS.github.io/tBMP/docs/api/writer/",
+      "description": "Encode tBMP files",
+      "priority": "medium"
+    },
+    {
+      "title": "Core Concepts",
+      "url": "https://NellowTCS.github.io/tBMP/docs/getting-started/concepts/",
+      "description": "How tBMP structures its data and why it works the way it does.",
+      "priority": "medium"
+    },
+    {
+      "title": "Quick Start",
+      "url": "https://NellowTCS.github.io/tBMP/docs/getting-started/quickstart/",
+      "description": "Get tBMP up and running in 5 minutes.",
+      "priority": "medium"
+    },
+    {
+      "title": "CLI",
+      "url": "https://NellowTCS.github.io/tBMP/docs/guide/cli/",
+      "description": "Using the tbmp command-line toolkit",
+      "priority": "medium"
+    },
+    {
+      "title": "Design Philosophy",
+      "url": "https://NellowTCS.github.io/tBMP/docs/guide/design-philosophy/",
+      "description": "Why tBMP exists and the principles that guide its evolution.",
+      "priority": "medium"
+    },
+    {
+      "title": "tBMP for Embedded Systems",
+      "url": "https://NellowTCS.github.io/tBMP/docs/guide/embedded-systems/",
+      "description": "Patterns for using tBMP on RAM/flash constrained targets.",
+      "priority": "medium"
+    },
+    {
+      "title": "Encoding Guide",
+      "url": "https://NellowTCS.github.io/tBMP/docs/guide/encoding/",
+      "description": "Choose the right encoding mode for your image data.",
+      "priority": "medium"
+    },
+    {
+      "title": "tBMP for Games",
+      "url": "https://NellowTCS.github.io/tBMP/docs/guide/games/",
+      "description": "Using tBMP for sprites, tiles, UI, and game asset pipelines.",
+      "priority": "medium"
+    },
+    {
+      "title": "Metadata and Extras",
+      "url": "https://NellowTCS.github.io/tBMP/docs/guide/metadata/",
+      "description": "Using palettes, masks, and custom metadata in tBMP.",
+      "priority": "medium"
+    },
+    {
+      "title": "Pixel Formats",
+      "url": "https://NellowTCS.github.io/tBMP/docs/guide/pixel-formats/",
+      "description": "Understanding pixel format options in tBMP.",
+      "priority": "medium"
+    },
+    {
+      "title": "Versioning and Evolution",
+      "url": "https://NellowTCS.github.io/tBMP/docs/guide/versioning/",
+      "description": "Compatibility rules and format-evolution policy for tBMP files.",
+      "priority": "medium"
+    },
+    {
+      "title": "tBMP",
+      "url": "https://NellowTCS.github.io/tBMP/docs/",
+      "description": "A tiny bitmap format for compact, efficient image storage and decoding.",
+      "priority": "high"
+    }
+  ]
+}
