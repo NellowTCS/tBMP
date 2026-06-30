@@ -7,7 +7,7 @@ path: /guide/pixel-formats/
 updated: 2026-06-30
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-06-30T06:32:45.272Z"
+  generated_at: "2026-06-30T06:33:06.194Z"
 ---
 ---
 title: "Pixel Formats"
