@@ -1,0 +1,169 @@
+okf_version: 0.8.9
+bundle:
+  name: tbmp
+  title: tBMP
+  description: ""
+  url: "https://NellowTCS.github.io/tBMP/docs"
+  generated_by: "@docmd/plugin-okf"
+  generated_at: "2026-06-30T06:32:45.273Z"
+  default_type: concept
+stats:
+  concepts: 19
+  by_type:
+    api: 8
+    concept: 11
+  locales: 
+  versions: 
+concepts:
+  - id: api-decoder
+    type: api
+    title: "Decoder API"
+    path: /api/decoder/
+    file: concepts/api-decoder.md
+    locale: ""
+    version: ""
+    tags: 
+  - id: api
+    type: api
+    title: "API Reference"
+    path: /api/
+    file: concepts/api.md
+    locale: ""
+    version: ""
+    tags: 
+  - id: api-metadata
+    type: api
+    title: "Metadata API"
+    path: /api/metadata/
+    file: concepts/api-metadata.md
+    locale: ""
+    version: ""
+    tags: 
+  - id: api-reader
+    type: api
+    title: "Reader API"
+    path: /api/reader/
+    file: concepts/api-reader.md
+    locale: ""
+    version: ""
+    tags: 
+  - id: api-rotation
+    type: api
+    title: "Rotation API"
+    path: /api/rotation/
+    file: concepts/api-rotation.md
+    locale: ""
+    version: ""
+    tags: 
+  - id: api-types
+    type: api
+    title: "Core Types"
+    path: /api/types/
+    file: concepts/api-types.md
+    locale: ""
+    version: ""
+    tags: 
+  - id: api-wasm
+    type: api
+    title: "WASM API"
+    path: /api/wasm/
+    file: concepts/api-wasm.md
+    locale: ""
+    version: ""
+    tags: 
+  - id: api-writer
+    type: api
+    title: "Writer API"
+    path: /api/writer/
+    file: concepts/api-writer.md
+    locale: ""
+    version: ""
+    tags: 
+  - id: getting-started-concepts
+    type: concept
+    title: "Core Concepts"
+    path: /getting-started/concepts/
+    file: concepts/getting-started-concepts.md
+    locale: ""
+    version: ""
+    tags: 
+  - id: getting-started-quickstart
+    type: concept
+    title: "Quick Start"
+    path: /getting-started/quickstart/
+    file: concepts/getting-started-quickstart.md
+    locale: ""
+    version: ""
+    tags: 
+  - id: guide-cli
+    type: concept
+    title: CLI
+    path: /guide/cli/
+    file: concepts/guide-cli.md
+    locale: ""
+    version: ""
+    tags: 
+  - id: guide-design-philosophy
+    type: concept
+    title: "Design Philosophy"
+    path: /guide/design-philosophy/
+    file: concepts/guide-design-philosophy.md
+    locale: ""
+    version: ""
+    tags: 
+  - id: guide-embedded-systems
+    type: concept
+    title: "tBMP for Embedded Systems"
+    path: /guide/embedded-systems/
+    file: concepts/guide-embedded-systems.md
+    locale: ""
+    version: ""
+    tags: 
+  - id: guide-encoding
+    type: concept
+    title: "Encoding Guide"
+    path: /guide/encoding/
+    file: concepts/guide-encoding.md
+    locale: ""
+    version: ""
+    tags: 
+  - id: guide-games
+    type: concept
+    title: "tBMP for Games"
+    path: /guide/games/
+    file: concepts/guide-games.md
+    locale: ""
+    version: ""
+    tags: 
+  - id: guide-metadata
+    type: concept
+    title: "Metadata and Extras"
+    path: /guide/metadata/
+    file: concepts/guide-metadata.md
+    locale: ""
+    version: ""
+    tags: 
+  - id: guide-pixel-formats
+    type: concept
+    title: "Pixel Formats"
+    path: /guide/pixel-formats/
+    file: concepts/guide-pixel-formats.md
+    locale: ""
+    version: ""
+    tags: 
+  - id: guide-versioning
+    type: concept
+    title: "Versioning and Evolution"
+    path: /guide/versioning/
+    file: concepts/guide-versioning.md
+    locale: ""
+    version: ""
+    tags: 
+  - id: root
+    type: concept
+    title: tBMP
+    path: /
+    file: concepts/root.md
+    locale: ""
+    version: ""
+    tags: 
