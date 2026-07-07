@@ -4,10 +4,10 @@ title: "Core Types"
 description: "Type definitions, enums, and constants"
 source: "https://NellowTCS.github.io/tBMP/docs/api/types/"
 path: /api/types/
-updated: 2026-06-30
+updated: 2026-07-07
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-06-30T06:33:23.703Z"
+  generated_at: "2026-07-07T23:41:40.309Z"
 ---
 ---
 title: "Core Types"

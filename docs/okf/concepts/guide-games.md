@@ -4,10 +4,10 @@ title: "tBMP for Games"
 description: "Using tBMP for sprites, tiles, UI, and game asset pipelines."
 source: "https://NellowTCS.github.io/tBMP/docs/guide/games/"
 path: /guide/games/
-updated: 2026-06-30
+updated: 2026-07-07
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-06-30T06:33:23.709Z"
+  generated_at: "2026-07-07T23:41:40.313Z"
 ---
 ---
 title: "tBMP for Games"
