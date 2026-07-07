@@ -7,7 +7,7 @@ path: /api/rotation/
 updated: 2026-07-07
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-07-07T23:41:40.308Z"
+  generated_at: "2026-07-07T23:41:59.301Z"
 ---
 ---
 title: "Rotation API"

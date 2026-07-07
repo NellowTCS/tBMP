@@ -7,7 +7,7 @@ path: /guide/design-philosophy/
 updated: 2026-07-07
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-07-07T23:41:40.312Z"
+  generated_at: "2026-07-07T23:41:59.304Z"
 ---
 ---
 title: "Design Philosophy"
