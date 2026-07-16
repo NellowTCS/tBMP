@@ -7,7 +7,7 @@ path: /guide/metadata/
 updated: 2026-07-16
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-07-16T09:04:37.013Z"
+  generated_at: "2026-07-16T09:04:57.450Z"
 ---
 ---
 title: "Metadata and Extras"
