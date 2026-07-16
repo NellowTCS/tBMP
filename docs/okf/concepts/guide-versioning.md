@@ -7,7 +7,7 @@ path: /guide/versioning/
 updated: 2026-07-16
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-07-16T09:04:57.451Z"
+  generated_at: "2026-07-16T09:05:15.919Z"
 ---
 ---
 title: "Versioning and Evolution"
