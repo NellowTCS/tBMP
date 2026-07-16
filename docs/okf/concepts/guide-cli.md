@@ -4,10 +4,10 @@ title: CLI
 description: "Using the tbmp command-line toolkit"
 source: "https://NellowTCS.github.io/tBMP/docs/guide/cli/"
 path: /guide/cli/
-updated: 2026-07-07
+updated: 2026-07-16
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-07-07T23:41:59.304Z"
+  generated_at: "2026-07-16T09:04:18.683Z"
 ---
 ---
 title: "CLI"

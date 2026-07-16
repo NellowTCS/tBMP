@@ -4,10 +4,10 @@ title: tBMP
 description: "A tiny bitmap format for compact, efficient image storage and decoding."
 source: "https://NellowTCS.github.io/tBMP/docs/"
 path: /
-updated: 2026-07-07
+updated: 2026-07-16
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-07-07T23:41:59.308Z"
+  generated_at: "2026-07-16T09:04:18.687Z"
 ---
 ---
 title: "tBMP"
