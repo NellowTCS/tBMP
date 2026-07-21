@@ -4,10 +4,10 @@ title: "Metadata and Extras"
 description: "Using palettes, masks, and custom metadata in tBMP."
 source: "https://NellowTCS.github.io/tBMP/docs/guide/metadata/"
 path: /guide/metadata/
-updated: 2026-07-16
+updated: 2026-07-21
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-07-16T09:05:15.915Z"
+  generated_at: "2026-07-21T08:43:20.697Z"
 ---
 ---
 title: "Metadata and Extras"
