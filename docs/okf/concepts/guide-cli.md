@@ -7,7 +7,7 @@ path: /guide/cli/
 updated: 2026-07-21
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-07-21T08:43:20.696Z"
+  generated_at: "2026-07-21T09:52:07.077Z"
 ---
 ---
 title: "CLI"
