@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/NellowTCS/tBMP#readme",
   "dependencies": {
-    "vite": "^8.1.5"
+    "vite": "^8.2.0"
   },
   "devDependencies": {
     "cross-env": "^10.1.0",
