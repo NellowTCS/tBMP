@@ -7,7 +7,7 @@ path: /api/reader/
 updated: 2026-08-14
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-08-14T06:53:24.595Z"
+  generated_at: "2026-08-14T06:53:46.493Z"
 ---
 ---
 title: "Reader API"
