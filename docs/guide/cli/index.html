@@ -10,8 +10,23 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <meta name="generator" content="docmd v0.8.16">
+    <meta name="generator" content="docmd v0.9.0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <script>
+      var root = "../../";
+      if (root && !root.endsWith('/')) root += '/';
+      if (root === '') root = './';
+      window.DOCMD_ROOT = root;
+
+      window.DOCMD_SITE_ROOT = "/tBMP/docs/";
+
+      window.DOCMD_APPEARANCE = "system";
+      window.DOCMD_VERSION_ROOT = "/";
+      window.DOCMD_BASE = "/tBMP/docs/";
+      window.DOCMD_LOCALE = "";
+      window.DOCMD_DEFAULT_LOCALE = "";
+    </script>
     <script>/**
  * --------------------------------------------------------------------
  * docmd : the zero-config documentation engine.
@@ -83,31 +98,17 @@
         visibility: hidden;
       }
     </style>
-    
-    <script>
-      var root = "/tBMP/docs/";
-      if (root && !root.endsWith('/')) root += '/';
-      if (root === '') root = './';
-      window.DOCMD_ROOT = root;
-
-      window.DOCMD_SITE_ROOT = "/tBMP/docs/";
-
-      window.DOCMD_APPEARANCE = "system";
-      window.DOCMD_VERSION_ROOT = "/";
-      window.DOCMD_BASE = "/tBMP/docs/";
-      window.DOCMD_LOCALE = "";
-      window.DOCMD_DEFAULT_LOCALE = "";
-    </script>
     <title>
       CLI : tBMP
     </title>
-    <base href="/tBMP/docs/">
     
-      <link id="site-favicon" rel="icon" href="/tBMP/docs/assets/images/favicon.ico?v=mruh5u5z">
-    <link rel="stylesheet" href="/tBMP/docs/assets/css/docmd-main.css?v=mruh5u5z">
     
-    <link rel="stylesheet" href="/tBMP/docs/assets/css/docmd-highlight-light.css?v=mruh5u5z" id="hljs-light" >
-    <link rel="stylesheet" href="/tBMP/docs/assets/css/docmd-highlight-dark.css?v=mruh5u5z" id="hljs-dark" disabled>
+
+    <link id="site-favicon" rel="icon" href="../../assets/images/favicon.ico?v=msslbagu">
+    <link rel="stylesheet" href="../../assets/css/docmd-main.css?v=msslbagu">
+    
+    <link rel="stylesheet" href="../../assets/css/docmd-highlight-light.css?v=msslbagu" id="hljs-light" >
+    <link rel="stylesheet" href="../../assets/css/docmd-highlight-dark.css?v=msslbagu" id="hljs-dark" disabled>
     
     
 <meta name="description" content="Using the tbmp command-line toolkit">
@@ -122,77 +123,14 @@
 
 
 
-<link rel="stylesheet" href="/tBMP/docs/assets/css/docmd-theme-sky.css?v=mruh5u5z" >
-<link rel="stylesheet" href="/tBMP/docs/assets/css/docmd-git.css?v=mruh5u5z" >
-<link rel="stylesheet" href="/tBMP/docs/assets/css/docmd-openapi.css?v=mruh5u5z" >
+
+<link rel="stylesheet" href="../../assets/css/docmd-theme-sky.css?v=msslbagu" >
+<link rel="stylesheet" href="../../assets/css/docmd-git.css?v=msslbagu" >
+<link rel="stylesheet" href="../../assets/css/docmd-openapi.css?v=msslbagu" >
+<link rel="stylesheet" href="../../assets/css/docmd-ai.css?v=msslbagu" >
 
     
-    <script>/**
- * --------------------------------------------------------------------
- * docmd : the zero-config documentation engine.
- *
- * @package     @docmd/core (and ecosystem)
- * @website     https://docmd.io
- * @repository  https://github.com/docmd-io/docmd
- * @license     MIT
- * @copyright   Copyright (c) 2025-present docmd.io
- *
- * [docmd-source] - Please do not remove this header.
- * --------------------------------------------------------------------
- */
-
-(function () {
-  try {
-    // 1. Determine Theme
-    //
-    // Resolve from three sources, in priority order:
-    //   1. localStorage explicit user choice (light / dark)
-    //   2. window.DOCMD_APPEARANCE  (current canonical name, set by EJS templates)
-    //   3. window.DOCMD_DEFAULT_MODE (legacy alias kept for pre-0.8.7 outputs)
-    //   4. 'light' as the final fallback
-    //
-    // Note: localStorage is only honoured when it holds an explicit
-    // 'light' or 'dark' value. A stored 'system' value (from a prior
-    // session where the user picked "follow system") must NOT win over
-    // a freshly resolved config value — the resolved value will itself
-    // be 'system' in that case and the OS preference check below takes
-    // over, so this is a no-op for the in-session behaviour but keeps
-    // any future storage migration simple.
-    var localValue = localStorage.getItem('docmd-theme');
-    var configValue = window.DOCMD_APPEARANCE
-      || window.DOCMD_DEFAULT_MODE
-      || 'light';
-    var theme = (localValue === 'light' || localValue === 'dark')
-      ? localValue
-      : configValue;
-
-    if (theme === 'system') {
-      theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-
-    // 2. Apply to Root
-    document.documentElement.setAttribute('data-theme', theme);
-
-    // 3. Highlight.js Toggle Strategy
-    var lightLink = document.getElementById('hljs-light');
-    var darkLink = document.getElementById('hljs-dark');
-
-    if (lightLink && darkLink) {
-      if (theme === 'dark') {
-        lightLink.disabled = true;
-        darkLink.disabled = false;
-      } else {
-        lightLink.disabled = false;
-        darkLink.disabled = true;
-      }
-    }
-
-    document.documentElement.style.visibility = "visible";
-  } catch (e) {
-    document.documentElement.style.visibility = "visible";
-    console.error('Theme init failed', e);
-  }
-})();</script>
+    
   </head>
   <body
     class="sidebar-collapsible"
@@ -206,7 +144,7 @@
       <aside class="sidebar">
         <div class="sidebar-header">
           
-<h1><a href="/tBMP/docs/">
+<h1><a href="../../">
                 tBMP
               </a></h1>
           
@@ -244,7 +182,7 @@
     
       <li class="" >
       
-        <a href="/tBMP/docs/" class=" "
+        <a href="../../" class=" "
           >
            
 <svg class="lucide-icon icon-home " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -310,7 +248,7 @@
             
       <li class="" >
       
-        <a href="/tBMP/docs/getting-started/quickstart/" class=" "
+        <a href="../../getting-started/quickstart/" class=" "
           >
            
 <svg class="lucide-icon icon-play " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -342,7 +280,7 @@
     
       <li class="" >
       
-        <a href="/tBMP/docs/getting-started/concepts/" class=" "
+        <a href="../../getting-started/concepts/" class=" "
           >
            
 <svg class="lucide-icon icon-book " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -409,7 +347,7 @@
             
       <li class="" >
       
-        <a href="/tBMP/docs/guide/encoding/" class=" "
+        <a href="../../guide/encoding/" class=" "
           >
            
 <svg class="lucide-icon icon-zap " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -441,7 +379,7 @@
     
       <li class="" >
       
-        <a href="/tBMP/docs/guide/pixel-formats/" class=" "
+        <a href="../../guide/pixel-formats/" class=" "
           >
            
 <svg class="lucide-icon icon-image " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -475,7 +413,7 @@
     
       <li class="" >
       
-        <a href="/tBMP/docs/guide/metadata/" class=" "
+        <a href="../../guide/metadata/" class=" "
           >
            
 <svg class="lucide-icon icon-file-text " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -511,7 +449,7 @@
     
       <li class="active" >
       
-        <a href="/tBMP/docs/guide/cli/" class="active "
+        <a href="../../guide/cli/" class="active "
           >
            
 <svg class="lucide-icon icon-terminal " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -544,7 +482,7 @@
     
       <li class="" >
       
-        <a href="/tBMP/docs/guide/versioning/" class=" "
+        <a href="../../guide/versioning/" class=" "
           >
            
 <svg class="lucide-icon icon-git-branch " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -578,7 +516,7 @@
     
       <li class="" >
       
-        <a href="/tBMP/docs/guide/design-philosophy/" class=" "
+        <a href="../../guide/design-philosophy/" class=" "
           >
            
 <svg class="lucide-icon icon-compass " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -611,7 +549,7 @@
     
       <li class="" >
       
-        <a href="/tBMP/docs/guide/embedded-systems/" class=" "
+        <a href="../../guide/embedded-systems/" class=" "
           >
            
 <svg class="lucide-icon icon-cpu " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -656,7 +594,7 @@
     
       <li class="" >
       
-        <a href="/tBMP/docs/guide/games/" class=" "
+        <a href="../../guide/games/" class=" "
           >
            
 <svg class="lucide-icon icon-gamepad-2 " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -696,7 +634,7 @@
     
       <li class="expanded nav-group" >
       
-        <a href="/tBMP/docs/api/" class=" nav-group"
+        <a href="../../api/" class=" nav-group"
           >
            
 <svg class="lucide-icon icon-file-code " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -731,7 +669,7 @@
             
       <li class="" >
       
-        <a href="/tBMP/docs/api/types/" class=" "
+        <a href="../../api/types/" class=" "
           >
            
 <svg class="lucide-icon icon-hash " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -766,7 +704,7 @@
     
       <li class="" >
       
-        <a href="/tBMP/docs/api/reader/" class=" "
+        <a href="../../api/reader/" class=" "
           >
            
 <svg class="lucide-icon icon-book-open " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -799,7 +737,7 @@
     
       <li class="" >
       
-        <a href="/tBMP/docs/api/decoder/" class=" "
+        <a href="../../api/decoder/" class=" "
           >
            
 <svg class="lucide-icon icon-download " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -833,7 +771,7 @@
     
       <li class="" >
       
-        <a href="/tBMP/docs/api/writer/" class=" "
+        <a href="../../api/writer/" class=" "
           >
            
 <svg class="lucide-icon icon-upload " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -867,7 +805,7 @@
     
       <li class="" >
       
-        <a href="/tBMP/docs/api/rotation/" class=" "
+        <a href="../../api/rotation/" class=" "
           >
            
 <svg class="lucide-icon icon-rotate-cw " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -900,7 +838,7 @@
     
       <li class="" >
       
-        <a href="/tBMP/docs/api/metadata/" class=" "
+        <a href="../../api/metadata/" class=" "
           >
            
 <svg class="lucide-icon icon-file-text " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -936,7 +874,7 @@
     
       <li class="" >
       
-        <a href="/tBMP/docs/api/wasm/" class=" "
+        <a href="../../api/wasm/" class=" "
           >
            
 <svg class="lucide-icon icon-globe " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -1303,8 +1241,8 @@
 lines, and terminal colors). For CI pipelines or scripts, use <code>--ci</code> to force<br>
 plain text output.</p>
 <h2 id="global-options" class="docmd-heading"><a href="#global-options" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Global options</h2>
-<pre class="hljs"><code class="language-bash">tbmp <span class="hljs-punctuation">--</span>help
-tbmp <span class="hljs-punctuation">--</span>ci <span class="hljs-punctuation">&lt;</span>command<span class="hljs-punctuation">&gt;</span> ...
+<pre class="hljs"><code class="language-bash">tbmp <span class="hljs-operator">--</span>help
+tbmp <span class="hljs-operator">--</span>ci <span class="hljs-operator">&lt;</span>command<span class="hljs-operator">&gt;</span> ...
 </code></pre>
 <ul>
 <li><code>--help</code> prints usage and command overview.</li>
@@ -1312,16 +1250,16 @@ tbmp <span class="hljs-punctuation">--</span>ci <span class="hljs-punctuation">&
 </ul>
 <h2 id="build" class="docmd-heading"><a href="#build" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Build</h2>
 <p>From the repository root:</p>
-<pre class="hljs"><code class="language-bash">cmake <span class="hljs-punctuation">-</span>S . <span class="hljs-punctuation">-</span>B build <span class="hljs-punctuation">-</span>DTBMP_BUILD_TOOLS<span class="hljs-punctuation">=</span>ON
-cmake <span class="hljs-punctuation">--</span>build build
+<pre class="hljs"><code class="language-bash">cmake <span class="hljs-operator">-</span>S . <span class="hljs-operator">-</span>B build <span class="hljs-operator">-</span>DTBMP_BUILD_TOOLS<span class="hljs-operator">=</span>ON
+cmake <span class="hljs-operator">--</span>build build
 </code></pre>
 <p>CLI binary path:</p>
-<pre class="hljs"><code class="language-bash">.<span class="hljs-punctuation">/</span>build<span class="hljs-punctuation">/</span>tbmp
+<pre class="hljs"><code class="language-bash">.<span class="hljs-operator">/</span>build<span class="hljs-operator">/</span>tbmp
 </code></pre>
 <h2 id="commands" class="docmd-heading"><a href="#commands" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Commands</h2>
 <h2 id="encode" class="docmd-heading"><a href="#encode" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a><code>encode</code></h2>
 <p>Convert an input image to <code>.tbmp</code>.</p>
-<pre class="hljs"><code class="language-bash">tbmp encode <span class="hljs-punctuation">&lt;</span>input<span class="hljs-punctuation">&gt;</span> <span class="hljs-punctuation">&lt;</span>output.<span class="hljs-attr">tbmp</span><span class="hljs-punctuation">&gt;</span> [<span class="hljs-punctuation">--</span>format NAME] [<span class="hljs-punctuation">--</span>encoding NAME]
+<pre class="hljs"><code class="language-bash">tbmp encode <span class="hljs-operator">&lt;</span>input<span class="hljs-operator">&gt;</span> <span class="hljs-operator">&lt;</span>output.<span class="hljs-attr">tbmp</span><span class="hljs-operator">&gt;</span> [<span class="hljs-operator">--</span>format NAME] [<span class="hljs-operator">--</span>encoding NAME]
 </code></pre>
 <p>Optional helper flags:</p>
 <ul>
@@ -1388,25 +1326,25 @@ override fields loaded from the file.</p>
 </ul>
 <p>Mask values accept decimal or <code>0x</code> hexadecimal notation.</p>
 <p>Example:</p>
-<pre class="hljs"><code class="language-bash">tbmp encode sprite.<span class="hljs-attr">png</span> sprite.<span class="hljs-attr">tbmp</span> <span class="hljs-punctuation">--</span>format rgb565 <span class="hljs-punctuation">--</span>encoding rle \
-    <span class="hljs-punctuation">--</span>title <span class="hljs-string">&quot;Forest Tiles&quot;</span> \
-    <span class="hljs-punctuation">--</span>author <span class="hljs-string">&quot;Nellow&quot;</span> \
-    <span class="hljs-punctuation">--</span>description <span class="hljs-string">&quot;Top-down biome tiles&quot;</span> \
-    <span class="hljs-punctuation">--</span>created <span class="hljs-string">&quot;2026-04-16T19:30:00Z&quot;</span> \
-    <span class="hljs-punctuation">--</span>software <span class="hljs-string">&quot;tbmp-cli 0.1&quot;</span> \
-    <span class="hljs-punctuation">--</span>license <span class="hljs-string">&quot;CC-BY-4.0&quot;</span> \
-    <span class="hljs-punctuation">--</span>tags <span class="hljs-string">&quot;tileset,rpg,forest&quot;</span> \
-    <span class="hljs-punctuation">--</span>dpi <span class="hljs-number">144</span> \
-    <span class="hljs-punctuation">--</span>colorspace sRGB
+<pre class="hljs"><code class="language-bash">tbmp encode sprite.<span class="hljs-attr">png</span> sprite.<span class="hljs-attr">tbmp</span> <span class="hljs-operator">--</span>format rgb565 <span class="hljs-operator">--</span>encoding rle \
+    <span class="hljs-operator">--</span>title <span class="hljs-string">&quot;Forest Tiles&quot;</span> \
+    <span class="hljs-operator">--</span>author <span class="hljs-string">&quot;Nellow&quot;</span> \
+    <span class="hljs-operator">--</span>description <span class="hljs-string">&quot;Top-down biome tiles&quot;</span> \
+    <span class="hljs-operator">--</span>created <span class="hljs-string">&quot;2026-04-16T19:30:00Z&quot;</span> \
+    <span class="hljs-operator">--</span>software <span class="hljs-string">&quot;tbmp-cli 0.1&quot;</span> \
+    <span class="hljs-operator">--</span>license <span class="hljs-string">&quot;CC-BY-4.0&quot;</span> \
+    <span class="hljs-operator">--</span>tags <span class="hljs-string">&quot;tileset,rpg,forest&quot;</span> \
+    <span class="hljs-operator">--</span>dpi <span class="hljs-number">144</span> \
+    <span class="hljs-operator">--</span>colorspace sRGB
 
-tbmp encode sprite.<span class="hljs-attr">png</span> sprite_index4.<span class="hljs-attr">tbmp</span> <span class="hljs-punctuation">--</span>format index4 <span class="hljs-punctuation">--</span>auto<span class="hljs-punctuation">-</span>palette <span class="hljs-punctuation">--</span>dither <span class="hljs-punctuation">--</span>pick<span class="hljs-punctuation">-</span>encoding
+tbmp encode sprite.<span class="hljs-attr">png</span> sprite_index4.<span class="hljs-attr">tbmp</span> <span class="hljs-operator">--</span>format index4 <span class="hljs-operator">--</span>auto<span class="hljs-operator">-</span>palette <span class="hljs-operator">--</span>dither <span class="hljs-operator">--</span>pick<span class="hljs-operator">-</span>encoding
 
-tbmp encode sprite.<span class="hljs-attr">png</span> sprite_custom.<span class="hljs-attr">tbmp</span> <span class="hljs-punctuation">--</span>format custom <span class="hljs-punctuation">--</span>bit<span class="hljs-punctuation">-</span>depth <span class="hljs-number">32</span> \
-    <span class="hljs-punctuation">--</span>mask<span class="hljs-punctuation">-</span>r <span class="hljs-number">0xFF000000</span> <span class="hljs-punctuation">--</span>mask<span class="hljs-punctuation">-</span>g <span class="hljs-number">0x00FF0000</span> <span class="hljs-punctuation">--</span>mask<span class="hljs-punctuation">-</span>b <span class="hljs-number">0x0000FF00</span> <span class="hljs-punctuation">--</span>mask<span class="hljs-punctuation">-</span>a <span class="hljs-number">0x000000FF</span>
+tbmp encode sprite.<span class="hljs-attr">png</span> sprite_custom.<span class="hljs-attr">tbmp</span> <span class="hljs-operator">--</span>format custom <span class="hljs-operator">--</span>bit<span class="hljs-operator">-</span>depth <span class="hljs-number">32</span> \
+    <span class="hljs-operator">--</span>mask<span class="hljs-operator">-</span>r <span class="hljs-number">0xFF000000</span> <span class="hljs-operator">--</span>mask<span class="hljs-operator">-</span>g <span class="hljs-number">0x00FF0000</span> <span class="hljs-operator">--</span>mask<span class="hljs-operator">-</span>b <span class="hljs-number">0x0000FF00</span> <span class="hljs-operator">--</span>mask<span class="hljs-operator">-</span>a <span class="hljs-number">0x000000FF</span>
 </code></pre>
 <h2 id="decode" class="docmd-heading"><a href="#decode" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a><code>decode</code></h2>
 <p>Decode <code>.tbmp</code> to an image file (PPM/PGM output).</p>
-<pre class="hljs"><code class="language-bash">tbmp decode <span class="hljs-punctuation">&lt;</span>input.<span class="hljs-attr">tbmp</span><span class="hljs-punctuation">&gt;</span> <span class="hljs-punctuation">&lt;</span>output.<span class="hljs-attr">ppm</span><span class="hljs-punctuation">&gt;</span>
+<pre class="hljs"><code class="language-bash">tbmp decode <span class="hljs-operator">&lt;</span>input.<span class="hljs-attr">tbmp</span><span class="hljs-operator">&gt;</span> <span class="hljs-operator">&lt;</span>output.<span class="hljs-attr">ppm</span><span class="hljs-operator">&gt;</span>
 </code></pre>
 <p>If metadata exists, it is printed to stdout.</p>
 <p>Example:</p>
@@ -1414,17 +1352,17 @@ tbmp encode sprite.<span class="hljs-attr">png</span> sprite_custom.<span class=
 </code></pre>
 <h2 id="export-png" class="docmd-heading"><a href="#export-png" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a><code>export-png</code></h2>
 <p>Decode <code>.tbmp</code> and write a <code>.png</code> output file.</p>
-<pre class="hljs"><code class="language-bash">tbmp <span class="hljs-keyword">export</span><span class="hljs-punctuation">-</span>png <span class="hljs-punctuation">&lt;</span>input.<span class="hljs-attr">tbmp</span><span class="hljs-punctuation">&gt;</span> <span class="hljs-punctuation">&lt;</span>output.<span class="hljs-attr">png</span><span class="hljs-punctuation">&gt;</span>
+<pre class="hljs"><code class="language-bash">tbmp <span class="hljs-keyword">export</span><span class="hljs-operator">-</span>png <span class="hljs-operator">&lt;</span>input.<span class="hljs-attr">tbmp</span><span class="hljs-operator">&gt;</span> <span class="hljs-operator">&lt;</span>output.<span class="hljs-attr">png</span><span class="hljs-operator">&gt;</span>
 </code></pre>
 <p>This is useful for debugging and quick previews in tools that do not read<br>
 <code>.tbmp</code> directly.</p>
 <p>Example:</p>
-<pre class="hljs"><code class="language-bash">tbmp <span class="hljs-keyword">export</span><span class="hljs-punctuation">-</span>png sprite.<span class="hljs-attr">tbmp</span> sprite.<span class="hljs-attr">png</span>
+<pre class="hljs"><code class="language-bash">tbmp <span class="hljs-keyword">export</span><span class="hljs-operator">-</span>png sprite.<span class="hljs-attr">tbmp</span> sprite.<span class="hljs-attr">png</span>
 </code></pre>
 <h2 id="inspect" class="docmd-heading"><a href="#inspect" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a><code>inspect</code></h2>
 <p>Print structural details for a <code>.tbmp</code> file.</p>
-<pre class="hljs"><code class="language-bash">tbmp inspect <span class="hljs-punctuation">&lt;</span>input.<span class="hljs-attr">tbmp</span><span class="hljs-punctuation">&gt;</span>
-tbmp <span class="hljs-punctuation">--</span>ci inspect <span class="hljs-punctuation">&lt;</span>input.<span class="hljs-attr">tbmp</span><span class="hljs-punctuation">&gt;</span>
+<pre class="hljs"><code class="language-bash">tbmp inspect <span class="hljs-operator">&lt;</span>input.<span class="hljs-attr">tbmp</span><span class="hljs-operator">&gt;</span>
+tbmp <span class="hljs-operator">--</span>ci inspect <span class="hljs-operator">&lt;</span>input.<span class="hljs-attr">tbmp</span><span class="hljs-operator">&gt;</span>
 </code></pre>
 <p>Reports:</p>
 <ul>
@@ -1440,8 +1378,8 @@ tbmp <span class="hljs-punctuation">--</span>ci inspect <span class="hljs-punctu
 </code></pre>
 <h2 id="validate" class="docmd-heading"><a href="#validate" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a><code>validate</code></h2>
 <p>Validate a <code>.tbmp</code> file structure and optionally enforce strict checks.</p>
-<pre class="hljs"><code class="language-bash">tbmp validate <span class="hljs-punctuation">&lt;</span>input.<span class="hljs-attr">tbmp</span><span class="hljs-punctuation">&gt;</span>
-tbmp validate <span class="hljs-punctuation">&lt;</span>input.<span class="hljs-attr">tbmp</span><span class="hljs-punctuation">&gt;</span> <span class="hljs-punctuation">--</span>strict
+<pre class="hljs"><code class="language-bash">tbmp validate <span class="hljs-operator">&lt;</span>input.<span class="hljs-attr">tbmp</span><span class="hljs-operator">&gt;</span>
+tbmp validate <span class="hljs-operator">&lt;</span>input.<span class="hljs-attr">tbmp</span><span class="hljs-operator">&gt;</span> <span class="hljs-operator">--</span>strict
 </code></pre>
 <p>Validation modes:</p>
 <ul>
@@ -1450,19 +1388,19 @@ tbmp validate <span class="hljs-punctuation">&lt;</span>input.<span class="hljs-
 and fails if present <code>META</code> does not match the structured schema.</li>
 </ul>
 <p>Example:</p>
-<pre class="hljs"><code class="language-bash">tbmp validate sprite.<span class="hljs-attr">tbmp</span> <span class="hljs-punctuation">--</span>strict
+<pre class="hljs"><code class="language-bash">tbmp validate sprite.<span class="hljs-attr">tbmp</span> <span class="hljs-operator">--</span>strict
 </code></pre>
 <h2 id="dump-rgba" class="docmd-heading"><a href="#dump-rgba" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a><code>dump-rgba</code></h2>
 <p>Decode and dump raw RGBA bytes (<code>R,G,B,A</code> per pixel).</p>
-<pre class="hljs"><code class="language-bash">tbmp dump<span class="hljs-punctuation">-</span>rgba <span class="hljs-punctuation">&lt;</span>input.<span class="hljs-attr">tbmp</span><span class="hljs-punctuation">&gt;</span> <span class="hljs-punctuation">&lt;</span>output.<span class="hljs-attr">rgba</span><span class="hljs-punctuation">&gt;</span>
-tbmp <span class="hljs-punctuation">--</span>ci dump<span class="hljs-punctuation">-</span>rgba <span class="hljs-punctuation">&lt;</span>input.<span class="hljs-attr">tbmp</span><span class="hljs-punctuation">&gt;</span> <span class="hljs-punctuation">&lt;</span>output.<span class="hljs-attr">rgba</span><span class="hljs-punctuation">&gt;</span>
+<pre class="hljs"><code class="language-bash">tbmp dump<span class="hljs-operator">-</span>rgba <span class="hljs-operator">&lt;</span>input.<span class="hljs-attr">tbmp</span><span class="hljs-operator">&gt;</span> <span class="hljs-operator">&lt;</span>output.<span class="hljs-attr">rgba</span><span class="hljs-operator">&gt;</span>
+tbmp <span class="hljs-operator">--</span>ci dump<span class="hljs-operator">-</span>rgba <span class="hljs-operator">&lt;</span>input.<span class="hljs-attr">tbmp</span><span class="hljs-operator">&gt;</span> <span class="hljs-operator">&lt;</span>output.<span class="hljs-attr">rgba</span><span class="hljs-operator">&gt;</span>
 </code></pre>
 <p>Output size is:</p>
 <p>$$<br>
 \text{bytes} = \text{width} \times \text{height} \times 4<br>
 $$</p>
 <p>Example:</p>
-<pre class="hljs"><code class="language-bash">tbmp dump<span class="hljs-punctuation">-</span>rgba sprite.<span class="hljs-attr">tbmp</span> sprite.<span class="hljs-attr">rgba</span>
+<pre class="hljs"><code class="language-bash">tbmp dump<span class="hljs-operator">-</span>rgba sprite.<span class="hljs-attr">tbmp</span> sprite.<span class="hljs-attr">rgba</span>
 </code></pre>
 <h2 id="notes" class="docmd-heading"><a href="#notes" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Notes</h2>
 <ul>
@@ -1474,7 +1412,7 @@ $$</p>
                 
                   <div class="page-navigation">
                     
-                      <a href="/tBMP/docs/guide/metadata/" class="prev-page">
+                      <a href="../../guide/metadata/" class="prev-page">
                         
 <svg class="lucide-icon icon-arrow-left page-nav-icon" width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
   class="lucide lucide-arrow-left"
@@ -1498,7 +1436,7 @@ $$</p>
                       </a>
                     
                     
-                      <a href="/tBMP/docs/guide/versioning/" class="next-page">
+                      <a href="../../guide/versioning/" class="next-page">
                         <span><small>Next</small>
                           <strong>
                             Versioning
@@ -1525,6 +1463,7 @@ $$</p>
                   </div>
                 
               </div>
+              
               <div class="toc-sidebar">
                 
 
@@ -1596,17 +1535,18 @@ $$</p>
   </div>
 
               </div>
+              
             </div>
             <div class="page-footer-actions">
               
               
-                <span class="git-last-updated" data-timestamp="1784627530000">
+                <span class="git-last-updated" data-timestamp="1786690348000">
                   <svg class="git-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12 6 12 12 16 14"></polyline>
                   </svg>
                   <span class="git-label">Last updated:</span>
-                  <span class="git-time" data-timestamp="1784627530000"></span>
+                  <span class="git-time" data-timestamp="1786690348000"></span>
                   
                   <div class="git-commit-tooltip" role="tooltip">
                     <div class="git-tooltip-title">Recent commits</div>
@@ -1619,10 +1559,10 @@ $$</p>
                             
                           </div>
                           <div class="git-commit-details">
-                            <div class="git-commit-message" title="Merge pull request #18 from NellowTCS/dependabot/npm_and_yarn/Demo/vite-8.1.5">Merge pull request #18 from NellowTCS...</div>
+                            <div class="git-commit-message" title="Merge pull request #24 from NellowTCS/dependabot/npm_and_yarn/Docs/mgks/docmd-0.9.0">Merge pull request #24 from NellowTCS...</div>
                             <div class="git-commit-meta">
                               <span class="git-commit-author">NellowTCS</span>
-                              <span class="git-commit-date" data-timestamp="1784627530000"></span>
+                              <span class="git-commit-date" data-timestamp="1786690348000"></span>
                             </div>
                           </div>
                         </li>
@@ -1674,13 +1614,14 @@ $$</p>
         </div>
       </div>
       
-      <script src="/tBMP/docs/assets/js/docmd-main.js?v=mruh5u5z"></script>
+      <script src="../../assets/js/docmd-main.js?v=msslbagu"></script>
       
-      <script src="/tBMP/docs/assets/js/docmd-git.js?v=mruh5u5z"></script>
-      <script src="/tBMP/docs/assets/js/docmd-image-lightbox.js?v=mruh5u5z" ></script>
-<script src="/tBMP/docs/assets/js/vendor/minisearch.js?v=mruh5u5z" ></script>
-<script src="/tBMP/docs/assets/js/docmd-search.js?v=mruh5u5z" ></script>
-<script src="/tBMP/docs/assets/js/docmd-git.js?v=mruh5u5z" type="module"></script>
+      <script src="../../assets/js/docmd-git.js?v=msslbagu"></script>
+      <script src="../../assets/js/docmd-image-lightbox.js?v=msslbagu" ></script>
+<script src="../../assets/js/vendor/minisearch.js?v=msslbagu" ></script>
+<script src="../../assets/js/docmd-search.js?v=msslbagu" ></script>
+<script src="../../assets/js/docmd-git.js?v=msslbagu" type="module"></script>
+<script src="../../assets/js/docmd-ai.js?v=msslbagu" type="module"></script>
 
   <!-- Search Modal (Injected by @docmd/plugin-search) -->
   <div id="docmd-search-modal" class="docmd-search-modal" style="display: none;" data-show-confidence="false" data-show-filters="true"
@@ -1688,6 +1629,7 @@ $$</p>
        data-search-no-results="No results found."
        data-search-error="Failed to load search index."
        data-search-offline="Search requires a web server. Open this site via http://localhost instead of file:// to enable search."
+       data-search-offline-build="Search is disabled because these docs were built with the --offline flag. Rebuild the site without the flag to enable search."
        data-search-initial="Type to start searching..."
        data-search-navigate="to navigate"
        data-search-escape="to close">
@@ -1755,6 +1697,7 @@ $$</p>
     </script>
 
 <script>window.__git_config={"repo":"https://github.com/NellowTCS/tBMP/edit/main/Docs/docs","branch":"main","editLink":true,"lastUpdated":true,"commitHistory":true,"maxCommits":5,"dateFormat":"relative"};window.__git_i18n={"lastUpdated":"Last updated","recentCommits":"Recent commits","viewCommitHistory":"View commit history","editOnGitHub":"Edit on GitHub","editOnGitLab":"Edit on GitLab","editOnBitbucket":"Edit on Bitbucket","editThisPage":"Edit this page","justNow":"just now","minutesAgo":"{n}m ago","hoursAgo":"{n}h ago","daysAgo":"{n}d ago"}</script>
+<div id="docmd-ai-root"></div><script>window.__docmd_ai_config={"endpoint":"","cloud":{},"captcha":true,"position":"bottom-center","siteTitle":"tBMP","siteBase":"/tBMP/docs/","siteUrl":"https://NellowTCS.github.io/tBMP/docs","isWorkspace":false,"workspaceProjects":[]};</script>
       
       
       

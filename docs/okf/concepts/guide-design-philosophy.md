@@ -4,10 +4,10 @@ title: "Design Philosophy"
 description: "Why tBMP exists and the principles that guide its evolution."
 source: "https://NellowTCS.github.io/tBMP/docs/guide/design-philosophy/"
 path: /guide/design-philosophy/
-updated: 2026-07-21
+updated: 2026-08-14
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-07-21T09:52:25.085Z"
+  generated_at: "2026-08-14T06:52:47.984Z"
 ---
 ---
 title: "Design Philosophy"
