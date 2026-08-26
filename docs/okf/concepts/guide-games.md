@@ -7,7 +7,7 @@ path: /guide/games/
 updated: 2026-08-26
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-08-26T19:07:29.029Z"
+  generated_at: "2026-08-26T19:07:50.541Z"
 ---
 ---
 title: "tBMP for Games"

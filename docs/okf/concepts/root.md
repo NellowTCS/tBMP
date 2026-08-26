@@ -7,7 +7,7 @@ path: /
 updated: 2026-08-26
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-08-26T19:07:29.032Z"
+  generated_at: "2026-08-26T19:07:50.543Z"
 ---
 ---
 title: "tBMP"
