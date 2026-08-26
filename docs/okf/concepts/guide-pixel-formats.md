@@ -4,10 +4,10 @@ title: "Pixel Formats"
 description: "Understanding pixel format options in tBMP."
 source: "https://NellowTCS.github.io/tBMP/docs/guide/pixel-formats/"
 path: /guide/pixel-formats/
-updated: 2026-08-14
+updated: 2026-08-26
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-08-14T06:54:06.551Z"
+  generated_at: "2026-08-26T19:07:29.031Z"
 ---
 ---
 title: "Pixel Formats"

@@ -10,7 +10,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <meta name="generator" content="docmd v0.9.0">
+    <meta name="generator" content="docmd v0.9.3">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <script>
@@ -104,11 +104,11 @@
     
     
 
-    <link id="site-favicon" rel="icon" href="./assets/images/favicon.ico?v=msslcz51">
-    <link rel="stylesheet" href="./assets/css/docmd-main.css?v=msslcz51">
+    <link id="site-favicon" rel="icon" href="./assets/images/favicon.ico?v=mtagublm">
+    <link rel="stylesheet" href="./assets/css/docmd-main.css?v=mtagublm">
     
-    <link rel="stylesheet" href="./assets/css/docmd-highlight-light.css?v=msslcz51" id="hljs-light" >
-    <link rel="stylesheet" href="./assets/css/docmd-highlight-dark.css?v=msslcz51" id="hljs-dark" disabled>
+    <link rel="stylesheet" href="./assets/css/docmd-highlight-light.css?v=mtagublm" id="hljs-light" >
+    <link rel="stylesheet" href="./assets/css/docmd-highlight-dark.css?v=mtagublm" id="hljs-dark" disabled>
     
     
 <meta name="description" content="A tiny bitmap format for compact, efficient image storage and decoding.">
@@ -124,10 +124,10 @@
 
 
 
-<link rel="stylesheet" href="./assets/css/docmd-theme-sky.css?v=msslcz51" >
-<link rel="stylesheet" href="./assets/css/docmd-git.css?v=msslcz51" >
-<link rel="stylesheet" href="./assets/css/docmd-openapi.css?v=msslcz51" >
-<link rel="stylesheet" href="./assets/css/docmd-ai.css?v=msslcz51" >
+<link rel="stylesheet" href="./assets/css/docmd-theme-sky.css?v=mtagublm" >
+<link rel="stylesheet" href="./assets/css/docmd-git.css?v=mtagublm" >
+<link rel="stylesheet" href="./assets/css/docmd-openapi.css?v=mtagublm" >
+<link rel="stylesheet" href="./assets/css/docmd-ai.css?v=mtagublm" >
 
     
     
@@ -138,6 +138,9 @@
     data-copy-code-enabled="true" data-spa-enabled="true" data-source-file="docs/index.md">
 
     <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    
+    
 
     
     
@@ -1022,9 +1025,8 @@
         </div>
       </aside>
       
-      
-      
       <div class="main-content-wrapper">
+        
         
         
           <header class="page-header">
@@ -1224,10 +1226,10 @@
 <p>You’re working with small images where file size or decode speed matters. Game sprites, embedded UI, firmware assets, the usual suspects. The big image formats drag in dependencies and compression algorithms you don’t need.</p>
 <p>tBMP keeps it simple: a predictable binary layout, zero external deps, and encodings that actually match your data patterns.</p>
 <h2 id="features" class="docmd-heading"><a href="#features" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Features</h2>
-<div class="docmd-container card"><div class="card-title">Multiple Encodings</div><div class="card-content"><p>RAW, RLE, zero-range, span, sparse pixel, and block-sparse. Pick what fits your data best.</p>
+<div class="docmd-container card"><div class="card-title">Multiple</div><div class="card-content"><p>RAW, RLE, zero-range, span, sparse pixel, and block-sparse. Pick what fits your data best.</p>
 </div></div><div class="docmd-container card"><div class="card-title">Schema-Driven</div><div class="card-content"><p>The format is defined in <code>tBMP.ksy</code>. Parse with confidence: the structure is enforced.</p>
-</div></div><div class="docmd-container card"><div class="card-title">Zero Dependencies</div><div class="card-content"><p>Plain C. Link <code>libtbmp.a</code> and you’re done.</p>
-</div></div><div class="docmd-container card"><div class="card-title">Metadata Built-In</div><div class="card-content"><p>Palettes, pixel masks, and custom metadata chunks when you need them.</p>
+</div></div><div class="docmd-container card"><div class="card-title">Zero</div><div class="card-content"><p>Plain C. Link <code>libtbmp.a</code> and you’re done.</p>
+</div></div><div class="docmd-container card"><div class="card-title">Metadata</div><div class="card-content"><p>Palettes, pixel masks, and custom metadata chunks when you need them.</p>
 </div></div><h2 id="quick-example" class="docmd-heading"><a href="#quick-example" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Quick Example</h2>
 <p><strong>Read an image:</strong></p>
 <pre class="hljs"><code class="language-c"><span class="hljs-comment">#include &quot;tbmp_reader.h&quot;</span>
@@ -1419,13 +1421,13 @@ cmake <span class="hljs-operator">--</span>build build
             <div class="page-footer-actions">
               
               
-                <span class="git-last-updated" data-timestamp="1786690416000">
+                <span class="git-last-updated" data-timestamp="1787771232000">
                   <svg class="git-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12 6 12 12 16 14"></polyline>
                   </svg>
                   <span class="git-label">Last updated:</span>
-                  <span class="git-time" data-timestamp="1786690416000"></span>
+                  <span class="git-time" data-timestamp="1787771232000"></span>
                   
                   <div class="git-commit-tooltip" role="tooltip">
                     <div class="git-tooltip-title">Recent commits</div>
@@ -1438,10 +1440,10 @@ cmake <span class="hljs-operator">--</span>build build
                             
                           </div>
                           <div class="git-commit-details">
-                            <div class="git-commit-message" title="Merge pull request #21 from NellowTCS/dependabot/npm_and_yarn/Demo/prettier-3.9.6">Merge pull request #21 from NellowTCS...</div>
+                            <div class="git-commit-message" title="Merge pull request #28 from NellowTCS/dependabot/npm_and_yarn/Docs/mgks/docmd-0.9.3">Merge pull request #28 from NellowTCS...</div>
                             <div class="git-commit-meta">
                               <span class="git-commit-author">NellowTCS</span>
-                              <span class="git-commit-date" data-timestamp="1786690416000"></span>
+                              <span class="git-commit-date" data-timestamp="1787771232000"></span>
                             </div>
                           </div>
                         </li>
@@ -1493,14 +1495,14 @@ cmake <span class="hljs-operator">--</span>build build
         </div>
       </div>
       
-      <script src="./assets/js/docmd-main.js?v=msslcz51"></script>
+      <script src="./assets/js/docmd-main.js?v=mtagublm"></script>
       
-      <script src="./assets/js/docmd-git.js?v=msslcz51"></script>
-      <script src="./assets/js/docmd-image-lightbox.js?v=msslcz51" ></script>
-<script src="./assets/js/vendor/minisearch.js?v=msslcz51" ></script>
-<script src="./assets/js/docmd-search.js?v=msslcz51" ></script>
-<script src="./assets/js/docmd-git.js?v=msslcz51" type="module"></script>
-<script src="./assets/js/docmd-ai.js?v=msslcz51" type="module"></script>
+      <script src="./assets/js/docmd-git.js?v=mtagublm"></script>
+      <script src="./assets/js/docmd-image-lightbox.js?v=mtagublm" ></script>
+<script src="./assets/js/vendor/minisearch.js?v=mtagublm" ></script>
+<script src="./assets/js/docmd-search.js?v=mtagublm" ></script>
+<script src="./assets/js/docmd-git.js?v=mtagublm" ></script>
+<script src="./assets/js/docmd-ai.js?v=mtagublm" ></script>
 
   <!-- Search Modal (Injected by @docmd/plugin-search) -->
   <div id="docmd-search-modal" class="docmd-search-modal" style="display: none;" data-show-confidence="false" data-show-filters="true"
@@ -1576,7 +1578,7 @@ cmake <span class="hljs-operator">--</span>build build
     </script>
 
 <script>window.__git_config={"repo":"https://github.com/NellowTCS/tBMP/edit/main/Docs/docs","branch":"main","editLink":true,"lastUpdated":true,"commitHistory":true,"maxCommits":5,"dateFormat":"relative"};window.__git_i18n={"lastUpdated":"Last updated","recentCommits":"Recent commits","viewCommitHistory":"View commit history","editOnGitHub":"Edit on GitHub","editOnGitLab":"Edit on GitLab","editOnBitbucket":"Edit on Bitbucket","editThisPage":"Edit this page","justNow":"just now","minutesAgo":"{n}m ago","hoursAgo":"{n}h ago","daysAgo":"{n}d ago"}</script>
-<div id="docmd-ai-root"></div><script>window.__docmd_ai_config={"endpoint":"","cloud":{},"captcha":true,"position":"bottom-center","siteTitle":"tBMP","siteBase":"/tBMP/docs/","siteUrl":"https://NellowTCS.github.io/tBMP/docs","isWorkspace":false,"workspaceProjects":[]};</script>
+<div id="docmd-ai-root"></div><script>window.__docmd_ai_config={"endpoint":"","cloud":{},"captcha":true,"position":"bottom-center","siteTitle":"tBMP","siteBase":"/tBMP/docs/","siteUrl":"https://NellowTCS.github.io/tBMP/docs","versions":null,"i18n":null,"navigation":[{"title":"Home","path":"/","icon":"home"},{"title":"Getting Started","icon":"rocket","collapsible":false,"children":[{"title":"Quick Start","path":"/getting-started/quickstart/","icon":"play"},{"title":"Core Concepts","path":"/getting-started/concepts/","icon":"book"}]},{"title":"Guide","icon":"book-open","collapsible":false,"children":[{"title":"Encoding","path":"/guide/encoding/","icon":"zap"},{"title":"Pixel Formats","path":"/guide/pixel-formats/","icon":"image"},{"title":"Metadata","path":"/guide/metadata/","icon":"file-text"},{"title":"CLI","path":"/guide/cli/","icon":"terminal"},{"title":"Versioning","path":"/guide/versioning/","icon":"git-branch"},{"title":"Design Philosophy","path":"/guide/design-philosophy/","icon":"compass"},{"title":"Embedded Systems","path":"/guide/embedded-systems/","icon":"cpu"},{"title":"Games","path":"/guide/games/","icon":"gamepad-2"}]},{"title":"Reference","icon":"file-code","collapsible":false,"path":"/api/","children":[{"title":"Core Types","path":"/api/types/","icon":"hash"},{"title":"Reader","path":"/api/reader/","icon":"book-open"},{"title":"Decoder","path":"/api/decoder/","icon":"download"},{"title":"Writer","path":"/api/writer/","icon":"upload"},{"title":"Rotation","path":"/api/rotation/","icon":"rotate-cw"},{"title":"Metadata","path":"/api/metadata/","icon":"file-text"},{"title":"WASM","path":"/api/wasm/","icon":"globe"}]},{"title":"Demo","path":"https://nellowtcs.me/tBMP/","icon":"play-circle","external":true},{"title":"GitHub","path":"https://github.com/NellowTCS/tBMP","icon":"github","external":true}],"searchCapabilities":{"keyword":true,"semantic":false},"isWorkspace":false,"workspaceProjects":[]};</script>
       
       
       
