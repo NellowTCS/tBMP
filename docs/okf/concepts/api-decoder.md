@@ -4,10 +4,10 @@ title: "Decoder API"
 description: "Decode tBMP to RGBA pixels"
 source: "https://NellowTCS.github.io/tBMP/docs/api/decoder/"
 path: /api/decoder/
-updated: 2026-08-26
+updated: 2026-09-05
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-08-26T19:07:50.536Z"
+  generated_at: "2026-09-05T22:00:31.016Z"
 ---
 ---
 title: "Decoder API"

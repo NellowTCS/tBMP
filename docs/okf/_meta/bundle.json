@@ -1,12 +1,12 @@
 {
-  "okf_version": "0.9.3",
+  "okf_version": "0.9.4",
   "bundle": {
     "name": "tbmp",
     "title": "tBMP",
     "description": "",
     "url": "https://NellowTCS.github.io/tBMP/docs",
     "generated_by": "@docmd/plugin-okf",
-    "generated_at": "2026-08-26T19:07:50.543Z",
+    "generated_at": "2026-09-05T22:00:31.027Z",
     "default_type": "concept"
   },
   "stats": {
