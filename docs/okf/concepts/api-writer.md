@@ -4,10 +4,10 @@ title: "Writer API"
 description: "Encode tBMP files"
 source: "https://NellowTCS.github.io/tBMP/docs/api/writer/"
 path: /api/writer/
-updated: 2026-09-05
+updated: 2026-09-16
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-09-05T22:00:31.020Z"
+  generated_at: "2026-09-16T16:59:21.953Z"
 ---
 ---
 title: "Writer API"
