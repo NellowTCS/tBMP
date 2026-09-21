@@ -7,7 +7,7 @@ path: /api/types/
 updated: 2026-09-21
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-09-21T14:13:40.137Z"
+  generated_at: "2026-09-21T14:14:27.729Z"
 ---
 ---
 title: "Core Types"
