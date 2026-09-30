@@ -4,10 +4,10 @@ title: "Reader API"
 description: "Parse and validate tBMP files"
 source: "https://NellowTCS.github.io/tBMP/docs/api/reader/"
 path: /api/reader/
-updated: 2026-09-21
+updated: 2026-09-30
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-09-21T14:14:27.728Z"
+  generated_at: "2026-09-30T17:17:53.209Z"
 ---
 ---
 title: "Reader API"

@@ -4,10 +4,10 @@ title: "WASM API"
 description: "WebAssembly JavaScript API for tBMP"
 source: "https://NellowTCS.github.io/tBMP/docs/api/wasm/"
 path: /api/wasm/
-updated: 2026-09-21
+updated: 2026-09-30
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-09-21T14:14:27.729Z"
+  generated_at: "2026-09-30T17:17:53.211Z"
 ---
 ---
 title: "WASM API"

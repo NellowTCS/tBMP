@@ -4,10 +4,10 @@ title: "Versioning and Evolution"
 description: "Compatibility rules and format-evolution policy for tBMP files."
 source: "https://NellowTCS.github.io/tBMP/docs/guide/versioning/"
 path: /guide/versioning/
-updated: 2026-09-21
+updated: 2026-09-30
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-09-21T14:14:27.733Z"
+  generated_at: "2026-09-30T17:17:53.216Z"
 ---
 ---
 title: "Versioning and Evolution"

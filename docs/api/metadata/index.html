@@ -10,7 +10,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <meta name="generator" content="docmd v0.9.5">
+    <meta name="generator" content="docmd v0.9.6">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <script>
@@ -98,17 +98,15 @@
         visibility: hidden;
       }
     </style>
-    <title>
-      Metadata API : tBMP
-    </title>
+    <title>Metadata API - tBMP</title>
     
     
 
-    <link id="site-favicon" rel="icon" href="../../assets/images/favicon.ico?v=mubbtn8f">
-    <link rel="stylesheet" href="../../assets/css/docmd-main.css?v=mubbtn8f">
+    <link id="site-favicon" rel="icon" href="../../assets/images/favicon.ico?v=muodc6y8">
+    <link rel="stylesheet" href="../../assets/css/docmd-main.css?v=muodc6y8">
     
-    <link rel="stylesheet" href="../../assets/css/docmd-highlight-light.css?v=mubbtn8f" id="hljs-light" >
-    <link rel="stylesheet" href="../../assets/css/docmd-highlight-dark.css?v=mubbtn8f" id="hljs-dark" disabled>
+    <link rel="stylesheet" href="../../assets/css/docmd-highlight-light.css?v=muodc6y8" id="hljs-light" >
+    <link rel="stylesheet" href="../../assets/css/docmd-highlight-dark.css?v=muodc6y8" id="hljs-dark" disabled>
     
     
 <meta name="description" content="Handle META sections">
@@ -120,14 +118,17 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Metadata API - tBMP">
 <meta name="twitter:description" content="Handle META sections">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"tBMP","item":"https://NellowTCS.github.io/tBMP/docs/"},{"@type":"ListItem","position":2,"name":"Reference","item":"https://NellowTCS.github.io/tBMP/docs/api/"},{"@type":"ListItem","position":3,"name":"Metadata","item":"https://NellowTCS.github.io/tBMP/docs/api/metadata/"}]}
+</script>
 
 
 
 
-<link rel="stylesheet" href="../../assets/css/docmd-theme-sky.css?v=mubbtn8f" >
-<link rel="stylesheet" href="../../assets/css/docmd-git.css?v=mubbtn8f" >
-<link rel="stylesheet" href="../../assets/css/docmd-openapi.css?v=mubbtn8f" >
-<link rel="stylesheet" href="../../assets/css/docmd-ai.css?v=mubbtn8f" >
+<link rel="stylesheet" href="../../assets/css/docmd-theme-sky.css?v=muodc6y8" >
+<link rel="stylesheet" href="../../assets/css/docmd-git.css?v=muodc6y8" >
+<link rel="stylesheet" href="../../assets/css/docmd-openapi.css?v=muodc6y8" >
+<link rel="stylesheet" href="../../assets/css/docmd-ai.css?v=muodc6y8" >
 
     
     
@@ -143,11 +144,13 @@
     
 
     
+
+    
     
       <aside class="sidebar">
         <div class="sidebar-header">
           
-<h1><a href="../../">
+            <h1><a href="../../">
                 tBMP
               </a></h1>
           
@@ -173,6 +176,7 @@
           </span>
         </div>
         <div class="sidebar-top-group">
+          
           
           
           
@@ -916,7 +920,7 @@
       <li class="" >
       
         <a href="https://nellowtcs.me/tBMP/" class=" "
-          target=&quot;_blank&quot; rel=&quot;noopener&quot;>
+          target="_blank" rel="noopener">
            
 <svg class="lucide-icon icon-play-circle " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
   class="lucide lucide-circle-play"
@@ -967,7 +971,7 @@
       <li class="" >
       
         <a href="https://github.com/NellowTCS/tBMP" class=" "
-          target=&quot;_blank&quot; rel=&quot;noopener&quot;>
+          target="_blank" rel="noopener">
            
           
           <span class="nav-item-title">
@@ -1002,6 +1006,7 @@
   </ul>
 </nav>
         <div class="sidebar-bottom-group mt-auto">
+          
           
           
           
@@ -1077,7 +1082,7 @@
     
 
     
-    <button class="theme-toggle-button" aria-label="Toggle theme">
+    <button class="theme-toggle-button" aria-label="Toggle theme" title="Toggle theme">
         
 <svg class="lucide-icon icon-sun icon-sun" width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
   class="lucide lucide-sun"
@@ -1118,6 +1123,8 @@
 </svg>
 
     </button>
+    
+
     
 
     
@@ -1174,6 +1181,7 @@
                   
 
                   
+                  
                     <div class="docmd-copy-widgets">
                       
                         <button class="docmd-copy-btn docmd-copy-raw-btn" data-copied="Copied!" title="Copy Markdown" aria-label="Copy Markdown">
@@ -1217,9 +1225,14 @@
                           <span class="docmd-btn-text">Copy Context</span>
                         </button>
                       
+                      
                     </div>
                   
                 </div>
+                
+                  <h1 class="docmd-focus-title">
+                    Metadata API
+                  </h1>
                 
                 <h2 id="tbmpmetaparse" class="docmd-heading"><a href="#tbmpmetaparse" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>tbmp_meta_parse</h2>
 <pre class="hljs"><code class="language-c"><span class="hljs-keyword">int</span> <span class="hljs-title function_">tbmp_meta_parse</span>(<span class="hljs-keyword">const</span> uint8_t <span class="hljs-operator">*</span>blob, size_t len, TBmpMeta <span class="hljs-operator">*</span>out);
@@ -1352,8 +1365,11 @@
                 
               </div>
               
+              
               <div class="toc-sidebar">
                 
+                
+                  
 
 
   <div class="toc-container">
@@ -1398,19 +1414,21 @@
     </ul>
   </div>
 
+                
+                
               </div>
               
             </div>
             <div class="page-footer-actions">
               
               
-                <span class="git-last-updated" data-timestamp="1790000052000">
+                <span class="git-last-updated" data-timestamp="1790788656000">
                   <svg class="git-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12 6 12 12 16 14"></polyline>
                   </svg>
                   <span class="git-label">Last updated:</span>
-                  <span class="git-time" data-timestamp="1790000052000"></span>
+                  <span class="git-time" data-timestamp="1790788656000"></span>
                   
                   <div class="git-commit-tooltip" role="tooltip">
                     <div class="git-tooltip-title">Recent commits</div>
@@ -1423,10 +1441,10 @@
                             
                           </div>
                           <div class="git-commit-details">
-                            <div class="git-commit-message" title="Merge pull request #32 from NellowTCS/dependabot/npm_and_yarn/Demo/prettier-3.9.7">Merge pull request #32 from NellowTCS...</div>
+                            <div class="git-commit-message" title="Merge pull request #35 from NellowTCS/dependabot/npm_and_yarn/Docs/mgks/docmd-0.9.6">Merge pull request #35 from NellowTCS...</div>
                             <div class="git-commit-meta">
                               <span class="git-commit-author">NellowTCS</span>
-                              <span class="git-commit-date" data-timestamp="1790000052000"></span>
+                              <span class="git-commit-date" data-timestamp="1790788656000"></span>
                             </div>
                           </div>
                         </li>
@@ -1478,14 +1496,14 @@
         </div>
       </div>
       
-      <script src="../../assets/js/docmd-main.js?v=mubbtn8f"></script>
+      <script src="../../assets/js/docmd-main.js?v=muodc6y8"></script>
       
-      <script src="../../assets/js/docmd-git.js?v=mubbtn8f"></script>
-      <script src="../../assets/js/docmd-image-lightbox.js?v=mubbtn8f" ></script>
-<script src="../../assets/js/vendor/minisearch.js?v=mubbtn8f" ></script>
-<script src="../../assets/js/docmd-search.js?v=mubbtn8f" ></script>
-<script src="../../assets/js/docmd-git.js?v=mubbtn8f" ></script>
-<script src="../../assets/js/docmd-ai.js?v=mubbtn8f" ></script>
+      <script src="../../assets/js/docmd-git.js?v=muodc6y8"></script>
+      <script src="../../assets/js/docmd-image-lightbox.js?v=muodc6y8" ></script>
+<script src="../../assets/js/vendor/minisearch.js?v=muodc6y8" ></script>
+<script src="../../assets/js/docmd-search.js?v=muodc6y8" ></script>
+<script src="../../assets/js/docmd-git.js?v=muodc6y8" ></script>
+<script src="../../assets/js/docmd-ai.js?v=muodc6y8" ></script>
 
   <!-- Search Modal (Injected by @docmd/plugin-search) -->
   <div id="docmd-search-modal" class="docmd-search-modal" style="display: none;" data-show-confidence="false" data-show-filters="true"
@@ -1561,7 +1579,7 @@
     </script>
 
 <script>window.__git_config={"repo":"https://github.com/NellowTCS/tBMP/edit/main/Docs/docs","branch":"main","editLink":true,"lastUpdated":true,"commitHistory":true,"maxCommits":5,"dateFormat":"relative"};window.__git_i18n={"lastUpdated":"Last updated","recentCommits":"Recent commits","viewCommitHistory":"View commit history","editOnGitHub":"Edit on GitHub","editOnGitLab":"Edit on GitLab","editOnBitbucket":"Edit on Bitbucket","editThisPage":"Edit this page","justNow":"just now","minutesAgo":"{n}m ago","hoursAgo":"{n}h ago","daysAgo":"{n}d ago"}</script>
-<div id="docmd-ai-root"></div><script>window.__docmd_ai_config={"endpoint":"","cloud":{},"captcha":true,"position":"bottom-center","siteTitle":"tBMP","siteBase":"/tBMP/docs/","siteUrl":"https://NellowTCS.github.io/tBMP/docs","versions":null,"i18n":null,"navigation":[{"title":"Home","path":"/","icon":"home"},{"title":"Getting Started","icon":"rocket","collapsible":false,"children":[{"title":"Quick Start","path":"/getting-started/quickstart/","icon":"play"},{"title":"Core Concepts","path":"/getting-started/concepts/","icon":"book"}]},{"title":"Guide","icon":"book-open","collapsible":false,"children":[{"title":"Encoding","path":"/guide/encoding/","icon":"zap"},{"title":"Pixel Formats","path":"/guide/pixel-formats/","icon":"image"},{"title":"Metadata","path":"/guide/metadata/","icon":"file-text"},{"title":"CLI","path":"/guide/cli/","icon":"terminal"},{"title":"Versioning","path":"/guide/versioning/","icon":"git-branch"},{"title":"Design Philosophy","path":"/guide/design-philosophy/","icon":"compass"},{"title":"Embedded Systems","path":"/guide/embedded-systems/","icon":"cpu"},{"title":"Games","path":"/guide/games/","icon":"gamepad-2"}]},{"title":"Reference","icon":"file-code","collapsible":false,"path":"/api/","children":[{"title":"Core Types","path":"/api/types/","icon":"hash"},{"title":"Reader","path":"/api/reader/","icon":"book-open"},{"title":"Decoder","path":"/api/decoder/","icon":"download"},{"title":"Writer","path":"/api/writer/","icon":"upload"},{"title":"Rotation","path":"/api/rotation/","icon":"rotate-cw"},{"title":"Metadata","path":"/api/metadata/","icon":"file-text"},{"title":"WASM","path":"/api/wasm/","icon":"globe"}]},{"title":"Demo","path":"https://nellowtcs.me/tBMP/","icon":"play-circle","external":true},{"title":"GitHub","path":"https://github.com/NellowTCS/tBMP","icon":"github","external":true}],"searchCapabilities":{"keyword":true,"semantic":false},"isWorkspace":false,"workspaceProjects":[],"contextLimit":5};</script>
+<div id="docmd-ai-root"></div><script>window.__docmd_ai_config={"endpoint":"","cloud":{},"captcha":true,"position":"bottom-center","siteTitle":"tBMP","siteBase":"/tBMP/docs/","siteUrl":"https://NellowTCS.github.io/tBMP/docs","versions":null,"i18n":null,"navigation":[{"title":"Home","path":"/","icon":"home"},{"title":"Getting Started","icon":"rocket","collapsible":false,"children":[{"title":"Quick Start","path":"/getting-started/quickstart/","icon":"play"},{"title":"Core Concepts","path":"/getting-started/concepts/","icon":"book"}]},{"title":"Guide","icon":"book-open","collapsible":false,"children":[{"title":"Encoding","path":"/guide/encoding/","icon":"zap"},{"title":"Pixel Formats","path":"/guide/pixel-formats/","icon":"image"},{"title":"Metadata","path":"/guide/metadata/","icon":"file-text"},{"title":"CLI","path":"/guide/cli/","icon":"terminal"},{"title":"Versioning","path":"/guide/versioning/","icon":"git-branch"},{"title":"Design Philosophy","path":"/guide/design-philosophy/","icon":"compass"},{"title":"Embedded Systems","path":"/guide/embedded-systems/","icon":"cpu"},{"title":"Games","path":"/guide/games/","icon":"gamepad-2"}]},{"title":"Reference","icon":"file-code","collapsible":false,"path":"/api/","children":[{"title":"Core Types","path":"/api/types/","icon":"hash"},{"title":"Reader","path":"/api/reader/","icon":"book-open"},{"title":"Decoder","path":"/api/decoder/","icon":"download"},{"title":"Writer","path":"/api/writer/","icon":"upload"},{"title":"Rotation","path":"/api/rotation/","icon":"rotate-cw"},{"title":"Metadata","path":"/api/metadata/","icon":"file-text"},{"title":"WASM","path":"/api/wasm/","icon":"globe"}]},{"title":"Demo","path":"https://nellowtcs.me/tBMP/","icon":"play-circle","external":true},{"title":"GitHub","path":"https://github.com/NellowTCS/tBMP","icon":"github","external":true}],"searchCapabilities":{"keyword":true,"semantic":false},"isWorkspace":false,"workspaceProjects":[],"messageActions":false,"contextLimit":5};</script>
       
       
       
