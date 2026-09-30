@@ -7,7 +7,7 @@ path: /api/metadata/
 updated: 2026-09-30
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-09-30T17:17:53.208Z"
+  generated_at: "2026-09-30T17:18:14.424Z"
 ---
 ---
 title: "Metadata API"

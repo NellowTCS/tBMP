@@ -7,7 +7,7 @@ path: /api/decoder/
 updated: 2026-09-30
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-09-30T17:17:53.207Z"
+  generated_at: "2026-09-30T17:18:14.422Z"
 ---
 ---
 title: "Decoder API"

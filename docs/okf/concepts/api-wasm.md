@@ -7,7 +7,7 @@ path: /api/wasm/
 updated: 2026-09-30
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-09-30T17:17:53.211Z"
+  generated_at: "2026-09-30T17:18:14.426Z"
 ---
 ---
 title: "WASM API"
