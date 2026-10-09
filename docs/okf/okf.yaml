@@ -1,11 +1,11 @@
-okf_version: 0.9.6
+okf_version: 0.9.7
 bundle:
   name: tbmp
   title: tBMP
   description: ""
   url: "https://NellowTCS.github.io/tBMP/docs"
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-09-30T17:18:14.430Z"
+  generated_at: "2026-10-09T11:34:40.229Z"
   default_type: concept
 stats:
   concepts: 19
