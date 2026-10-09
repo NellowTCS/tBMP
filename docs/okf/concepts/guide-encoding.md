@@ -7,7 +7,7 @@ path: /guide/encoding/
 updated: 2026-10-09
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-10-09T11:34:40.226Z"
+  generated_at: "2026-10-09T11:35:04.154Z"
 ---
 ---
 title: "Encoding Guide"
