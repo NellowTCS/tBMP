@@ -4,10 +4,10 @@ title: "Quick Start"
 description: "Get tBMP up and running in 5 minutes."
 source: "https://NellowTCS.github.io/tBMP/docs/getting-started/quickstart/"
 path: /getting-started/quickstart/
-updated: 2026-10-09
+updated: 2026-10-15
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-10-09T11:35:04.153Z"
+  generated_at: "2026-10-15T23:53:25.919Z"
 ---
 ---
 title: "Quick Start"
