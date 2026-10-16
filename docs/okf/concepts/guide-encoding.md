@@ -4,10 +4,10 @@ title: "Encoding Guide"
 description: "Choose the right encoding mode for your image data."
 source: "https://NellowTCS.github.io/tBMP/docs/guide/encoding/"
 path: /guide/encoding/
-updated: 2026-10-15
+updated: 2026-10-16
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-10-15T23:53:51.060Z"
+  generated_at: "2026-10-16T00:02:58.280Z"
 ---
 ---
 title: "Encoding Guide"

@@ -4,10 +4,10 @@ title: "Core Concepts"
 description: "How tBMP structures its data and why it works the way it does."
 source: "https://NellowTCS.github.io/tBMP/docs/getting-started/concepts/"
 path: /getting-started/concepts/
-updated: 2026-10-15
+updated: 2026-10-16
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-10-15T23:53:51.057Z"
+  generated_at: "2026-10-16T00:02:58.277Z"
 ---
 ---
 title: "Core Concepts"

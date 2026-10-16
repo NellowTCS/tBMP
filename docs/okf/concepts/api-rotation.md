@@ -4,10 +4,10 @@ title: "Rotation API"
 description: "Rotate and transform images"
 source: "https://NellowTCS.github.io/tBMP/docs/api/rotation/"
 path: /api/rotation/
-updated: 2026-10-15
+updated: 2026-10-16
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-10-15T23:53:51.054Z"
+  generated_at: "2026-10-16T00:02:58.275Z"
 ---
 ---
 title: "Rotation API"
