@@ -4,10 +4,10 @@ title: "Metadata API"
 description: "Handle META sections"
 source: "https://NellowTCS.github.io/tBMP/docs/api/metadata/"
 path: /api/metadata/
-updated: 2026-10-16
+updated: 2026-10-23
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-10-16T00:02:58.274Z"
+  generated_at: "2026-10-23T04:06:32.452Z"
 ---
 ---
 title: "Metadata API"

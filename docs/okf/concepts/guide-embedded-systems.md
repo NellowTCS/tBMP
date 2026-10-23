@@ -4,10 +4,10 @@ title: "tBMP for Embedded Systems"
 description: "Patterns for using tBMP on RAM/flash constrained targets."
 source: "https://NellowTCS.github.io/tBMP/docs/guide/embedded-systems/"
 path: /guide/embedded-systems/
-updated: 2026-10-16
+updated: 2026-10-23
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-10-16T00:02:58.280Z"
+  generated_at: "2026-10-23T04:06:32.458Z"
 ---
 ---
 title: "tBMP for Embedded Systems"
