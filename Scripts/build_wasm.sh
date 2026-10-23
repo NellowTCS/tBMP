@@ -32,8 +32,8 @@ ensure_emsdk() {
     echo "==> Installing Emscripten..."
     git clone --depth 1 https://github.com/emscripten-core/emsdk.git "${EMSDK_DIR}"
     cd "${EMSDK_DIR}"
-    ./emsdk install latest
-    ./emsdk activate latest
+    ./emsdk install 6.0.13
+    ./emsdk activate 6.0.13
     source ./emsdk_env.sh
     echo "==> Emscripten installed"
 }
