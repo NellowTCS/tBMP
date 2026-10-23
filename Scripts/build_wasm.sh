@@ -64,11 +64,10 @@ build_wasm() {
         -s NO_EXIT_RUNTIME=1 \
         -s EXPORT_ES6=1 \
         -s MODULARIZE=1 \
-        -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap","UTF8ToString","allocate","HEAPU8"]' \
+        -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap","UTF8ToString","HEAPU8"]' \
         -s ALLOW_MEMORY_GROWTH=1 \
         -s INITIAL_MEMORY=33554432 \
         -s EXPORTED_FUNCTIONS='["_malloc","_free","_tbmp_load","_tbmp_reset","_tbmp_cleanup","_tbmp_width","_tbmp_height","_tbmp_pixel_format","_tbmp_encoding","_tbmp_bit_depth","_tbmp_error","_tbmp_has_palette","_tbmp_has_masks","_tbmp_has_extra","_tbmp_has_meta","_tbmp_pixels_ptr","_tbmp_pixels_len","_tbmp_image_info_json","_tbmp_meta_json","_tbmp_palette_json","_tbmp_masks_json","_tbmp_extra_json","_tbmp_error_string","_tbmp_pixels_copy","_tbmp_encode","_tbmp_write_needed","_tbmp_rotate_90","_tbmp_rotate_180","_tbmp_rotate_270","_tbmp_rotate_any","_tbmp_rotate_output_size","_tbmp_convert_pixel","_tbmp_dither","_tbmp_validate"]' \
-        -s ALLOW_MEMORY_GROWTH=1 \
         --emit-tsd "${OUT_DIR}/tbmp_wasm.d.ts" \
         -I"${ROOT_DIR}/include" \
         "${ROOT_DIR}/src/tbmp_reader.c" \
