@@ -7,7 +7,7 @@ path: /guide/embedded-systems/
 updated: 2026-10-26
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-10-26T18:09:43.788Z"
+  generated_at: "2026-10-26T18:10:10.756Z"
 ---
 ---
 title: "tBMP for Embedded Systems"

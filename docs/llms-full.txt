@@ -4,7 +4,7 @@
 
 ---
 
-## [Decoder API](https://NellowTCS.github.io/tBMP/docs/api/decoder/)
+## [Decoder API](https://NellowTCS.github.io/tBMP/docs/api/decoder/) (API)
 
 ---
 title: "Decoder API"
@@ -99,7 +99,7 @@ Bytes needed for inline pixel value in RLE/Span/Sparse modes.
 
 ---
 
-## [API Reference](https://NellowTCS.github.io/tBMP/docs/api/)
+## [API Reference](https://NellowTCS.github.io/tBMP/docs/api/) (API)
 
 ---
 title: "API Reference"
@@ -147,7 +147,7 @@ tbmp_write(&frame, &params, out, needed, &written);
 
 ---
 
-## [Metadata API](https://NellowTCS.github.io/tBMP/docs/api/metadata/)
+## [Metadata API](https://NellowTCS.github.io/tBMP/docs/api/metadata/) (API)
 
 ---
 title: "Metadata API"
@@ -221,7 +221,7 @@ See [Metadata Guide](../../guide/metadata) for full structure definition.
 
 ---
 
-## [Reader API](https://NellowTCS.github.io/tBMP/docs/api/reader/)
+## [Reader API](https://NellowTCS.github.io/tBMP/docs/api/reader/) (API)
 
 ---
 title: "Reader API"
@@ -276,7 +276,7 @@ Read little-endian integers from unaligned pointers. Safe on all architectures.
 
 ---
 
-## [Rotation API](https://NellowTCS.github.io/tBMP/docs/api/rotation/)
+## [Rotation API](https://NellowTCS.github.io/tBMP/docs/api/rotation/) (API)
 
 ---
 title: "Rotation API"
@@ -338,7 +338,7 @@ With `TBMP_NO_FLOAT` defined:
 
 ---
 
-## [Core Types](https://NellowTCS.github.io/tBMP/docs/api/types/)
+## [Core Types](https://NellowTCS.github.io/tBMP/docs/api/types/) (API)
 
 ---
 title: "Core Types"
@@ -497,7 +497,7 @@ typedef struct TBmpMasks {
 
 ---
 
-## [WASM API](https://NellowTCS.github.io/tBMP/docs/api/wasm/)
+## [WASM API](https://NellowTCS.github.io/tBMP/docs/api/wasm/) (API)
 
 ---
 title: "WASM API"
@@ -621,7 +621,7 @@ Same as C API. Call `tbmp_error_string(err, buf, len)` to get human-readable mes
 
 ---
 
-## [Writer API](https://NellowTCS.github.io/tBMP/docs/api/writer/)
+## [Writer API](https://NellowTCS.github.io/tBMP/docs/api/writer/) (API)
 
 ---
 title: "Writer API"
@@ -705,7 +705,7 @@ Generate a palette from frame colors.
 
 ---
 
-## [Core Concepts](https://NellowTCS.github.io/tBMP/docs/getting-started/concepts/)
+## [Core Concepts](https://NellowTCS.github.io/tBMP/docs/getting-started/concepts/) (Getting Started)
 
 ---
 title: "Core Concepts"
@@ -803,7 +803,7 @@ This makes tBMP suitable for bare-metal systems, game consoles, and firmware.
 
 ---
 
-## [Quick Start](https://NellowTCS.github.io/tBMP/docs/getting-started/quickstart/)
+## [Quick Start](https://NellowTCS.github.io/tBMP/docs/getting-started/quickstart/) (Getting Started)
 
 ---
 title: "Quick Start"
@@ -966,7 +966,7 @@ Common errors:
 
 ---
 
-## [CLI](https://NellowTCS.github.io/tBMP/docs/guide/cli/)
+## [CLI](https://NellowTCS.github.io/tBMP/docs/guide/cli/) (Guide)
 
 ---
 title: "CLI"
@@ -1211,7 +1211,7 @@ tbmp dump-rgba sprite.tbmp sprite.rgba
 
 ---
 
-## [Design Philosophy](https://NellowTCS.github.io/tBMP/docs/guide/design-philosophy/)
+## [Design Philosophy](https://NellowTCS.github.io/tBMP/docs/guide/design-philosophy/) (Guide)
 
 ---
 title: "Design Philosophy"
@@ -1294,7 +1294,7 @@ If the answer is mostly yes, it probably belongs in tBMP.
 
 ---
 
-## [tBMP for Embedded Systems](https://NellowTCS.github.io/tBMP/docs/guide/embedded-systems/)
+## [tBMP for Embedded Systems](https://NellowTCS.github.io/tBMP/docs/guide/embedded-systems/) (Guide)
 
 ---
 title: "tBMP for Embedded Systems"
@@ -1392,7 +1392,7 @@ The predictable wire layout makes binary inspection practical even with simple t
 
 ---
 
-## [Encoding Guide](https://NellowTCS.github.io/tBMP/docs/guide/encoding/)
+## [Encoding Guide](https://NellowTCS.github.io/tBMP/docs/guide/encoding/) (Guide)
 
 ---
 title: "Encoding Guide"
@@ -1523,7 +1523,7 @@ params.encoding = TBMP_ENC_RLE;
 
 ---
 
-## [tBMP for Games](https://NellowTCS.github.io/tBMP/docs/guide/games/)
+## [tBMP for Games](https://NellowTCS.github.io/tBMP/docs/guide/games/) (Guide)
 
 ---
 title: "tBMP for Games"
@@ -1611,7 +1611,7 @@ A slightly larger file with stable decode cost is often a better game-time trade
 
 ---
 
-## [Metadata and Extras](https://NellowTCS.github.io/tBMP/docs/guide/metadata/)
+## [Metadata and Extras](https://NellowTCS.github.io/tBMP/docs/guide/metadata/) (Guide)
 
 ---
 title: "Metadata and Extras"
@@ -1803,7 +1803,7 @@ if (rc != TBMP_OK) {
 
 ---
 
-## [Pixel Formats](https://NellowTCS.github.io/tBMP/docs/guide/pixel-formats/)
+## [Pixel Formats](https://NellowTCS.github.io/tBMP/docs/guide/pixel-formats/) (Guide)
 
 ---
 title: "Pixel Formats"
@@ -1899,7 +1899,7 @@ For indexed formats, pass the palette. For CUSTOM format, pass the masks. Other 
 
 ---
 
-## [Versioning and Evolution](https://NellowTCS.github.io/tBMP/docs/guide/versioning/)
+## [Versioning and Evolution](https://NellowTCS.github.io/tBMP/docs/guide/versioning/) (Guide)
 
 ---
 title: "Versioning and Evolution"
