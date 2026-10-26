@@ -4,10 +4,10 @@ title: "API Reference"
 description: "Complete function reference for the tBMP library."
 source: "https://NellowTCS.github.io/tBMP/docs/api/"
 path: /api/
-updated: 2026-10-23
+updated: 2026-10-26
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-10-23T04:12:23.652Z"
+  generated_at: "2026-10-26T18:09:25.133Z"
 ---
 ---
 title: "API Reference"
